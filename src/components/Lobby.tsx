@@ -1,16 +1,26 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
-import { useRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
+import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
 import { startGame } from "../hooks/useGame";
 import { startScoutGame } from "../hooks/useScoutGame";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
-  const { uid } = useAuthContext();
+  const { uid, username } = useAuthContext();
   const { room, loading, error } = useRoom(roomCode);
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+
+  // Auto-join if the player opened the lobby link but isn't in the room yet
+  useEffect(() => {
+    if (!room || !uid || !username || !roomCode) return;
+    if (room.status !== "lobby") return;
+    if (room.players[uid]) return; // already in the room
+    joinRoom(roomCode, uid, username).catch((err) =>
+      console.error("Auto-join failed:", err)
+    );
+  }, [room, uid, username, roomCode]);
 
   // Auto-redirect all players when game starts
   useEffect(() => {

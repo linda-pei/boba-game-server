@@ -4,6 +4,7 @@ import SetUsername from "./components/SetUsername";
 import Home from "./components/Home";
 import Lobby from "./components/Lobby";
 import GameRouter from "./components/GameRouter";
+import JoinRedirect from "./components/JoinRedirect";
 import "./App.css";
 
 function AppContent() {
@@ -20,6 +21,7 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/join/:roomCode" element={<JoinRedirect />} />
       <Route path="/lobby/:roomCode" element={<Lobby />} />
       <Route path="/game/:roomCode" element={<GameRouter />} />
     </Routes>

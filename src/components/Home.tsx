@@ -43,7 +43,7 @@ export default function Home() {
 
   return (
     <div className="home screen">
-      <h1>Things in Rings</h1>
+      <h1>Boba Game Time!</h1>
       <p>Welcome, {username}!</p>
 
       {error && <p className="error-message">{error}</p>}
