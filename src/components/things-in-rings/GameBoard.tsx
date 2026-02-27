@@ -3,6 +3,7 @@ import { useGame, useHand } from "../../hooks/useGame";
 import { useRoom } from "../../hooks/useRoom";
 import KnowerSetup from "./KnowerSetup";
 import KnowerJudge from "./KnowerJudge";
+import KnowerTurn from "./KnowerTurn";
 import PlayerTurn from "./PlayerTurn";
 import GameOver from "./GameOver";
 
@@ -42,12 +43,17 @@ export default function GameBoard({ roomCode }: Props) {
     );
   }
 
-  // In-progress — diagram is rendered by PlayerTurn or KnowerJudge
+  const isKnowersTurn = game.turnOrder[game.currentTurn] === uid;
+  const isCoopKnowerTurn = isKnower && game.mode === "coop" && isKnowersTurn;
+
+  // In-progress — diagram is rendered by PlayerTurn or KnowerJudge/KnowerTurn
   return (
     <div className="game-board screen">
       <h2>Things in Rings</h2>
 
-      {isKnower ? (
+      {isCoopKnowerTurn && hand ? (
+        <KnowerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} />
+      ) : isKnower ? (
         <KnowerJudge roomCode={roomCode} game={game} room={room} />
       ) : hand ? (
         <PlayerTurn

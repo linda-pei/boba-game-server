@@ -34,8 +34,8 @@ export default function RingDisplay({
   const geometries = getZoneGeometries();
   const zones = getZones();
 
-  // viewBox sized for 800x800 circle layout with generous top padding
-  const viewBox = "-10 -30 820 830";
+  // viewBox sized for 800x800 circle layout with generous padding
+  const viewBox = "-60 -30 920 830";
 
   // Group played cards by zone id
   const cardsByZone: Record<string, string[]> = {};
@@ -77,9 +77,9 @@ export default function RingDisplay({
       <svg viewBox={viewBox} xmlns="http://www.w3.org/2000/svg">
         {/* Background rect for "outside" zone */}
         <rect
-          x="-10"
+          x="-60"
           y="-30"
-          width="820"
+          width="920"
           height="830"
           fill="transparent"
           className={`venn-outside${interactive ? " interactive" : ""}${pendingZoneId === "outside" ? " active" : ""}`}

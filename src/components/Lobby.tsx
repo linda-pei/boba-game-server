@@ -31,8 +31,10 @@ export default function Lobby() {
   const isHost = room.host === uid;
   const players = Object.entries(room.players);
   const knower = room.settings.knower;
+  const mode = room.settings.mode ?? "competitive";
   const nonKnowerCount = players.filter(([id]) => id !== knower).length;
-  const canStart = !!knower && nonKnowerCount >= 2;
+  const minNonKnowers = mode === "coop" ? 1 : 2;
+  const canStart = !!knower && nonKnowerCount >= minNonKnowers;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -48,6 +50,11 @@ export default function Lobby() {
   const handleSetRings = (numRings: number) => {
     if (!roomCode) return;
     updateRoomSettings(roomCode, { numRings });
+  };
+
+  const handleSetMode = (newMode: "competitive" | "coop") => {
+    if (!roomCode) return;
+    updateRoomSettings(roomCode, { mode: newMode });
   };
 
   const handleStart = async () => {
@@ -97,6 +104,21 @@ export default function Lobby() {
             3 rings: Context (red), Attribute (blue), Word (green)
           </p>
 
+          <div className="mode-toggle">
+            <button
+              className={`mode-toggle-btn${mode === "competitive" ? " active" : ""}`}
+              onClick={() => handleSetMode("competitive")}
+            >
+              Competitive
+            </button>
+            <button
+              className={`mode-toggle-btn${mode === "coop" ? " active" : ""}`}
+              onClick={() => handleSetMode("coop")}
+            >
+              Co-op
+            </button>
+          </div>
+
           <div style={{ textAlign: "center" }}>
             <button onClick={handleStart} disabled={!canStart || starting}>
               {starting ? "Starting..." : "Start Game"}
@@ -105,7 +127,7 @@ export default function Lobby() {
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
                 {!knower
                   ? "Assign a Knower to start"
-                  : "Need at least 2 non-Knower players"}
+                  : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
               </p>
             )}
           </div>

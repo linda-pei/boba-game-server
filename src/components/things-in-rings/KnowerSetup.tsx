@@ -23,7 +23,7 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
   const zones = getZones();
   const cards = hand.cards;
   const assignedCards = Object.keys(assignments);
-  const needToAssign = game.numRings;
+  const needToAssign = game.numSetupCards;
 
   const handleAssign = (cardId: string, rings: number[]) => {
     setAssignments((prev) => ({ ...prev, [cardId]: rings }));
@@ -53,7 +53,7 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
     setSubmitting(true);
     try {
       await submitKnowerSetup(roomCode, ringLabels, assignments);
-      await discardKnowerCards(roomCode, uid, Object.keys(assignments));
+      await discardKnowerCards(roomCode, uid, Object.keys(assignments), game.mode === "coop");
     } catch (err) {
       console.error("Failed to submit knower setup:", err);
       setSubmitting(false);

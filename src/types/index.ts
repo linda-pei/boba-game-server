@@ -6,6 +6,7 @@ export interface Player {
 export interface RoomSettings {
   numRings: number;
   knower?: string;
+  mode?: "competitive" | "coop";
 }
 
 export interface Room {
@@ -42,6 +43,7 @@ export interface Game {
   deck: string[];
   turnOrder: string[];
   currentTurn: number;
+  numSetupCards: number;
   winner: string | null;
 }
 

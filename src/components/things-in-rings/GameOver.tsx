@@ -11,7 +11,17 @@ interface Props {
 export default function GameOver({ game, room, roomCode }: Props) {
   const navigate = useNavigate();
 
-  const winnerName = room?.players[game.winner ?? ""]?.name ?? "Unknown";
+  const isCoop = game.mode === "coop";
+  let resultMessage: string;
+
+  if (isCoop) {
+    resultMessage = game.winner === "team"
+      ? "Team Wins!"
+      : "Team Lost — Knower ran out of cards!";
+  } else {
+    const winnerName = room?.players[game.winner ?? ""]?.name ?? "Unknown";
+    resultMessage = `${winnerName} wins!`;
+  }
 
   const playedCards = [
     ...Object.entries(game.ringAssignments || {}).map(([cardId, rings]) => ({
@@ -27,7 +37,7 @@ export default function GameOver({ game, room, roomCode }: Props) {
   return (
     <div className="game-over screen">
       <h2>Game Over!</h2>
-      <h3>{winnerName} wins!</h3>
+      <h3>{resultMessage}</h3>
 
       <RingDisplay
         ringLabels={game.rings.map((r) => r.label)}

@@ -76,6 +76,8 @@ export async function startGame(
   const allPlayerUids = Object.keys(room.players);
   const nonKnowerUids = allPlayerUids.filter((uid) => uid !== knowerUid);
   const numRings = room.settings.numRings;
+  const mode = room.settings.mode ?? "competitive";
+  const isCoop = mode === "coop";
 
   const deck = shuffled(NOUN_CARDS);
 
@@ -85,24 +87,34 @@ export async function startGame(
   const wordClue = shuffled(WORD_CLUES)[0];
   const knowerClues = [contextClue, attributeClue, wordClue];
 
-  // Deal 5 cards to each player (including knower)
+  // Deal cards: knower gets 10 in co-op, 5 in competitive; non-knowers always get 5
   const hands: Record<string, string[]> = {};
-  for (const uid of allPlayerUids) {
+  const knowerHandSize = isCoop ? 10 : 5;
+  hands[knowerUid] = deck.splice(0, knowerHandSize);
+  for (const uid of nonKnowerUids) {
     hands[uid] = deck.splice(0, 5);
   }
 
+  // In co-op: numSetupCards = numPlayers + 1 (all players including knower)
+  // In competitive: numSetupCards = numRings
+  const numSetupCards = isCoop ? allPlayerUids.length + 1 : numRings;
+
+  // In co-op, knower is included at the end of turn order
+  const turnOrder = isCoop ? [...nonKnowerUids, knowerUid] : nonKnowerUids;
+
   const gameDoc: Game = {
     gameType: "things-in-rings",
-    mode: "competitive",
+    mode,
     status: "knower-setup",
     knower: knowerUid,
     numRings,
+    numSetupCards,
     rings: knowerClues.map((label) => ({ label })),
     ringAssignments: {},
     playedCards: {},
     pendingPlay: null,
     deck,
-    turnOrder: nonKnowerUids,
+    turnOrder,
     currentTurn: 0,
     winner: null,
   };
@@ -146,6 +158,56 @@ export async function playCard(
   });
 }
 
+// Helper: find the next turn index, skipping players with empty hands (co-op)
+async function getNextTurn(
+  roomCode: string,
+  game: Game,
+  fromTurn: number
+): Promise<number> {
+  if (game.mode !== "coop") {
+    return (fromTurn + 1) % game.turnOrder.length;
+  }
+
+  const len = game.turnOrder.length;
+  let next = (fromTurn + 1) % len;
+
+  // Walk through turn order, skipping players with empty hands (except knower)
+  for (let i = 0; i < len; i++) {
+    const uid = game.turnOrder[next];
+    if (uid === game.knower) return next; // never skip knower
+    const handRef = doc(db, "games", roomCode, "hands", uid);
+    const handSnap = await import("firebase/firestore").then((m) =>
+      m.getDoc(handRef)
+    );
+    if (handSnap.exists()) {
+      const cards: string[] = handSnap.data().cards;
+      if (cards.length > 0) return next;
+    }
+    next = (next + 1) % len;
+  }
+
+  return next;
+}
+
+// Helper: check if all non-knower players have empty hands (co-op win)
+async function checkCoopWin(
+  roomCode: string,
+  game: Game
+): Promise<boolean> {
+  for (const uid of game.turnOrder) {
+    if (uid === game.knower) continue;
+    const handRef = doc(db, "games", roomCode, "hands", uid);
+    const handSnap = await import("firebase/firestore").then((m) =>
+      m.getDoc(handRef)
+    );
+    if (handSnap.exists()) {
+      const cards: string[] = handSnap.data().cards;
+      if (cards.length > 0) return false;
+    }
+  }
+  return true;
+}
+
 // Knower judges: correct
 export async function judgeCorrect(
   roomCode: string,
@@ -173,12 +235,25 @@ export async function judgeCorrect(
     const newCards = currentCards.filter((c) => c !== pending.cardId);
     await setDoc(handRef, { cards: newCards });
 
-    // Check win condition
     if (newCards.length === 0) {
-      await updateDoc(doc(db, "games", roomCode), {
-        winner: playerUid,
-        status: "finished",
-      });
+      if (game.mode === "coop") {
+        // Check if ALL non-knower players are done
+        // (We just emptied this player's hand, so check others)
+        const allDone = await checkCoopWin(roomCode, game);
+        if (allDone) {
+          await updateDoc(doc(db, "games", roomCode), {
+            winner: "team",
+            status: "finished",
+          });
+        }
+        // Otherwise player sits out, game continues
+      } else {
+        // Competitive: first to empty wins
+        await updateDoc(doc(db, "games", roomCode), {
+          winner: playerUid,
+          status: "finished",
+        });
+      }
     }
   }
 }
@@ -204,7 +279,7 @@ export async function judgeIncorrect(
   const newDeck = [...game.deck];
   const drawnCard = newDeck.shift();
 
-  const nextTurn = (game.currentTurn + 1) % game.turnOrder.length;
+  const nextTurn = await getNextTurn(roomCode, game, game.currentTurn);
 
   // Move card to playedCards at correct position, advance turn
   await updateDoc(doc(db, "games", roomCode), {
@@ -230,13 +305,89 @@ export async function judgeIncorrect(
     }
     await setDoc(handRef, { cards: newCards });
   }
+
+  // Co-op lose check: if next turn is knower and knower has 0 cards
+  if (game.mode === "coop") {
+    const nextUid = game.turnOrder[nextTurn];
+    if (nextUid === game.knower) {
+      const knowerHandRef = doc(db, "games", roomCode, "hands", game.knower);
+      const knowerSnap = await import("firebase/firestore").then((m) =>
+        m.getDoc(knowerHandRef)
+      );
+      if (knowerSnap.exists()) {
+        const knowerCards: string[] = knowerSnap.data().cards;
+        if (knowerCards.length === 0) {
+          await updateDoc(doc(db, "games", roomCode), {
+            winner: null,
+            status: "finished",
+          });
+        }
+      }
+    }
+  }
 }
 
-// Remove cards from knower's hand after setup (discard the 2 unused)
+// Co-op: knower auto-places a card (no judging)
+export async function knowerAutoPlay(
+  roomCode: string,
+  game: Game,
+  cardId: string,
+  rings: number[],
+  knowerUid: string
+): Promise<void> {
+  // Place card on the board
+  await updateDoc(doc(db, "games", roomCode), {
+    [`playedCards.${cardId}`]: {
+      playedBy: knowerUid,
+      rings,
+    },
+  });
+
+  // Remove card from knower's hand
+  const handRef = doc(db, "games", roomCode, "hands", knowerUid);
+  const handSnap = await import("firebase/firestore").then((m) =>
+    m.getDoc(handRef)
+  );
+  if (handSnap.exists()) {
+    const currentCards: string[] = handSnap.data().cards;
+    const newCards = currentCards.filter((c) => c !== cardId);
+    await setDoc(handRef, { cards: newCards });
+
+    // Check if all non-knower players are done (win)
+    const allDone = await checkCoopWin(roomCode, game);
+    if (allDone) {
+      await updateDoc(doc(db, "games", roomCode), {
+        winner: "team",
+        status: "finished",
+      });
+      return;
+    }
+
+    // Advance to next player (skip empty hands)
+    const nextTurn = await getNextTurn(roomCode, game, game.currentTurn);
+    const nextUid = game.turnOrder[nextTurn];
+
+    // If next turn lands back on knower and knower is now empty → lose
+    if (nextUid === knowerUid && newCards.length === 0) {
+      await updateDoc(doc(db, "games", roomCode), {
+        winner: null,
+        status: "finished",
+      });
+      return;
+    }
+
+    await updateDoc(doc(db, "games", roomCode), { currentTurn: nextTurn });
+  }
+}
+
+// Remove assigned cards from knower's hand after setup
+// In competitive: knower's hand is emptied
+// In co-op: knower keeps unassigned cards
 export async function discardKnowerCards(
   roomCode: string,
   knowerUid: string,
-  keptCardIds: string[]
+  assignedCardIds: string[],
+  keepRemaining: boolean = false
 ): Promise<void> {
   const handRef = doc(db, "games", roomCode, "hands", knowerUid);
   const handSnap = await import("firebase/firestore").then((m) =>
@@ -244,8 +395,12 @@ export async function discardKnowerCards(
   );
   if (handSnap.exists()) {
     const currentCards: string[] = handSnap.data().cards;
-    const discarded = currentCards.filter((c) => !keptCardIds.includes(c));
-    // Knower keeps no cards in hand after setup — all used cards go to ringAssignments
-    await setDoc(handRef, { cards: [] });
+    if (keepRemaining) {
+      // Co-op: keep cards that weren't assigned
+      const remaining = currentCards.filter((c) => !assignedCardIds.includes(c));
+      await setDoc(handRef, { cards: remaining });
+    } else {
+      await setDoc(handRef, { cards: [] });
+    }
   }
 }

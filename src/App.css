@@ -159,6 +159,48 @@
   white-space: nowrap;
 }
 
+/* ---- Mode toggle ---- */
+.mode-toggle {
+  display: flex;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 1rem;
+}
+
+.mode-toggle-btn {
+  flex: 1;
+  padding: 0.45em 1em;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-light);
+  box-shadow: none;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.mode-toggle-btn:hover {
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+  transform: none;
+}
+
+.mode-toggle-btn.active {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.mode-toggle-btn.active:hover {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transform: none;
+}
+
 /* ---- Set Username ---- */
 .set-username form {
   display: flex;
