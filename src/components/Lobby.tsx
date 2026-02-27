@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
 import { useRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
 import { startGame } from "../hooks/useGame";
+import { startScoutGame } from "../hooks/useScoutGame";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -30,11 +31,20 @@ export default function Lobby() {
 
   const isHost = room.host === uid;
   const players = Object.entries(room.players);
+  const gameType = room.gameType || "things-in-rings";
+  const isScout = gameType === "scout";
+
+  // TIR-specific
   const knower = room.settings.knower;
   const mode = room.settings.mode ?? "competitive";
   const nonKnowerCount = players.filter(([id]) => id !== knower).length;
   const minNonKnowers = mode === "coop" ? 1 : 2;
-  const canStart = !!knower && nonKnowerCount >= minNonKnowers;
+  const canStartTIR = !!knower && nonKnowerCount >= minNonKnowers;
+
+  // Scout-specific
+  const canStartScout = players.length >= 3 && players.length <= 5;
+
+  const canStart = isScout ? canStartScout : canStartTIR;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -57,11 +67,20 @@ export default function Lobby() {
     updateRoomSettings(roomCode, { mode: newMode });
   };
 
+  const handleSetGameType = (type: string) => {
+    if (!roomCode) return;
+    updateRoomSettings(roomCode, { gameType: type });
+  };
+
   const handleStart = async () => {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      await startGame(roomCode, room);
+      if (isScout) {
+        await startScoutGame(roomCode, room);
+      } else {
+        await startGame(roomCode, room);
+      }
       navigate(`/game/${roomCode}`);
     } catch (err) {
       console.error("Failed to start game:", err);
@@ -84,8 +103,10 @@ export default function Lobby() {
             <div key={id} className="player-chip">
               {player.name}
               {id === room.host && <span className="badge badge-host">Host</span>}
-              {id === knower && <span className="badge badge-knower">Knower</span>}
-              {isHost && id !== knower && (
+              {!isScout && id === knower && (
+                <span className="badge badge-knower">Knower</span>
+              )}
+              {!isScout && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn-small btn-secondary"
@@ -100,24 +121,55 @@ export default function Lobby() {
       {isHost && (
         <div className="settings-panel">
           <h3>Settings</h3>
-          <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-            3 rings: Context (red), Attribute (blue), Word (green)
-          </p>
 
-          <div className="mode-toggle">
+          {/* Game type toggle */}
+          <div className="mode-toggle" style={{ marginBottom: "1rem" }}>
             <button
-              className={`mode-toggle-btn${mode === "competitive" ? " active" : ""}`}
-              onClick={() => handleSetMode("competitive")}
+              className={`mode-toggle-btn${gameType === "things-in-rings" ? " active" : ""}`}
+              onClick={() => handleSetGameType("things-in-rings")}
             >
-              Competitive
+              Things in Rings
             </button>
             <button
-              className={`mode-toggle-btn${mode === "coop" ? " active" : ""}`}
-              onClick={() => handleSetMode("coop")}
+              className={`mode-toggle-btn${gameType === "scout" ? " active" : ""}`}
+              onClick={() => handleSetGameType("scout")}
             >
-              Co-op
+              Scout
             </button>
           </div>
+
+          {/* TIR settings */}
+          {!isScout && (
+            <>
+              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                3 rings: Context (red), Attribute (blue), Word (green)
+              </p>
+              <div className="mode-toggle">
+                <button
+                  className={`mode-toggle-btn${mode === "competitive" ? " active" : ""}`}
+                  onClick={() => handleSetMode("competitive")}
+                >
+                  Competitive
+                </button>
+                <button
+                  className={`mode-toggle-btn${mode === "coop" ? " active" : ""}`}
+                  onClick={() => handleSetMode("coop")}
+                >
+                  Co-op
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Scout info */}
+          {isScout && (
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Scout requires 3–5 players.{" "}
+              {players.length < 3
+                ? `Need ${3 - players.length} more.`
+                : `${players.length} players — ready!`}
+            </p>
+          )}
 
           <div style={{ textAlign: "center" }}>
             <button onClick={handleStart} disabled={!canStart || starting}>
@@ -125,9 +177,13 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {!knower
-                  ? "Assign a Knower to start"
-                  : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
+                {isScout
+                  ? players.length < 3
+                    ? "Need at least 3 players for Scout"
+                    : "Too many players (max 5 for Scout)"
+                  : !knower
+                    ? "Assign a Knower to start"
+                    : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
               </p>
             )}
           </div>

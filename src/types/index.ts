@@ -50,3 +50,33 @@ export interface Game {
 export interface Hand {
   cards: string[];
 }
+
+// ---- Scout types ----
+
+export interface ScoutCard {
+  id: string;    // always "low-high", e.g. "3-7"
+  top: number;
+  bottom: number;
+}
+
+export interface ScoutHand {
+  cards: ScoutCard[];
+  hasUsedScoutPlay: boolean;
+}
+
+export interface ScoutGame {
+  gameType: "scout";
+  status: "setup" | "in-progress" | "round-end" | "finished";
+  turnOrder: string[];
+  currentTurn: number;
+  dealerIndex: number;
+  roundNumber: number;
+  centerPile: { cards: ScoutCard[]; playedBy: string } | null;
+  consecutiveScouts: number;
+  scores: Record<string, { capturedCount: number; dollarTokens: number }>;
+  cumulativeScores: Record<string, number>;
+  setupConfirmed: Record<string, boolean>;
+  roundEndReason: "hand-emptied" | "uncontested" | null;
+  roundEndPlayer: string | null;
+  winner: string | null;
+}
