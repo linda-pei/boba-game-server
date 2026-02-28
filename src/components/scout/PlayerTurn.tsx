@@ -217,6 +217,17 @@ export default function PlayerTurn({
     <div className="screen scout-screen">
       <h2>Round {game.roundNumber}</h2>
 
+      {/* Last action */}
+      {game.lastAction && (() => {
+        const prevIndex = (game.currentTurn - 1 + game.turnOrder.length) % game.turnOrder.length;
+        const prevName = room.players[game.turnOrder[prevIndex]]?.name ?? "Unknown";
+        return (
+          <p style={{ fontSize: "0.85rem", color: "var(--text-light)", margin: "0 0 0.5rem" }}>
+            {prevName} {game.lastAction}
+          </p>
+        );
+      })()}
+
       {/* Turn status */}
       <div className={`turn-status${isMyTurn ? " my-turn" : ""}`}>
         {isMyTurn ? "Your turn!" : `${currentPlayerName}'s turn`}

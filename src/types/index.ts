@@ -79,4 +79,5 @@ export interface ScoutGame {
   roundEndReason: "hand-emptied" | "uncontested" | null;
   roundEndPlayer: string | null;
   winner: string | null;
+  lastAction: string | null;
 }

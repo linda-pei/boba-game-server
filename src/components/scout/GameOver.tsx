@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { useAuthContext } from "../../hooks/AuthContext";
+import confetti from "canvas-confetti";
 import type { ScoutGame, Room } from "../../types";
 
 interface GameOverProps {
@@ -22,6 +24,18 @@ export default function GameOver({ game, room }: GameOverProps) {
   const winnerName = game.winner
     ? room.players[game.winner]?.name ?? "Unknown"
     : "Unknown";
+
+  useEffect(() => {
+    if (game.winner !== uid) return;
+    const duration = 2000;
+    const end = Date.now() + duration;
+    const frame = () => {
+      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
+      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, []);
 
   const handleBackToLobby = async () => {
     if (!roomCode) return;

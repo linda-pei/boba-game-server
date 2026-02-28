@@ -225,6 +225,7 @@ export async function startScoutGame(
     roundEndReason: null,
     roundEndPlayer: null,
     winner: null,
+    lastAction: null,
   };
 
   await setDoc(doc(db, "games", roomCode), gameDoc);
@@ -289,10 +290,12 @@ export async function playScoutCards(
 
   const newScores = addCaptured(game.scores, uid, capturedCount);
 
+  const cardLabel = selectedCards.map((c) => c.top).join("-");
   const updates: Record<string, unknown> = {
     centerPile: { cards: selectedCards, playedBy: uid },
     consecutiveScouts: 0,
     scores: newScores,
+    lastAction: `showed ${cardLabel}`,
   };
 
   if (newCards.length === 0) {
@@ -333,6 +336,7 @@ export async function scoutCard(
     consecutiveScouts: newConsecutiveScouts,
     scores: newScores,
     currentTurn: (game.currentTurn + 1) % game.turnOrder.length,
+    lastAction: `scouted ${taken.top}`,
   };
 
   if (newConsecutiveScouts >= game.turnOrder.length - 1) {
@@ -387,10 +391,12 @@ export async function scoutAndPlay(
   let newScores = awardDollarToken(game.scores, game.centerPile.playedBy);
   newScores = addCaptured(newScores, uid, remaining.length);
 
+  const playLabel = selectedCards.map((c) => c.top).join("-");
   const updates: Record<string, unknown> = {
     centerPile: { cards: selectedCards, playedBy: uid },
     consecutiveScouts: 0,
     scores: newScores,
+    lastAction: `scouted ${taken.top} & showed ${playLabel}`,
   };
 
   if (finalCards.length === 0) {
@@ -472,6 +478,7 @@ export async function startNextRound(
     setupConfirmed,
     roundEndReason: null,
     roundEndPlayer: null,
+    lastAction: null,
   });
 
   for (let i = 0; i < game.turnOrder.length; i++) {
