@@ -92,11 +92,11 @@ export default function RingDisplay({
             x="15"
             y="785"
             fill="var(--text-light)"
-            fontSize={13}
+            fontSize={18}
             fontStyle="italic"
             pointerEvents="none"
           >
-            click here for outside all rings
+            click here for None
           </text>
         )}
 
@@ -149,11 +149,11 @@ export default function RingDisplay({
 
           if (allCards.length === 0) return null;
 
-          // Size: up to 3 columns, generous height
-          const cols = Math.min(allCards.length, 3);
-          const rows = Math.ceil(allCards.length / 3);
-          const chipWidth = cols * 90 + 10;
-          const chipHeight = rows * 24 + 8;
+          // Size: up to 2 columns, stack vertically when many cards
+          const cols = Math.min(allCards.length, 2);
+          const rows = Math.ceil(allCards.length / 2);
+          const chipWidth = cols * 100 + 10;
+          const chipHeight = rows * 28 + 8;
 
           return (
             <foreignObject
@@ -212,7 +212,7 @@ export default function RingDisplay({
               <div
                 style={{
                   color: RING_COLORS[i],
-                  fontSize: "15px",
+                  fontSize: "18px",
                   fontWeight: 700,
                   textAlign: "center",
                   lineHeight: "1.2",
