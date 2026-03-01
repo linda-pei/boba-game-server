@@ -68,6 +68,31 @@ export function useHand(roomCode: string | undefined, uid: string | null) {
   return hand;
 }
 
+/** Card count for each player, visible to all. */
+export function useAllHandCounts(
+  roomCode: string | undefined,
+  playerUids: string[]
+) {
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!roomCode || playerUids.length === 0) return;
+
+    const unsubs = playerUids.map((uid) =>
+      onSnapshot(doc(db, "games", roomCode, "hands", uid), (snapshot) => {
+        if (snapshot.exists()) {
+          const cards: string[] = snapshot.data().cards ?? [];
+          setCounts((prev) => ({ ...prev, [uid]: cards.length }));
+        }
+      })
+    );
+
+    return () => unsubs.forEach((u) => u());
+  }, [roomCode, playerUids.join(",")]);
+
+  return counts;
+}
+
 export async function startGame(
   roomCode: string,
   room: Room
@@ -112,6 +137,7 @@ export async function startGame(
     rings: knowerClues.map((label) => ({ label })),
     ringAssignments: {},
     playedCards: {},
+    playOrder: [],
     pendingPlay: null,
     deck,
     turnOrder,
@@ -142,6 +168,7 @@ export async function submitKnowerSetup(
   await updateDoc(doc(db, "games", roomCode), {
     rings: ringLabels.map((label) => ({ label })),
     ringAssignments,
+    playOrder: Object.keys(ringAssignments),
     status: "in-progress",
   });
 }
@@ -222,6 +249,7 @@ export async function judgeCorrect(
       playedBy: pending.playedBy,
       rings: pending.rings,
     },
+    playOrder: [...(game.playOrder || []), pending.cardId],
     pendingPlay: null,
   });
 
@@ -237,25 +265,39 @@ export async function judgeCorrect(
 
     if (newCards.length === 0) {
       if (game.mode === "coop") {
-        // Check if ALL non-knower players are done
-        // (We just emptied this player's hand, so check others)
         const allDone = await checkCoopWin(roomCode, game);
         if (allDone) {
           await updateDoc(doc(db, "games", roomCode), {
             winner: "team",
             status: "finished",
           });
+          return;
         }
-        // Otherwise player sits out, game continues
       } else {
         // Competitive: first to empty wins
         await updateDoc(doc(db, "games", roomCode), {
           winner: playerUid,
           status: "finished",
         });
+        return;
       }
     }
   }
+
+  // Correct play: player keeps their turn (both modes).
+  // Only advance if their hand is now empty (coop: skip to next; competitive: already handled above as win).
+  if (game.mode === "coop") {
+    const handRef2 = doc(db, "games", roomCode, "hands", playerUid);
+    const handSnap2 = await import("firebase/firestore").then((m) =>
+      m.getDoc(handRef2)
+    );
+    const remaining = handSnap2.exists() ? (handSnap2.data().cards as string[]).length : 0;
+    if (remaining === 0) {
+      const nextTurn = await getNextTurn(roomCode, game, game.currentTurn);
+      await updateDoc(doc(db, "games", roomCode), { currentTurn: nextTurn });
+    }
+  }
+  // Competitive: player already won if hand is empty (returned above), otherwise stay on their turn.
 }
 
 // Knower judges: incorrect — places card in correct zone
@@ -287,6 +329,7 @@ export async function judgeIncorrect(
       playedBy: pending.playedBy,
       rings: correctRings,
     },
+    playOrder: [...(game.playOrder || []), pending.cardId],
     pendingPlay: null,
     deck: newDeck,
     currentTurn: nextTurn,
@@ -341,6 +384,7 @@ export async function knowerAutoPlay(
       playedBy: knowerUid,
       rings,
     },
+    playOrder: [...(game.playOrder || []), cardId],
   });
 
   // Remove card from knower's hand

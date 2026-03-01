@@ -39,6 +39,7 @@ export interface Game {
   rings: { label: string }[];
   ringAssignments: Record<string, number[]>;
   playedCards: Record<string, PlayedCard>;
+  playOrder: string[];
   pendingPlay: PendingPlay | null;
   deck: string[];
   turnOrder: string[];

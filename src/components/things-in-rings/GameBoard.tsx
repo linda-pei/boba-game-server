@@ -1,5 +1,5 @@
 import { useAuthContext } from "../../hooks/AuthContext";
-import { useGame, useHand } from "../../hooks/useGame";
+import { useGame, useHand, useAllHandCounts } from "../../hooks/useGame";
 import { useRoom } from "../../hooks/useRoom";
 import KnowerSetup from "./KnowerSetup";
 import KnowerJudge from "./KnowerJudge";
@@ -16,6 +16,8 @@ export default function GameBoard({ roomCode }: Props) {
   const { game, loading, error } = useGame(roomCode);
   const { room } = useRoom(roomCode);
   const hand = useHand(roomCode, uid);
+  const allPlayerUids = room ? Object.keys(room.players) : [];
+  const handCounts = useAllHandCounts(roomCode, allPlayerUids);
 
   if (loading) return <p>Loading game...</p>;
   if (error) return <p className="error-message">Error: {error}</p>;
@@ -47,14 +49,34 @@ export default function GameBoard({ roomCode }: Props) {
   const isCoopKnowerTurn = isKnower && game.mode === "coop" && isKnowersTurn;
 
   // In-progress — diagram is rendered by PlayerTurn or KnowerJudge/KnowerTurn
+  const currentTurnUid = game.turnOrder[game.currentTurn];
+
   return (
     <div className="game-board screen">
       <h2>Things in Rings</h2>
 
+      <div className="tir-players">
+        {game.turnOrder.map((pid) => {
+          const player = room?.players[pid];
+          const name = player?.name ?? pid;
+          const count = handCounts[pid] ?? 0;
+          const isActive = pid === currentTurnUid && !game.pendingPlay;
+          const isKnowerPlayer = pid === game.knower;
+          return (
+            <span key={pid} className={`tir-player-chip${isActive ? " active" : ""}`}>
+              {name}
+              {isKnowerPlayer && <span className="tir-knower-badge">K</span>}
+              {pid === uid && <span className="tir-you"> (you)</span>}
+              <span className="tir-card-count">{count} cards</span>
+            </span>
+          );
+        })}
+      </div>
+
       {isCoopKnowerTurn && hand ? (
         <KnowerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} />
       ) : isKnower ? (
-        <KnowerJudge roomCode={roomCode} game={game} room={room} />
+        <KnowerJudge roomCode={roomCode} game={game} room={room} hand={game.mode === "coop" ? hand : undefined} />
       ) : hand ? (
         <PlayerTurn
           roomCode={roomCode}

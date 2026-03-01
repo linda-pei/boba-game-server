@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { knowerAutoPlay } from "../../hooks/useGame";
+import { getOrderedPlayedCards } from "../../utils/zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand } from "../../types";
 
@@ -27,16 +28,7 @@ export default function KnowerTurn({ roomCode, game, hand, uid }: Props) {
     }
   };
 
-  const playedCards = [
-    ...Object.entries(game.ringAssignments || {}).map(([cardId, rings]) => ({
-      cardId,
-      rings,
-    })),
-    ...Object.entries(game.playedCards).map(([cardId, info]) => ({
-      cardId,
-      rings: info.rings,
-    })),
-  ];
+  const playedCards = getOrderedPlayedCards(game.ringAssignments, game.playedCards, game.playOrder);
 
   return (
     <div className="knower-turn">

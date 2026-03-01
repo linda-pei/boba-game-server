@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { useAuthContext } from "../../hooks/AuthContext";
+import { getOrderedPlayedCards } from "../../utils/zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Room } from "../../types";
 
@@ -41,16 +42,7 @@ export default function GameOver({ game, room, roomCode }: Props) {
     frame();
   }, []);
 
-  const playedCards = [
-    ...Object.entries(game.ringAssignments || {}).map(([cardId, rings]) => ({
-      cardId,
-      rings,
-    })),
-    ...Object.entries(game.playedCards).map(([cardId, info]) => ({
-      cardId,
-      rings: info.rings,
-    })),
-  ];
+  const playedCards = getOrderedPlayedCards(game.ringAssignments, game.playedCards, game.playOrder);
 
   return (
     <div className="game-over screen">

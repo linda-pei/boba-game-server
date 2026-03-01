@@ -35,7 +35,7 @@ export default function RingDisplay({
   const zones = getZones();
 
   // viewBox sized for 800x800 circle layout with generous padding
-  const viewBox = "-60 -30 920 830";
+  const viewBox = "-60 -30 920 920";
 
   // Group played cards by zone id
   const cardsByZone: Record<string, string[]> = {};
@@ -80,17 +80,17 @@ export default function RingDisplay({
           x="-60"
           y="-30"
           width="920"
-          height="830"
+          height="920"
           fill="transparent"
           className={`venn-outside${interactive ? " interactive" : ""}${pendingZoneId === "outside" ? " active" : ""}`}
-          onClick={() => handleClick({ id: "outside", label: "Outside all", rings: [] })}
+          onClick={() => handleClick({ id: "outside", label: "None", rings: [] })}
         />
 
         {/* "Outside" hint when interactive */}
         {interactive && (
           <text
             x="15"
-            y="785"
+            y="855"
             fill="var(--text-light)"
             fontSize={18}
             fontStyle="italic"

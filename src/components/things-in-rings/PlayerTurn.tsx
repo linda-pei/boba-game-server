@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { playCard } from "../../hooks/useGame";
-import { getZones, findZone } from "../../utils/zones";
+import { getZones, findZone, getOrderedPlayedCards } from "../../utils/zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand, Room } from "../../types";
 
@@ -39,16 +39,7 @@ export default function PlayerTurn({
     }
   };
 
-  const playedCards = [
-    ...Object.entries(game.ringAssignments || {}).map(([cardId, rings]) => ({
-      cardId,
-      rings,
-    })),
-    ...Object.entries(game.playedCards).map(([cardId, info]) => ({
-      cardId,
-      rings: info.rings,
-    })),
-  ];
+  const playedCards = getOrderedPlayedCards(game.ringAssignments, game.playedCards, game.playOrder);
 
   if (game.pendingPlay) {
     const placedZone = findZone(zones, game.pendingPlay.rings);
@@ -86,7 +77,7 @@ export default function PlayerTurn({
         <h4>Your Hand</h4>
         <div className="hand">
           {hand.cards.map((card) => (
-            <div key={card} className="game-card" style={{ cursor: "default" }}>
+            <div key={card} className="game-card disabled">
               {card}
             </div>
           ))}

@@ -2,8 +2,11 @@ import { useState } from "react";
 import { submitKnowerSetup, discardKnowerCards } from "../../hooks/useGame";
 import { getZones, findZone } from "../../utils/zones";
 import { RING_COLORS, RING_CATEGORIES } from "../../utils/vennPaths";
+import { CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES } from "../../utils/deck";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand } from "../../types";
+
+const CLUE_POOLS = [CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES];
 
 interface Props {
   roomCode: string;
@@ -19,6 +22,16 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
   const [assignments, setAssignments] = useState<Record<string, number[]>>({});
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const rotateClue = (ringIndex: number) => {
+    const pool = CLUE_POOLS[ringIndex];
+    const current = ringLabels[ringIndex];
+    const others = pool.filter((c) => c !== current);
+    const next = others[Math.floor(Math.random() * others.length)];
+    const updated = [...ringLabels];
+    updated[ringIndex] = next;
+    setRingLabels(updated);
+  };
 
   const zones = getZones();
   const cards = hand.cards;
@@ -87,6 +100,14 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
               }}
               placeholder={`Clue for ${RING_CATEGORIES[i].toLowerCase()}`}
             />
+            <button
+              type="button"
+              className="btn-small btn-secondary btn-icon"
+              onClick={() => rotateClue(i)}
+              title="New random clue"
+            >
+              &#x21bb;
+            </button>
           </div>
         ))}
       </div>

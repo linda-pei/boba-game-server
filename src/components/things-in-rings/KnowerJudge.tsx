@@ -1,31 +1,23 @@
 import { useState } from "react";
 import { judgeCorrect, judgeIncorrect } from "../../hooks/useGame";
-import { getZones, findZone } from "../../utils/zones";
+import { getZones, findZone, getOrderedPlayedCards } from "../../utils/zones";
 import RingDisplay from "./RingDisplay";
-import type { Game, Room } from "../../types";
+import type { Game, Hand, Room } from "../../types";
 
 interface Props {
   roomCode: string;
   game: Game;
   room: Room | null;
+  hand?: Hand | null;
 }
 
-export default function KnowerJudge({ roomCode, game, room }: Props) {
+export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
   const [judging, setJudging] = useState(false);
   const [correctingZone, setCorrectingZone] = useState(false);
   const pending = game.pendingPlay;
   const zones = getZones();
 
-  const playedCards = [
-    ...Object.entries(game.ringAssignments || {}).map(([cardId, rings]) => ({
-      cardId,
-      rings,
-    })),
-    ...Object.entries(game.playedCards).map(([cardId, info]) => ({
-      cardId,
-      rings: info.rings,
-    })),
-  ];
+  const playedCards = getOrderedPlayedCards(game.ringAssignments, game.playedCards, game.playOrder);
 
   if (!pending) {
     const currentPlayerUid = game.turnOrder[game.currentTurn];
@@ -41,6 +33,16 @@ export default function KnowerJudge({ roomCode, game, room }: Props) {
           showClues
           playedCards={playedCards}
         />
+        {hand && hand.cards.length > 0 && (
+          <>
+            <h4>Your Hand ({hand.cards.length} cards)</h4>
+            <div className="hand">
+              {hand.cards.map((card) => (
+                <div key={card} className="game-card disabled">{card}</div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -107,6 +109,16 @@ export default function KnowerJudge({ roomCode, game, room }: Props) {
         interactive={correctingZone}
         onZoneClick={handleIncorrect}
       />
+      {hand && hand.cards.length > 0 && (
+        <>
+          <h4>Your Hand ({hand.cards.length} cards)</h4>
+          <div className="hand">
+            {hand.cards.map((card) => (
+              <div key={card} className="game-card disabled">{card}</div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

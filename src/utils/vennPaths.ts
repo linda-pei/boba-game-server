@@ -203,7 +203,7 @@ export function getZoneGeometries(): ZoneGeometry[] {
     { id: "0,2", path: lens13, centroid: centroid13 },
     { id: "1,2", path: lens23, centroid: centroid23 },
     { id: "0,1,2", path: triPath, centroid: { x: triCx, y: triCy } },
-    { id: "outside", path: "", centroid: { x: 80, y: 760 } },
+    { id: "outside", path: "", centroid: { x: 80, y: 830 } },
   ];
 }
 

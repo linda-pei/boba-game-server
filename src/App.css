@@ -243,10 +243,15 @@
   user-select: none;
 }
 
-.game-card:hover {
+.game-card:hover:not(.disabled) {
   border-color: var(--accent-primary);
   box-shadow: var(--shadow-md);
   transform: translateY(-3px);
+}
+
+.game-card.disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .game-card.selected {
@@ -376,6 +381,25 @@
   flex: 1;
 }
 
+.btn-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.25rem 0.45rem;
+  min-width: unset;
+  background: transparent;
+  border: none;
+  color: var(--text-light);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  color: var(--text-primary);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
 /* ---- Game board status ---- */
 .turn-status {
   background: var(--bg-secondary);
@@ -388,6 +412,54 @@
 .turn-status.my-turn {
   background: rgba(224, 122, 95, 0.1);
   border: 1px solid rgba(224, 122, 95, 0.2);
+}
+
+/* ---- TIR: Player info ---- */
+.tir-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+
+.tir-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.tir-player-chip.active {
+  background: rgba(224, 122, 95, 0.12);
+  border: 1px solid rgba(224, 122, 95, 0.3);
+  font-weight: 600;
+}
+
+.tir-you {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.tir-card-count {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-left: 0.25rem;
+}
+
+.tir-knower-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-light);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+  margin-left: 0.3rem;
 }
 
 /* ---- Scout: Cards ---- */
