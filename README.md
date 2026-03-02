@@ -54,3 +54,9 @@ Open http://localhost:5173 in your browser. You should see a green "Firebase con
 npm run build
 npm run preview
 ```
+
+## Deploying
+
+```bash
+firebase deploy
+```
