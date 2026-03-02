@@ -4,6 +4,7 @@ import { useAuthContext } from "../hooks/AuthContext";
 import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
 import { startGame } from "../hooks/useGame";
 import { startScoutGame } from "../hooks/useScoutGame";
+import { startWerewordsGame } from "../hooks/useWerewordsGame";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -43,6 +44,7 @@ export default function Lobby() {
   const players = Object.entries(room.players);
   const gameType = room.gameType || "things-in-rings";
   const isScout = gameType === "scout";
+  const isWerewords = gameType === "werewords";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -54,7 +56,14 @@ export default function Lobby() {
   // Scout-specific
   const canStartScout = players.length >= 3 && players.length <= 5;
 
-  const canStart = isScout ? canStartScout : canStartTIR;
+  // Werewords-specific
+  const canStartWerewords = players.length >= 4 && players.length <= 11;
+
+  const canStart = isScout
+    ? canStartScout
+    : isWerewords
+      ? canStartWerewords
+      : canStartTIR;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -88,6 +97,8 @@ export default function Lobby() {
     try {
       if (isScout) {
         await startScoutGame(roomCode, room);
+      } else if (isWerewords) {
+        await startWerewordsGame(roomCode, room);
       } else {
         await startGame(roomCode, room);
       }
@@ -113,10 +124,10 @@ export default function Lobby() {
             <div key={id} className="player-chip">
               {player.name}
               {id === room.host && <span className="badge badge-host">Host</span>}
-              {!isScout && id === knower && (
+              {!isScout && !isWerewords && id === knower && (
                 <span className="badge badge-knower">Knower</span>
               )}
-              {!isScout && isHost && id !== knower && (
+              {!isScout && !isWerewords && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn-small btn-secondary"
@@ -146,10 +157,16 @@ export default function Lobby() {
             >
               Scout
             </button>
+            <button
+              className={`mode-toggle-btn${gameType === "werewords" ? " active" : ""}`}
+              onClick={() => handleSetGameType("werewords")}
+            >
+              Werewords
+            </button>
           </div>
 
           {/* TIR settings */}
-          {!isScout && (
+          {!isScout && !isWerewords && (
             <>
               <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
                 3 rings: Context (red), Attribute (blue), Word (green)
@@ -181,19 +198,33 @@ export default function Lobby() {
             </p>
           )}
 
+          {/* Werewords info */}
+          {isWerewords && (
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Werewords requires 4–11 players.{" "}
+              {players.length < 4
+                ? `Need ${4 - players.length} more.`
+                : `${players.length} players — ready!`}
+            </p>
+          )}
+
           <div style={{ textAlign: "center" }}>
             <button onClick={handleStart} disabled={!canStart || starting}>
               {starting ? "Starting..." : "Start Game"}
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isScout
-                  ? players.length < 3
-                    ? "Need at least 3 players for Scout"
-                    : "Too many players (max 5 for Scout)"
-                  : !knower
-                    ? "Assign a Knower to start"
-                    : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
+                {isWerewords
+                  ? players.length < 4
+                    ? "Need at least 4 players for Werewords"
+                    : "Too many players (max 11 for Werewords)"
+                  : isScout
+                    ? players.length < 3
+                      ? "Need at least 3 players for Scout"
+                      : "Too many players (max 5 for Scout)"
+                    : !knower
+                      ? "Assign a Knower to start"
+                      : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
               </p>
             )}
           </div>

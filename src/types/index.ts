@@ -52,6 +52,41 @@ export interface Hand {
   cards: string[];
 }
 
+// ---- Werewords types ----
+
+export type WerewordsRole = "mayor" | "seer" | "werewolf" | "villager";
+export type WerewordsStatus =
+  | "role-reveal"
+  | "word-setup"
+  | "in-progress"
+  | "werewolf-guess"
+  | "voting"
+  | "finished";
+export type GuessResponse = "yes" | "no" | "maybe" | "so-close" | "correct";
+
+export interface WerewordsGame {
+  gameType: "werewords";
+  status: WerewordsStatus;
+  mayor: string;
+  turnOrder: string[];
+  magicWord: string;
+  guesses: Record<string, GuessResponse[]>;
+  soCloseUsed: boolean;
+  wayOff: boolean;
+  correctGuesser: string | null;
+  werewolfGuess: string | null;
+  votes: Record<string, string>;
+  winner: "villagers" | "werewolves" | null;
+  winReason: string | null;
+  roleRevealed: Record<string, boolean>;
+  revealedRoles: Record<string, WerewordsRole> | null;
+}
+
+export interface WerewordsHand {
+  role: WerewordsRole;
+  fellowWerewolves: string[];
+}
+
 // ---- Scout types ----
 
 export interface ScoutCard {

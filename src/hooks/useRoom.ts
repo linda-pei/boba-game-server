@@ -63,7 +63,7 @@ export async function createRoom(
     players: {
       [uid]: { name: username, order: 0 },
     },
-    maxPlayers: 6,
+    maxPlayers: 11,
     createdAt: serverTimestamp(),
   });
 
