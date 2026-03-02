@@ -58,7 +58,7 @@ export default function RoundEnd({ roomCode, game, room }: RoundEndProps) {
   };
 
   return (
-    <div className="screen">
+    <div className="screen scout-screen">
       <h2>Round {game.roundNumber} Complete</h2>
       <p>{reasonText}</p>
 

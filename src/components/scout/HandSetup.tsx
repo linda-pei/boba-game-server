@@ -22,7 +22,7 @@ export default function HandSetup({ roomCode, game, hand, uid, room }: HandSetup
 
   if (confirmed) {
     return (
-      <div className="screen">
+      <div className="screen scout-screen">
         <h2>Round {game.roundNumber}</h2>
         <p>Hand confirmed! Waiting for others...</p>
         {frozenCards && <HandDisplay cards={frozenCards} />}
@@ -55,9 +55,14 @@ export default function HandSetup({ roomCode, game, hand, uid, room }: HandSetup
   };
 
   return (
-    <div className="screen">
+    <div className="screen scout-screen">
       <h2>Round {game.roundNumber} — Choose Orientation</h2>
       <p>You may flip your entire hand (reverses order and swaps all numbers). Pick the orientation you want to keep.</p>
+      <p style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
+        {game.turnOrder[game.currentTurn] === uid
+          ? "You're going first this round!"
+          : `${room.players[game.turnOrder[game.currentTurn]]?.name ?? "Unknown"} goes first this round.`}
+      </p>
 
       {confirming ? (
         <HandDisplay cards={frozenCards!} />

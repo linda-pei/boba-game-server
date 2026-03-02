@@ -44,7 +44,7 @@ export default function GameOver({ game, room }: GameOverProps) {
   };
 
   return (
-    <div className="screen">
+    <div className="screen scout-screen">
       <h2>Game Over!</h2>
       <p style={{ fontSize: "1.2rem", fontWeight: 600 }}>
         {winnerName} wins!

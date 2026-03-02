@@ -67,9 +67,9 @@
 
 /* ---- Error ---- */
 .error-message {
-  background: rgba(196, 91, 91, 0.08);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
   color: var(--accent-danger);
-  border: 1px solid rgba(196, 91, 91, 0.2);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.5em 1em;
   font-size: 0.9rem;
@@ -94,7 +94,7 @@
 }
 
 .btn-danger:hover {
-  background-color: rgba(196, 91, 91, 0.08);
+  background-color: color-mix(in srgb, var(--accent-danger) 10%, transparent);
   box-shadow: none;
   transform: none;
 }
@@ -256,8 +256,8 @@
 
 .game-card.selected {
   border-color: var(--accent-primary);
-  background: rgba(224, 122, 95, 0.08);
-  box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
   transform: translateY(-3px);
 }
 
@@ -346,11 +346,11 @@
 }
 
 .venn-outside.interactive:hover {
-  fill: rgba(224, 122, 95, 0.06);
+  fill: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 .venn-outside.active {
-  fill: rgba(224, 122, 95, 0.1);
+  fill: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 @keyframes pulse-zone {
@@ -410,8 +410,8 @@
 }
 
 .turn-status.my-turn {
-  background: rgba(224, 122, 95, 0.1);
-  border: 1px solid rgba(224, 122, 95, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 /* ---- TIR: Player info ---- */
@@ -435,8 +435,8 @@
 }
 
 .tir-player-chip.active {
-  background: rgba(224, 122, 95, 0.12);
-  border: 1px solid rgba(224, 122, 95, 0.3);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
   font-weight: 600;
 }
 
@@ -489,8 +489,8 @@
 
 .scout-card.selected {
   border-color: var(--accent-primary);
-  background: rgba(224, 122, 95, 0.08);
-  box-shadow: 0 0 0 3px rgba(224, 122, 95, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
   transform: translateY(-3px);
 }
 
@@ -561,15 +561,15 @@
 
 .insert-slot:hover {
   border-color: var(--accent-secondary);
-  background: rgba(129, 178, 154, 0.08);
+  background: color-mix(in srgb, var(--accent-secondary) 10%, transparent);
   box-shadow: none;
   transform: none;
 }
 
 .insert-slot.active {
   border-color: var(--accent-secondary);
-  background: rgba(129, 178, 154, 0.15);
-  box-shadow: 0 0 0 2px rgba(129, 178, 154, 0.3);
+  background: color-mix(in srgb, var(--accent-secondary) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-secondary) 30%, transparent);
 }
 
 /* ---- Scout: Center pile ---- */
@@ -665,7 +665,7 @@
 }
 
 .score-row-active {
-  background: rgba(224, 122, 95, 0.08);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .score-name {
