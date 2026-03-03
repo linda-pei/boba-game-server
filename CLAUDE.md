@@ -2,3 +2,4 @@
 - Build shared components for more global navigation (Back to Lobby, etc.) and make them reused between games
 - Ensure pages support dark mode.
 - For larger changes, plan things out before making it
+- When adding new games, also add it to the README
