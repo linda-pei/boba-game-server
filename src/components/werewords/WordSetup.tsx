@@ -28,7 +28,7 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
     return (
       <div className="screen">
         <h2>Word Setup</h2>
-        <RoleBanner hand={hand} />
+        <RoleBanner hand={hand} game={game} uid={uid} />
         <div className="turn-status">
           <strong>{mayorName}</strong> (the Mayor) is choosing the magic word...
         </div>
@@ -39,7 +39,7 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
   return (
     <div className="screen">
       <h2>Choose the Magic Word</h2>
-      <RoleBanner hand={hand} />
+      <RoleBanner hand={hand} game={game} uid={uid} />
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
         As the Mayor, pick a word the village will try to guess.
         <br />

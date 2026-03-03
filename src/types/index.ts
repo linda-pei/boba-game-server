@@ -54,7 +54,7 @@ export interface Hand {
 
 // ---- Werewords types ----
 
-export type WerewordsRole = "mayor" | "seer" | "werewolf" | "villager";
+export type WerewordsRole = "seer" | "werewolf" | "villager";
 export type WerewordsStatus =
   | "role-reveal"
   | "word-setup"

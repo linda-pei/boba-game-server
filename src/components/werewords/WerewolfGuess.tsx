@@ -2,6 +2,7 @@ import { useState } from "react";
 import { submitWerewolfGuess } from "../../hooks/useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
+import PlayerGuessBoard from "./PlayerGuessBoard";
 
 interface Props {
   roomCode: string;
@@ -27,12 +28,13 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
     return (
       <div className="screen">
         <h2>Werewolf Guess</h2>
-        <RoleBanner hand={hand} />
+        <RoleBanner hand={hand} game={game} uid={uid} />
         <div className="turn-status">
           The word was guessed correctly!
           <br />
           The werewolf is now trying to identify the Seer...
         </div>
+        <PlayerGuessBoard game={game} room={room} />
       </div>
     );
   }
@@ -40,7 +42,7 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
   return (
     <div className="screen">
       <h2>Werewolf Guess</h2>
-      <RoleBanner hand={hand} />
+      <RoleBanner hand={hand} game={game} uid={uid} />
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
         The village guessed the word! But you can still win —
         <br />
@@ -60,6 +62,8 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
           </button>
         ))}
       </div>
+
+      <PlayerGuessBoard game={game} room={room} />
     </div>
   );
 }

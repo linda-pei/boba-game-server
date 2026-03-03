@@ -86,11 +86,10 @@ function shuffled<T>(arr: T[]): T[] {
 }
 
 function buildRoleDeck(playerCount: number): WerewordsRole[] {
-  // Exactly playerCount cards: 1 mayor, 1 seer, N werewolves, rest villagers
+  // Exactly playerCount cards: 1 seer, N werewolves, rest villagers
   const werewolfCount = playerCount <= 6 ? 1 : 2;
-  const villagerCount = playerCount - 2 - werewolfCount; // minus mayor and seer
+  const villagerCount = playerCount - 1 - werewolfCount; // 1 seer
   const roles: WerewordsRole[] = [
-    "mayor",
     "seer",
     ...Array<WerewordsRole>(werewolfCount).fill("werewolf"),
     ...Array<WerewordsRole>(villagerCount).fill("villager"),
@@ -110,13 +109,15 @@ export async function startWerewordsGame(
 
   const roles = buildRoleDeck(playerCount);
 
-  // Deal one role to each player — whoever gets "mayor" is the mayor
+  // Pick a random mayor — mayor is a designation, not a role card
+  const mayorIndex = Math.floor(Math.random() * playerCount);
+  const mayor = turnOrder[mayorIndex];
+
+  // Deal one role card to each player
   const playerRoles: Record<string, WerewordsRole> = {};
   for (let i = 0; i < playerCount; i++) {
     playerRoles[turnOrder[i]] = roles[i];
   }
-
-  const mayor = turnOrder.find((uid) => playerRoles[uid] === "mayor")!;
 
   // Identify werewolves so they know each other
   const werewolfUids = turnOrder.filter((uid) => playerRoles[uid] === "werewolf");
@@ -297,8 +298,7 @@ export async function submitVote(
   const updated = gameSnap.data() as WerewordsGame;
 
   const voteCount = Object.keys(updated.votes).length;
-  // Everyone except mayor votes
-  const voterCount = updated.turnOrder.length - 1;
+  const voterCount = updated.turnOrder.length;
 
   if (voteCount >= voterCount) {
     // Tally votes

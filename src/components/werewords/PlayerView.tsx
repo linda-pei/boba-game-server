@@ -22,7 +22,7 @@ export default function PlayerView({ game, hand, uid, room }: Props) {
     <div className="screen">
       <h2>Werewords</h2>
 
-      <RoleBanner hand={hand} />
+      <RoleBanner hand={hand} game={game} uid={uid} />
 
       <div className="turn-status">
         <strong>{mayorName}</strong> is answering your questions.

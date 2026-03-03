@@ -13,10 +13,8 @@ interface Props {
 
 export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
   const [submitting, setSubmitting] = useState(false);
-  const isMayor = uid === game.mayor;
   const hasVoted = !!game.votes[uid];
-  const nonMayorPlayers = game.turnOrder.filter((pid) => pid !== game.mayor);
-  const voterCount = nonMayorPlayers.length;
+  const voterCount = game.turnOrder.length;
   const voteCount = Object.keys(game.votes).length;
 
   const handleVote = async (voteFor: string) => {
@@ -27,7 +25,7 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
   return (
     <div className="screen">
       <h2>Vote</h2>
-      <RoleBanner hand={hand} />
+      <RoleBanner hand={hand} game={game} uid={uid} />
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
         Nobody guessed the word! Vote for who you think is a werewolf.
       </p>
@@ -36,13 +34,7 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
         Votes: {voteCount} / {voterCount}
       </div>
 
-      {isMayor && (
-        <p style={{ color: "var(--text-light)", fontSize: "0.85rem", marginTop: "0.75rem" }}>
-          As Mayor, you don't vote — wait for the village to decide.
-        </p>
-      )}
-
-      {!isMayor && !hasVoted && (
+      {!hasVoted && (
         <div className="ww-vote-grid" style={{ marginTop: "1rem" }}>
           {game.turnOrder
             .filter((pid) => pid !== uid)
@@ -63,7 +55,7 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
         </div>
       )}
 
-      {!isMayor && hasVoted && (
+      {hasVoted && (
         <p style={{ marginTop: "1rem", color: "var(--text-light)" }}>
           Vote submitted! Waiting for others...
         </p>

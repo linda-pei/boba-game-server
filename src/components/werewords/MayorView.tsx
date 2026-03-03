@@ -36,7 +36,7 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
     <div className="screen">
       <h2>Mayor's View</h2>
 
-      <RoleBanner hand={hand} />
+      <RoleBanner hand={hand} game={game} uid={uid} />
 
       <div className="turn-status">
         Magic word: <strong>{game.magicWord}</strong>

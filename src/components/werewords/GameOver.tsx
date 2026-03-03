@@ -12,14 +12,12 @@ interface Props {
 }
 
 const ROLE_LABELS: Record<WerewordsRole, string> = {
-  mayor: "Mayor",
   seer: "Seer",
   werewolf: "Werewolf",
   villager: "Villager",
 };
 
 const ROLE_COLORS: Record<WerewordsRole, string> = {
-  mayor: "var(--accent-primary)",
   seer: "var(--accent-primary)",
   werewolf: "var(--accent-danger)",
   villager: "var(--accent-secondary)",
@@ -83,6 +81,7 @@ export default function GameOver({ game, room }: Props) {
             {game.turnOrder.map((pid) => {
               const role = game.revealedRoles![pid];
               if (!role) return null;
+              const isMayor = pid === game.mayor;
               const team = getPlayerTeam(role);
               return (
                 <div key={pid} className="player-chip">
@@ -93,9 +92,37 @@ export default function GameOver({ game, room }: Props) {
                   >
                     {ROLE_LABELS[role]}
                   </span>
-                  {team === game.winner && (
-                    <span style={{ fontSize: "0.8rem" }}>★</span>
+                  {isMayor && (
+                    <span className="badge badge-host">Mayor</span>
                   )}
+                  {team === game.winner && (
+                    <span style={{ fontSize: "0.8rem" }}>🎉</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {Object.keys(game.votes).length > 0 && (
+        <div style={{ marginTop: "1.5rem" }}>
+          <h3>Votes</h3>
+          <div className="ww-player-board">
+            {game.turnOrder.map((pid) => {
+              const votedFor = game.votes[pid];
+              if (!votedFor) return null;
+              const voterName = room.players[pid]?.name ?? pid;
+              const targetName = room.players[votedFor]?.name ?? votedFor;
+              return (
+                <div key={pid} className="ww-player-row">
+                  <span className="ww-player-row-name">{voterName}</span>
+                  <span style={{ color: "var(--text-light)", fontSize: "0.85rem" }}>
+                    voted for
+                  </span>
+                  <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>
+                    {targetName}
+                  </span>
                 </div>
               );
             })}
