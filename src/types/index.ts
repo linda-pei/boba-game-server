@@ -117,3 +117,53 @@ export interface ScoutGame {
   winner: string | null;
   lastAction: string | null;
 }
+
+// ---- Order Overload types ----
+
+export type OrderOverloadAbility = "discard" | "first-letter" | "last-letter";
+
+export interface OrderOverloadGame {
+  gameType: "order-overload";
+  status: "reading" | "playing" | "level-complete" | "finished";
+  level: number;
+  turnOrder: string[];
+  currentTurn: number;
+  orderTakerIndex: number;
+
+  // Reading phase
+  readingIndex: number;
+  totalOrdersForLevel: number;
+
+  // Playing phase — currentGuess null = awaiting guess, non-null = responding
+  currentGuess: string | null;
+  guessingPlayer: string | null;
+  respondingOrder: string[];
+  respondingIndex: number;
+  lastGuessResult: "found" | "not-found" | null;
+  foundByPlayer: string | null;
+
+  // Abilities (once per game, used in addition to guessing)
+  abilities: Record<string, OrderOverloadAbility>;
+  abilitiesUsed: Record<string, boolean>;
+  abilityReveals: Array<{
+    type: "first-letter" | "last-letter";
+    targetUid: string;
+    letters: string[];
+    usedBy: string;
+  }>;
+
+  // Level tracking
+  eliminatedPlayers: string[];
+  emptiedPlayers: string[];
+  emptiedToWin: number;
+  levelResult: "pass" | "fail" | null;
+
+  // Progress
+  highestLevelPassed: number;
+  lastAction: string | null;
+}
+
+export interface OrderOverloadHand {
+  cards: string[];
+  ordersToRead?: string[];
+}

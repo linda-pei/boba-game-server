@@ -5,6 +5,7 @@ import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRo
 import { startGame } from "../games/things-in-rings/useGame";
 import { startScoutGame } from "../games/scout/useScoutGame";
 import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
+import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -45,6 +46,7 @@ export default function Lobby() {
   const gameType = room.gameType || "things-in-rings";
   const isScout = gameType === "scout";
   const isWerewords = gameType === "werewords";
+  const isOrderOverload = gameType === "order-overload";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -59,11 +61,16 @@ export default function Lobby() {
   // Werewords-specific
   const canStartWerewords = players.length >= 4 && players.length <= 11;
 
+  // Order Overload-specific
+  const canStartOrderOverload = players.length >= 2 && players.length <= 6;
+
   const canStart = isScout
     ? canStartScout
     : isWerewords
       ? canStartWerewords
-      : canStartTIR;
+      : isOrderOverload
+        ? canStartOrderOverload
+        : canStartTIR;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -99,6 +106,8 @@ export default function Lobby() {
         await startScoutGame(roomCode, room);
       } else if (isWerewords) {
         await startWerewordsGame(roomCode, room);
+      } else if (isOrderOverload) {
+        await startOrderOverloadGame(roomCode, room);
       } else {
         await startGame(roomCode, room);
       }
@@ -124,10 +133,10 @@ export default function Lobby() {
             <div key={id} className="player-chip">
               {player.name}
               {id === room.host && <span className="badge badge-host">Host</span>}
-              {!isScout && !isWerewords && id === knower && (
+              {!isScout && !isWerewords && !isOrderOverload && id === knower && (
                 <span className="badge badge-knower">Knower</span>
               )}
-              {!isScout && !isWerewords && isHost && id !== knower && (
+              {!isScout && !isWerewords && !isOrderOverload && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn-small btn-secondary"
@@ -163,10 +172,16 @@ export default function Lobby() {
             >
               Werewords
             </button>
+            <button
+              className={`mode-toggle-btn${gameType === "order-overload" ? " active" : ""}`}
+              onClick={() => handleSetGameType("order-overload")}
+            >
+              Order Overload
+            </button>
           </div>
 
           {/* TIR settings */}
-          {!isScout && !isWerewords && (
+          {!isScout && !isWerewords && !isOrderOverload && (
             <>
               <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
                 3 rings: Context (red), Attribute (blue), Word (green)
@@ -208,23 +223,39 @@ export default function Lobby() {
             </p>
           )}
 
+          {/* Order Overload info */}
+          {isOrderOverload && (
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Order Overload requires 2–6 players.{" "}
+              {players.length < 2
+                ? `Need ${2 - players.length} more.`
+                : players.length > 6
+                  ? "Too many players!"
+                  : `${players.length} players — ready!`}
+            </p>
+          )}
+
           <div style={{ textAlign: "center" }}>
             <button onClick={handleStart} disabled={!canStart || starting}>
               {starting ? "Starting..." : "Start Game"}
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isWerewords
-                  ? players.length < 4
-                    ? "Need at least 4 players for Werewords"
-                    : "Too many players (max 11 for Werewords)"
-                  : isScout
-                    ? players.length < 3
-                      ? "Need at least 3 players for Scout"
-                      : "Too many players (max 5 for Scout)"
-                    : !knower
-                      ? "Assign a Knower to start"
-                      : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
+                {isOrderOverload
+                  ? players.length < 2
+                    ? "Need at least 2 players for Order Overload"
+                    : "Too many players (max 6 for Order Overload)"
+                  : isWerewords
+                    ? players.length < 4
+                      ? "Need at least 4 players for Werewords"
+                      : "Too many players (max 11 for Werewords)"
+                    : isScout
+                      ? players.length < 3
+                        ? "Need at least 3 players for Scout"
+                        : "Too many players (max 5 for Scout)"
+                      : !knower
+                        ? "Assign a Knower to start"
+                        : `Need at least ${minNonKnowers} non-Knower player${minNonKnowers > 1 ? "s" : ""}`}
               </p>
             )}
           </div>
