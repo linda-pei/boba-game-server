@@ -1,6 +1,11 @@
-# Things in Rings - Game Server
+# Boba Game Server
 
-A multiplayer web game built with React, TypeScript, and Firebase.
+Fun server for game time! Current games:
+* Things in Rings
+* Scout
+* Werewords
+* Order Overload
+
 
 ## Prerequisites
 
