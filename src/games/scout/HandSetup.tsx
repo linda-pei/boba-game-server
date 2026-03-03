@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
-import { confirmHandOrientation } from "../../hooks/useScoutGame";
-import { flipHand } from "../../utils/scoutDeck";
+import { confirmHandOrientation } from "./useScoutGame";
+import { flipHand } from "./scoutDeck";
 import HandDisplay from "./HandDisplay";
 
 interface HandSetupProps {

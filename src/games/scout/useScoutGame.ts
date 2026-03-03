@@ -6,8 +6,8 @@ import {
   onSnapshot,
   getDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
-import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../types";
+import { db } from "../../firebase";
+import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
 import {
   generateScoutDeck,
   filterDeckForPlayerCount,
@@ -16,8 +16,8 @@ import {
   dealCards,
   validatePlay,
   beatsCurrentPile,
-  shuffled,
-} from "../utils/scoutDeck";
+} from "./scoutDeck";
+import { shuffled } from "../../utils/shuffle";
 
 // ---- Realtime listeners ----
 

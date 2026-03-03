@@ -1,5 +1,5 @@
 import type { ScoutCard } from "../../types";
-import { validatePlay } from "../../utils/scoutDeck";
+import { validatePlay } from "./scoutDeck";
 
 interface CenterPileProps {
   cards: ScoutCard[];

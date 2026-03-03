@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { submitKnowerSetup, discardKnowerCards } from "../../hooks/useGame";
-import { getZones, findZone } from "../../utils/zones";
-import { RING_COLORS, RING_CATEGORIES } from "../../utils/vennPaths";
-import { CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES } from "../../utils/deck";
+import { submitKnowerSetup, discardKnowerCards } from "./useGame";
+import { getZones, findZone } from "./zones";
+import { RING_COLORS, RING_CATEGORIES } from "./vennPaths";
+import { CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES } from "./deck";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand } from "../../types";
 

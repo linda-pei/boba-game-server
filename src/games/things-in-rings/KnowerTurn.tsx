@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { knowerAutoPlay } from "../../hooks/useGame";
-import { getOrderedPlayedCards } from "../../utils/zones";
+import { knowerAutoPlay } from "./useGame";
+import { getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand } from "../../types";
 

@@ -1,5 +1,5 @@
 import { useAuthContext } from "../../hooks/AuthContext";
-import { useGame, useHand, useAllHandCounts } from "../../hooks/useGame";
+import { useGame, useHand, useAllHandCounts } from "./useGame";
 import { useRoom } from "../../hooks/useRoom";
 import KnowerSetup from "./KnowerSetup";
 import KnowerJudge from "./KnowerJudge";

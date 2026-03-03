@@ -6,13 +6,13 @@ import {
   onSnapshot,
   getDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import type {
   WerewordsGame,
   WerewordsHand,
   WerewordsRole,
   Room,
-} from "../types";
+} from "../../types";
 
 // ---- Realtime listeners ----
 

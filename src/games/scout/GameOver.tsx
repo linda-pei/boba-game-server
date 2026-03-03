@@ -1,9 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
 import { useAuthContext } from "../../hooks/AuthContext";
 import confetti from "canvas-confetti";
+import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { ScoutGame, Room } from "../../types";
 
 interface GameOverProps {
@@ -12,8 +10,6 @@ interface GameOverProps {
 }
 
 export default function GameOver({ game, room }: GameOverProps) {
-  const navigate = useNavigate();
-  const { roomCode } = useParams<{ roomCode: string }>();
   const { uid } = useAuthContext();
   const isHost = room.host === uid;
 
@@ -37,12 +33,6 @@ export default function GameOver({ game, room }: GameOverProps) {
     frame();
   }, []);
 
-  const handleBackToLobby = async () => {
-    if (!roomCode) return;
-    await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
-    navigate(`/lobby/${roomCode}`);
-  };
-
   return (
     <div className="screen scout-screen">
       <h2>Game Over!</h2>
@@ -65,16 +55,7 @@ export default function GameOver({ game, room }: GameOverProps) {
         })}
       </div>
 
-      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1.5rem" }}>
-        {isHost && (
-          <button onClick={handleBackToLobby}>
-            Back to Lobby
-          </button>
-        )}
-        <button onClick={() => navigate("/")} className={isHost ? "btn-secondary" : ""}>
-          Leave Game
-        </button>
-      </div>
+      <GameEndButtons isHost={isHost} />
     </div>
   );
 }

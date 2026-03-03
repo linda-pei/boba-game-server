@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { submitVote } from "../../hooks/useWerewordsGame";
+import { submitVote } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 

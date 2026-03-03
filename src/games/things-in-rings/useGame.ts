@@ -6,9 +6,9 @@ import {
   onSnapshot,
   deleteField,
 } from "firebase/firestore";
-import { db } from "../firebase";
-import { NOUN_CARDS, CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES, shuffled } from "../utils/deck";
-import type { Game, Hand, Room } from "../types";
+import { db } from "../../firebase";
+import { NOUN_CARDS, CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES, shuffled } from "./deck";
+import type { Game, Hand, Room } from "../../types";
 
 export function useGame(roomCode: string | undefined) {
   const [game, setGame] = useState<Game | null>(null);

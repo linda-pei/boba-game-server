@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { useAuthContext } from "../../hooks/AuthContext";
-import { getOrderedPlayedCards } from "../../utils/zones";
+import { getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
+import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { Game, Room } from "../../types";
 
 interface Props {
@@ -13,8 +13,8 @@ interface Props {
 }
 
 export default function GameOver({ game, room, roomCode }: Props) {
-  const navigate = useNavigate();
   const { uid } = useAuthContext();
+  const isHost = room?.host === uid;
 
   const isCoop = game.mode === "coop";
   let resultMessage: string;
@@ -55,9 +55,7 @@ export default function GameOver({ game, room, roomCode }: Props) {
         playedCards={playedCards}
       />
 
-      <button onClick={() => navigate("/")} style={{ marginTop: "1rem" }}>
-        Back to Home
-      </button>
+      <GameEndButtons isHost={isHost} />
     </div>
   );
 }

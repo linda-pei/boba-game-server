@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { submitMagicWord } from "../../hooks/useWerewordsGame";
+import { submitMagicWord } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 

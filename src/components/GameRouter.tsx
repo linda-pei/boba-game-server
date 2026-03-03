@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import { useRoom } from "../hooks/useRoom";
-import GameBoard from "./things-in-rings/GameBoard";
-import ScoutGameBoard from "./scout/GameBoard";
-import WerewordsGameBoard from "./werewords/GameBoard";
+import GameBoard from "../games/things-in-rings/GameBoard";
+import ScoutGameBoard from "../games/scout/GameBoard";
+import WerewordsGameBoard from "../games/werewords/GameBoard";
 
 export default function GameRouter() {
   const { roomCode } = useParams<{ roomCode: string }>();

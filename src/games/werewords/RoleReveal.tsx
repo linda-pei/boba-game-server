@@ -1,4 +1,4 @@
-import { confirmRoleReveal } from "../../hooks/useWerewordsGame";
+import { confirmRoleReveal } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 
 interface Props {

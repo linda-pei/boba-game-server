@@ -1,5 +1,5 @@
 import type { ScoutGame, Room } from "../../types";
-import type { PlayerHandInfo } from "../../hooks/useScoutGame";
+import type { PlayerHandInfo } from "./useScoutGame";
 
 interface ScoreBoardProps {
   game: ScoutGame;

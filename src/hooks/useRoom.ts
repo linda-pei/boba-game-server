@@ -4,6 +4,7 @@ import {
   setDoc,
   updateDoc,
   onSnapshot,
+  getDoc,
   deleteDoc,
   deleteField,
   serverTimestamp,
@@ -86,18 +87,27 @@ export async function joinRoom(
 
 export async function leaveRoom(
   roomCode: string,
-  uid: string,
-  isHost: boolean
+  uid: string
 ): Promise<void> {
   const roomRef = doc(db, "rooms", roomCode);
+  const snapshot = await getDoc(roomRef);
+  if (!snapshot.exists()) return;
 
-  if (isHost) {
-    // Host leaves — delete the room
+  const room = snapshot.data() as Room;
+  const remainingUids = Object.keys(room.players).filter((id) => id !== uid);
+
+  if (remainingUids.length === 0) {
+    // Last player — delete the room
     await deleteDoc(roomRef);
   } else {
-    await updateDoc(roomRef, {
+    const updates: Record<string, unknown> = {
       [`players.${uid}`]: deleteField(),
-    });
+    };
+    // If the leaving player is the host, transfer host to another player
+    if (room.host === uid) {
+      updates.host = remainingUids[0];
+    }
+    await updateDoc(roomRef, updates);
   }
 }
 

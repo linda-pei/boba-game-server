@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { judgeCorrect, judgeIncorrect } from "../../hooks/useGame";
-import { getZones, findZone, getOrderedPlayedCards } from "../../utils/zones";
+import { judgeCorrect, judgeIncorrect } from "./useGame";
+import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand, Room } from "../../types";
 

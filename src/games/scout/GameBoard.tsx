@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
-import { useScoutGame, useScoutHand } from "../../hooks/useScoutGame";
+import { useScoutGame, useScoutHand } from "./useScoutGame";
 import HandSetup from "./HandSetup";
 import PlayerTurn from "./PlayerTurn";
 import RoundEnd from "./RoundEnd";

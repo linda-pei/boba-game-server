@@ -1,5 +1,5 @@
-import type { ScoutCard } from "../types";
-import { shuffled } from "./deck";
+import type { ScoutCard } from "../../types";
+import { shuffled } from "../../utils/shuffle";
 
 /** Generate all 45 unique pair cards: C(10,2) combinations of 1–10. */
 export function generateScoutDeck(): ScoutCard[] {
@@ -135,5 +135,3 @@ export function beatsCurrentPile(
   // 3. Same count + same type: strictly higher value wins
   return challenger.value > incumbent.value;
 }
-
-export { shuffled };

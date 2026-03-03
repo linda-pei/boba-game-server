@@ -4,9 +4,9 @@ import {
   getZoneFill,
   RING_COLORS,
   RING_CATEGORIES,
-} from "../../utils/vennPaths";
-import type { Zone } from "../../utils/zones";
-import { findZone, getZones } from "../../utils/zones";
+} from "./vennPaths";
+import type { Zone } from "./zones";
+import { findZone, getZones } from "./zones";
 
 interface PlayedCardInfo {
   cardId: string;

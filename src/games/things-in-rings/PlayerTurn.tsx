@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { playCard } from "../../hooks/useGame";
-import { getZones, findZone, getOrderedPlayedCards } from "../../utils/zones";
+import { playCard } from "./useGame";
+import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import type { Game, Hand, Room } from "../../types";
 

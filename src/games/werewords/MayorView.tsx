@@ -3,7 +3,7 @@ import {
   markCorrect,
   markNoGuess,
   toggleWayOff,
-} from "../../hooks/useWerewordsGame";
+} from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";

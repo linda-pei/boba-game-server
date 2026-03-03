@@ -5,7 +5,7 @@ import { useRoom } from "../../hooks/useRoom";
 import {
   useWerewordsGame,
   useWerewordsHand,
-} from "../../hooks/useWerewordsGame";
+} from "./useWerewordsGame";
 import RoleReveal from "./RoleReveal";
 import WordSetup from "./WordSetup";
 import Gameplay from "./Gameplay";

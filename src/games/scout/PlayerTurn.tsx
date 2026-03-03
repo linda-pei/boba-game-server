@@ -5,8 +5,8 @@ import {
   scoutCard,
   scoutAndPlay,
   useAllScoutHandInfo,
-} from "../../hooks/useScoutGame";
-import { validatePlay, beatsCurrentPile, flipCard } from "../../utils/scoutDeck";
+} from "./useScoutGame";
+import { validatePlay, beatsCurrentPile, flipCard } from "./scoutDeck";
 import HandDisplay from "./HandDisplay";
 import CenterPile from "./CenterPile";
 import ScoreBoard from "./ScoreBoard";

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
 import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
-import { startGame } from "../hooks/useGame";
-import { startScoutGame } from "../hooks/useScoutGame";
-import { startWerewordsGame } from "../hooks/useWerewordsGame";
+import { startGame } from "../games/things-in-rings/useGame";
+import { startScoutGame } from "../games/scout/useScoutGame";
+import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -67,7 +67,7 @@ export default function Lobby() {
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
-    await leaveRoom(roomCode, uid, isHost);
+    await leaveRoom(roomCode, uid);
     navigate("/");
   };
 
