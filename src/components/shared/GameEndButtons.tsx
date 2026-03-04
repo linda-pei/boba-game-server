@@ -37,7 +37,7 @@ export default function GameEndButtons({ isHost }: Props) {
       )}
       <button
         onClick={handleLeave}
-        className={isHost ? "btn-secondary" : ""}
+        className="btn-danger"
         disabled={leaving}
       >
         Leave Game

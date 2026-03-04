@@ -201,6 +201,8 @@ export async function startOrderOverloadGame(
     abilitiesUsed,
     abilityReveals: [],
 
+    revealedCards: {},
+
     eliminatedPlayers: [],
     emptiedPlayers: [],
     emptiedToWin: getEmptiedToWin(playerCount),
@@ -313,8 +315,12 @@ export async function respondToGuess(
   if (hasIt) {
     // Remove the card from responder's hand
     const hand = await readHand(roomCode, uid);
+    const revealedCard = hand.cards[cardIndex!];
     const newCards = hand.cards.filter((_, i) => i !== cardIndex);
     await writeHand(roomCode, uid, { cards: newCards });
+
+    const newRevealedCards = { ...game.revealedCards };
+    newRevealedCards[uid] = [...(newRevealedCards[uid] ?? []), revealedCard];
 
     const newEmptied = [...game.emptiedPlayers];
     if (newCards.length === 0 && !newEmptied.includes(uid)) {
@@ -330,6 +336,7 @@ export async function respondToGuess(
         respondingIndex: 0,
         lastGuessResult: "found",
         foundByPlayer: uid,
+        revealedCards: newRevealedCards,
         emptiedPlayers: newEmptied,
         levelResult: "pass",
         status: "level-complete",
@@ -354,6 +361,7 @@ export async function respondToGuess(
       respondingIndex: 0,
       lastGuessResult: "found",
       foundByPlayer: uid,
+      revealedCards: newRevealedCards,
       emptiedPlayers: newEmptied,
       currentTurn: nextTurn >= 0 ? nextTurn : game.currentTurn,
       lastAction: `${uid} had the order!`,
@@ -510,6 +518,7 @@ export async function continueToNextLevel(
     lastGuessResult: null,
     foundByPlayer: null,
     abilityReveals: [],
+    revealedCards: {},
     eliminatedPlayers: [],
     emptiedPlayers: [],
     levelResult: null,
@@ -548,6 +557,7 @@ export async function retryLevel(
     lastGuessResult: null,
     foundByPlayer: null,
     abilityReveals: [],
+    revealedCards: {},
     eliminatedPlayers: [],
     emptiedPlayers: [],
     levelResult: null,

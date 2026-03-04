@@ -1,4 +1,5 @@
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
+import { countTokensUsed, TOKEN_LIMITS } from "./useWerewordsGame";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";
 
@@ -38,6 +39,16 @@ export default function PlayerView({ game, hand, uid, room }: Props) {
           WAY OFF — The guesses are going in the wrong direction!
         </div>
       )}
+
+      {game.limitedTokens && (() => {
+        const used = countTokensUsed(game.guesses);
+        return (
+          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", margin: "0.5rem 0", fontSize: "0.85rem" }}>
+            <span style={{ color: "var(--ww-yes)" }}>Yes/No: {TOKEN_LIMITS.yesNo - used.yesNo}</span>
+            <span style={{ color: "var(--ww-maybe)" }}>Maybe: {TOKEN_LIMITS.maybe - used.maybe}</span>
+          </div>
+        );
+      })()}
 
       <PlayerGuessBoard game={game} room={room} />
 

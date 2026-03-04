@@ -3,6 +3,8 @@ import {
   markCorrect,
   markNoGuess,
   toggleWayOff,
+  countTokensUsed,
+  TOKEN_LIMITS,
 } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
@@ -17,6 +19,10 @@ interface Props {
 }
 
 export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
+  const tokensUsed = game.limitedTokens ? countTokensUsed(game.guesses) : null;
+  const yesNoLeft = tokensUsed ? TOKEN_LIMITS.yesNo - tokensUsed.yesNo : Infinity;
+  const maybeLeft = tokensUsed ? TOKEN_LIMITS.maybe - tokensUsed.maybe : Infinity;
+
   const handleResponse = async (
     playerUid: string,
     response: "yes" | "no" | "maybe" | "so-close"
@@ -48,6 +54,13 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
         </div>
       )}
 
+      {game.limitedTokens && (
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", margin: "0.5rem 0", fontSize: "0.85rem" }}>
+          <span style={{ color: "var(--ww-yes)" }}>Yes/No: {yesNoLeft}</span>
+          <span style={{ color: "var(--ww-maybe)" }}>Maybe: {maybeLeft}</span>
+        </div>
+      )}
+
       <PlayerGuessBoard
         game={game}
         room={room}
@@ -56,18 +69,21 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
             <button
               className="ww-btn-sm ww-btn-yes"
               onClick={() => handleResponse(pid, "yes")}
+              disabled={yesNoLeft <= 0}
             >
               Yes
             </button>
             <button
               className="ww-btn-sm ww-btn-no"
               onClick={() => handleResponse(pid, "no")}
+              disabled={yesNoLeft <= 0}
             >
               No
             </button>
             <button
               className="ww-btn-sm ww-btn-maybe"
               onClick={() => handleResponse(pid, "maybe")}
+              disabled={maybeLeft <= 0}
             >
               Maybe
             </button>

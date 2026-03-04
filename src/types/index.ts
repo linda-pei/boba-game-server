@@ -7,6 +7,7 @@ export interface RoomSettings {
   numRings: number;
   knower?: string;
   mode?: "competitive" | "coop";
+  limitedTokens?: boolean;
 }
 
 export interface Room {
@@ -80,6 +81,7 @@ export interface WerewordsGame {
   winReason: string | null;
   roleRevealed: Record<string, boolean>;
   revealedRoles: Record<string, WerewordsRole> | null;
+  limitedTokens: boolean;
 }
 
 export interface WerewordsHand {
@@ -151,6 +153,9 @@ export interface OrderOverloadGame {
     letters: string[];
     usedBy: string;
   }>;
+
+  // Revealed cards per player (shown in player board)
+  revealedCards: Record<string, string[]>;
 
   // Level tracking
   eliminatedPlayers: string[];

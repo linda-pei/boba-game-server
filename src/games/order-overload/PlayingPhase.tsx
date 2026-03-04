@@ -29,6 +29,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   const [showAbility, setShowAbility] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
+  const [confirmDontHave, setConfirmDontHave] = useState(false);
   const prevTurn = useRef(game.currentTurn);
 
   const handCounts = useAllOrderOverloadHandCounts(roomCode, game.turnOrder);
@@ -56,9 +57,19 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
       setShowAbility(false);
       setSelectedCardIndex(null);
       setSelectedTarget(null);
+      setConfirmDontHave(false);
       prevTurn.current = game.currentTurn;
     }
   }, [game.currentTurn]);
+
+  // Reset state when a new guess comes in (or resolves)
+  useEffect(() => {
+    setSelectedCardIndex(null);
+    setConfirmDontHave(false);
+    if (game.currentGuess === null) {
+      setGuessText("");
+    }
+  }, [game.currentGuess]);
 
   const handleSubmitGuess = async () => {
     if (!guessText.trim()) return;
@@ -178,9 +189,9 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
               {selectedCardIndex !== null ? (
                 <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
                   <button onClick={() => handleRespond(true, selectedCardIndex)} disabled={acting}>
-                    {acting ? "..." : `Discard "${hand.cards[selectedCardIndex]}"`}
+                    {acting ? "..." : `Reveal "${hand.cards[selectedCardIndex]}"`}
                   </button>
-                  <button className="btn-secondary" onClick={() => setSelectedCardIndex(null)}>
+                  <button className="btn-danger" onClick={() => setSelectedCardIndex(null)}>
                     Cancel
                   </button>
                 </div>
@@ -193,26 +204,48 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                       </p>
                       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
                         {hand.cards.map((card, i) => (
-                          <button
+                          <div
                             key={i}
-                            className="btn-secondary"
-                            onClick={() => setSelectedCardIndex(i)}
+                            className={`game-card${selectedCardIndex === i ? " selected" : ""}`}
+                            onClick={() => setSelectedCardIndex(selectedCardIndex === i ? null : i)}
                           >
                             {card}
-                          </button>
+                          </div>
                         ))}
                       </div>
                       <div style={{ width: "100%", marginTop: "0.5rem" }}>
-                        <button className="btn-danger" onClick={() => handleRespond(false)} disabled={acting}>
-                          {acting ? "..." : "I don't have it"}
-                        </button>
+                        {confirmDontHave ? (
+                          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                            <button className="btn-danger" onClick={() => handleRespond(false)} disabled={acting}>
+                              {acting ? "..." : "Yes, I don't have it"}
+                            </button>
+                            <button className="btn-secondary" onClick={() => setConfirmDontHave(false)}>
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button className="btn-danger" onClick={() => setConfirmDontHave(true)}>
+                            I don't have it
+                          </button>
+                        )}
                       </div>
                     </>
                   )}
                   {hand.cards.length === 0 && (
-                    <button onClick={() => handleRespond(false)} disabled={acting}>
-                      {acting ? "..." : "I don't have it"}
-                    </button>
+                    confirmDontHave ? (
+                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+                        <button className="btn-danger" onClick={() => handleRespond(false)} disabled={acting}>
+                          {acting ? "..." : "Yes, I don't have it"}
+                        </button>
+                        <button className="btn-secondary" onClick={() => setConfirmDontHave(false)}>
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="btn-danger" onClick={() => setConfirmDontHave(true)}>
+                        I don't have it
+                      </button>
+                    )
                   )}
                 </div>
               )}
@@ -229,10 +262,11 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
       {isMyTurn && !isResponding && (
         <div style={{ marginTop: "1rem" }}>
           {/* Ability section */}
-          {!abilityUsed && !showAbility && !(myAbility === "discard" && hand.cards.length <= 1) && (
+          {!abilityUsed && !showAbility && (
             <button
               className="btn-secondary btn-small"
               onClick={() => setShowAbility(true)}
+              disabled={myAbility === "discard" && hand.cards.length <= 1}
               style={{ marginBottom: "0.75rem" }}
             >
               Use Ability: {ABILITY_LABELS[myAbility]}
@@ -245,7 +279,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                 Tap a card in your hand to discard it
               </p>
               {selectedCardIndex !== null && (
-                <button onClick={() => handleDiscard(selectedCardIndex)} disabled={acting}>
+                <button className="btn-secondary" onClick={() => handleDiscard(selectedCardIndex)} disabled={acting}>
                   {acting ? "..." : `Discard "${hand.cards[selectedCardIndex]}"`}
                 </button>
               )}
@@ -354,16 +388,17 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
             const isEliminated = game.eliminatedPlayers.includes(pid);
             const isEmptied = game.emptiedPlayers.includes(pid);
             const isCurrent = game.turnOrder[game.currentTurn] === pid;
-            const isGuessing = isResponding && game.guessingPlayer === pid;
+            const isGuessing = (isResponding && game.guessingPlayer === pid) || (isCurrent && !isResponding);
             const isJudging = isResponding && currentResponder === pid;
             const cardCount = handCounts[pid] ?? 0;
             const isMe = pid === uid;
+            const revealed = game.revealedCards?.[pid] ?? [];
 
             return (
               <div
                 key={pid}
                 className={`score-row${isCurrent && !isResponding ? " score-row-active" : ""}`}
-                style={{ opacity: isEliminated ? 0.5 : 1 }}
+                style={{ opacity: isEliminated ? 0.5 : 1, flexWrap: "wrap" }}
               >
                 <span style={{ minWidth: "24px", textAlign: "center" }}>
                   {isEliminated ? "x_x" : ":)"}
@@ -375,10 +410,15 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                 <span className="score-cards" style={{ minWidth: "65px", textAlign: "right" }}>
                   {isEmptied ? "✓ done" : `${cardCount} cards`}
                 </span>
-                <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--accent)" }}>
+                <span style={{ minWidth: "90px", textAlign: "right", paddingLeft: "0.75rem", fontSize: "0.8rem", color: "var(--accent)" }}>
                   {isGuessing && "Guessing..."}
                   {isJudging && "Judging..."}
                 </span>
+                {revealed.length > 0 && (
+                  <div style={{ width: "100%", fontSize: "0.75rem", color: "var(--text-light)", paddingLeft: "calc(24px + 1rem)" }}>
+                    Revealed: {revealed.join(", ")}
+                  </div>
+                )}
               </div>
             );
           })}

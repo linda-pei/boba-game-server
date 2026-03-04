@@ -26,13 +26,16 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
     if (!passed) return;
     const duration = 1500;
     const end = Date.now() + duration;
+    let cancelled = false;
     const frame = () => {
+      if (cancelled) return;
       confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
       confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
-  }, []);
+    return () => { cancelled = true; };
+  }, [passed]);
 
   const handleContinue = async () => {
     setActing(true);
@@ -90,7 +93,7 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
                 </button>
               )}
               <button
-                className={isMaxLevel ? "" : "btn-secondary"}
+                className="btn-danger"
                 onClick={handleFinish}
                 disabled={acting}
               >
@@ -115,7 +118,7 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
               <button onClick={handleRetry} disabled={acting}>
                 {acting ? "..." : `Retry Level ${game.level}`}
               </button>
-              <button className="btn-secondary" onClick={handleFinish} disabled={acting}>
+              <button className="btn-danger" onClick={handleFinish} disabled={acting}>
                 {acting ? "..." : "End Game"}
               </button>
             </div>

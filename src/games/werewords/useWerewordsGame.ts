@@ -97,6 +97,24 @@ function buildRoleDeck(playerCount: number): WerewordsRole[] {
   return shuffled(roles);
 }
 
+// ---- Token limits ----
+
+export const TOKEN_LIMITS = { yesNo: 36, maybe: 10 } as const;
+
+export function countTokensUsed(
+  guesses: Record<string, import("../../types").GuessResponse[]>
+): { yesNo: number; maybe: number } {
+  let yesNo = 0;
+  let maybe = 0;
+  for (const responses of Object.values(guesses)) {
+    for (const r of responses) {
+      if (r === "yes" || r === "no") yesNo++;
+      else if (r === "maybe") maybe++;
+    }
+  }
+  return { yesNo, maybe };
+}
+
 // ---- Game actions ----
 
 export async function startWerewordsGame(
@@ -155,6 +173,7 @@ export async function startWerewordsGame(
     winReason: null,
     roleRevealed,
     revealedRoles: null,
+    limitedTokens: !!room.settings.limitedTokens,
   };
 
   await setDoc(doc(db, "games", roomCode), gameDoc);
@@ -198,12 +217,22 @@ export async function addGuessResponse(
   response: "yes" | "no" | "maybe" | "so-close"
 ): Promise<void> {
   const current = game.guesses[playerUid] ?? [];
+  const newGuesses = { ...game.guesses, [playerUid]: [...current, response] };
   const updates: Record<string, unknown> = {
-    [`guesses.${playerUid}`]: [...current, response],
+    [`guesses.${playerUid}`]: newGuesses[playerUid],
   };
   if (response === "so-close") {
     updates.soCloseUsed = true;
   }
+
+  // Auto-transition to voting when yes/no tokens are exhausted
+  if (game.limitedTokens && (response === "yes" || response === "no")) {
+    const { yesNo } = countTokensUsed(newGuesses);
+    if (yesNo >= TOKEN_LIMITS.yesNo) {
+      updates.status = "voting";
+    }
+  }
+
   await updateDoc(doc(db, "games", roomCode), updates);
 }
 

@@ -215,12 +215,22 @@ export default function Lobby() {
 
           {/* Werewords info */}
           {isWerewords && (
-            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Werewords requires 4–11 players.{" "}
-              {players.length < 4
-                ? `Need ${4 - players.length} more.`
-                : `${players.length} players — ready!`}
-            </p>
+            <>
+              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                Werewords requires 4–11 players.{" "}
+                {players.length < 4
+                  ? `Need ${4 - players.length} more.`
+                  : `${players.length} players — ready!`}
+              </p>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                <input
+                  type="checkbox"
+                  checked={!!room.settings.limitedTokens}
+                  onChange={(e) => updateRoomSettings(roomCode!, { limitedTokens: e.target.checked })}
+                />
+                Limited tokens (36 Yes/No, 10 Maybe)
+              </label>
+            </>
           )}
 
           {/* Order Overload info */}
