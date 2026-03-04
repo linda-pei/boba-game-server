@@ -60,12 +60,12 @@
   --text-muted: #b0adc0;
   --text-light: #807d94;
 
-  --accent-primary: #5A9DE5;
-  --accent-primary-hover: #6DADE8;
-  --accent-secondary: #81B29A;
-  --accent-secondary-hover: #96c4ae;
-  --accent-danger: #e06060;
-  --accent-danger-hover: #e87878;
+  --accent-primary: #3D7AC3;
+  --accent-primary-hover: #4A8BD4;
+  --accent-secondary: #5F9278;
+  --accent-secondary-hover: #6FA28A;
+  --accent-danger: #c04545;
+  --accent-danger-hover: #d05050;
 
   --surface: #262645;
   --surface-hover: #2e2e52;
