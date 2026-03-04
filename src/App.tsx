@@ -5,6 +5,7 @@ import Home from "./components/Home";
 import Lobby from "./components/Lobby";
 import GameRouter from "./components/GameRouter";
 import JoinRedirect from "./components/JoinRedirect";
+import ThemeToggle from "./components/shared/ThemeToggle";
 import "./App.css";
 
 function AppContent() {
@@ -32,6 +33,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ThemeToggle />
         <AppContent />
       </AuthProvider>
     </BrowserRouter>
