@@ -13,6 +13,7 @@ import type {
   WerewordsRole,
   Room,
 } from "../../types";
+import { WORD_LISTS } from "./words";
 
 // ---- Realtime listeners ----
 
@@ -157,6 +158,13 @@ export async function startWerewordsGame(
     roleRevealed[uid] = false;
   }
 
+  // Pick 3 random words from the chosen difficulty
+  const difficulty = room.settings.difficulty ?? "medium";
+  const wordPool = shuffled(WORD_LISTS[difficulty]);
+  const wordChoices = wordPool.slice(0, 3);
+
+  const timerMinutes = room.settings.timerMinutes ?? 4;
+
   const gameDoc: WerewordsGame = {
     gameType: "werewords",
     status: "role-reveal",
@@ -173,7 +181,11 @@ export async function startWerewordsGame(
     winReason: null,
     roleRevealed,
     revealedRoles: null,
-    limitedTokens: !!room.settings.limitedTokens,
+    limitedTokens: room.settings.limitedTokens !== false,
+    wordChoices,
+    timerMinutes,
+    timerStartedAt: null,
+    wordRevealed: {},
   };
 
   await setDoc(doc(db, "games", roomCode), gameDoc);
@@ -204,10 +216,50 @@ export async function submitMagicWord(
   roomCode: string,
   word: string
 ): Promise<void> {
+  // Build wordRevealed map: seer and werewolf players need to confirm
+  const gameSnap = await getDoc(doc(db, "games", roomCode));
+  if (!gameSnap.exists()) return;
+  const game = gameSnap.data() as WerewordsGame;
+
+  const wordRevealed: Record<string, boolean> = {};
+  for (const uid of game.turnOrder) {
+    const handSnap = await getDoc(doc(db, "games", roomCode, "hands", uid));
+    if (handSnap.exists()) {
+      const hand = handSnap.data() as WerewordsHand;
+      if (hand.role === "seer" || hand.role === "werewolf") {
+        wordRevealed[uid] = false;
+      }
+    }
+  }
+
   await updateDoc(doc(db, "games", roomCode), {
     magicWord: word.trim().toLowerCase(),
-    status: "in-progress",
+    status: "word-reveal",
+    wordRevealed,
   });
+}
+
+export async function confirmWordReveal(
+  roomCode: string,
+  uid: string
+): Promise<void> {
+  await updateDoc(doc(db, "games", roomCode), {
+    [`wordRevealed.${uid}`]: true,
+  });
+
+  const gameSnap = await getDoc(doc(db, "games", roomCode));
+  if (!gameSnap.exists()) return;
+  const game = gameSnap.data() as WerewordsGame;
+
+  const updatedRevealed = { ...game.wordRevealed, [uid]: true };
+  const allConfirmed = Object.values(updatedRevealed).every((v) => v);
+
+  if (allConfirmed) {
+    await updateDoc(doc(db, "games", roomCode), {
+      status: "in-progress",
+      timerStartedAt: Date.now(),
+    });
+  }
 }
 
 export async function addGuessResponse(
@@ -355,16 +407,23 @@ export async function submitVote(
     let winner: "villagers" | "werewolves";
     let winReason: string;
 
-    if (topVoted.length > 1) {
-      // Tie — werewolves win
+    const everyoneGotOneVote = maxVotes === 1 && Object.keys(tally).length === voterCount;
+
+    if (everyoneGotOneVote) {
+      // Every player got exactly one vote — werewolves win
       winner = "werewolves";
-      winReason = "The vote was tied! Werewolves win!";
+      winReason = "Every player received one vote! Werewolves win!";
     } else if (caughtWerewolf) {
+      // Top-voted (or tied) players include a werewolf — villagers win
       winner = "villagers";
-      winReason = "The village identified a werewolf! Villagers win!";
+      winReason = topVoted.length > 1
+        ? "The vote was tied, but a werewolf was among them! Villagers win!"
+        : "The village identified a werewolf! Villagers win!";
     } else {
       winner = "werewolves";
-      winReason = "The village voted for an innocent player. Werewolves win!";
+      winReason = topVoted.length > 1
+        ? "The vote was tied and no werewolf was found! Werewolves win!"
+        : "The village voted for an innocent player. Werewolves win!";
     }
 
     await updateDoc(doc(db, "games", roomCode), {

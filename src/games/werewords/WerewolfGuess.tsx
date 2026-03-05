@@ -22,7 +22,7 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
     await submitWerewolfGuess(roomCode, game, guessUid);
   };
 
-  const guessCandidates = game.turnOrder.filter((pid) => pid !== game.mayor);
+  const guessCandidates = game.turnOrder.filter((pid) => pid !== uid);
 
   if (!isWerewolf) {
     return (

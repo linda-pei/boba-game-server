@@ -7,6 +7,7 @@ import { startScoutGame } from "../games/scout/useScoutGame";
 import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
 import { DECKS } from "../games/order-overload/deck";
+import { DIFFICULTIES } from "../games/werewords/words";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -224,9 +225,30 @@ export default function Lobby() {
                   : `${players.length} players — ready!`}
               </p>
               <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                Difficulty:
+                <select
+                  value={room.settings.difficulty ?? "medium"}
+                  onChange={(e) => updateRoomSettings(roomCode!, { difficulty: e.target.value })}
+                >
+                  {DIFFICULTIES.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                Timer: {room.settings.timerMinutes ?? 4} min
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={room.settings.timerMinutes ?? 4}
+                  onChange={(e) => updateRoomSettings(roomCode!, { timerMinutes: Number(e.target.value) })}
+                />
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
                 <input
                   type="checkbox"
-                  checked={!!room.settings.limitedTokens}
+                  checked={room.settings.limitedTokens !== false}
                   onChange={(e) => updateRoomSettings(roomCode!, { limitedTokens: e.target.checked })}
                 />
                 Limited tokens (36 Yes/No, 10 Maybe)

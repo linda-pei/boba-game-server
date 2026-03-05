@@ -9,6 +9,8 @@ export interface RoomSettings {
   mode?: "competitive" | "coop";
   limitedTokens?: boolean;
   deckId?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  timerMinutes?: number;
 }
 
 export interface Room {
@@ -60,6 +62,7 @@ export type WerewordsRole = "seer" | "werewolf" | "villager";
 export type WerewordsStatus =
   | "role-reveal"
   | "word-setup"
+  | "word-reveal"
   | "in-progress"
   | "werewolf-guess"
   | "voting"
@@ -83,6 +86,10 @@ export interface WerewordsGame {
   roleRevealed: Record<string, boolean>;
   revealedRoles: Record<string, WerewordsRole> | null;
   limitedTokens: boolean;
+  wordChoices: string[];
+  timerMinutes: number;
+  timerStartedAt: number | null;
+  wordRevealed: Record<string, boolean>;
 }
 
 export interface WerewordsHand {

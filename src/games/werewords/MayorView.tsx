@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import {
   addGuessResponse,
   markCorrect,
@@ -18,7 +19,36 @@ interface Props {
   room: Room;
 }
 
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const timerFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!game.timerStartedAt) return;
+    timerFiredRef.current = false;
+
+    const update = () => {
+      const elapsed = (Date.now() - game.timerStartedAt!) / 1000;
+      const remaining = Math.max(0, game.timerMinutes * 60 - elapsed);
+      setTimeLeft(Math.ceil(remaining));
+
+      if (remaining <= 0 && !timerFiredRef.current) {
+        timerFiredRef.current = true;
+        markNoGuess(roomCode);
+      }
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [game.timerStartedAt, game.timerMinutes, roomCode]);
+
   const tokensUsed = game.limitedTokens ? countTokensUsed(game.guesses) : null;
   const yesNoLeft = tokensUsed ? TOKEN_LIMITS.yesNo - tokensUsed.yesNo : Infinity;
   const maybeLeft = tokensUsed ? TOKEN_LIMITS.maybe - tokensUsed.maybe : Infinity;
@@ -46,6 +76,11 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
 
       <div className="turn-status">
         Magic word: <strong>{game.magicWord}</strong>
+        {timeLeft !== null && (
+          <div style={{ marginTop: "0.5rem", fontSize: "1.2rem", color: timeLeft <= 30 ? "var(--accent-danger)" : "var(--text-muted)" }}>
+            {formatTime(timeLeft)}
+          </div>
+        )}
       </div>
 
       {game.wayOff && (

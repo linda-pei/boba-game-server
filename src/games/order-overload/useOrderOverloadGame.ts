@@ -125,7 +125,7 @@ function getEmptiedToWin(playerCount: number): number {
   return 3;
 }
 
-/** Find next active player index (not eliminated AND has cards). */
+/** Find next active player index (not eliminated; emptied players can still guess). */
 function findNextActiveTurn(
   turnOrder: string[],
   currentIndex: number,
@@ -136,7 +136,7 @@ function findNextActiveTurn(
   for (let offset = 1; offset <= count; offset++) {
     const idx = (currentIndex + offset) % count;
     const uid = turnOrder[idx];
-    if (!eliminatedPlayers.includes(uid) && !emptiedPlayers.includes(uid)) {
+    if (!eliminatedPlayers.includes(uid)) {
       return idx;
     }
   }
@@ -380,9 +380,9 @@ export async function respondToGuess(
     const newEliminated = [...game.eliminatedPlayers, guesser];
     const newEmptied = game.emptiedPlayers;
 
-    // Check if all non-emptied players are eliminated
+    // Check if all players are eliminated
     const activeRemaining = game.turnOrder.filter(
-      (p) => !newEliminated.includes(p) && !newEmptied.includes(p)
+      (p) => !newEliminated.includes(p)
     );
 
     if (activeRemaining.length === 0) {

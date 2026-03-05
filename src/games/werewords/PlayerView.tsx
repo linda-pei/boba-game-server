@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import { countTokensUsed, TOKEN_LIMITS } from "./useWerewordsGame";
 import RoleBanner from "./RoleBanner";
@@ -11,8 +12,29 @@ interface Props {
   room: Room;
 }
 
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 export default function PlayerView({ game, hand, uid, room }: Props) {
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const mayorName = room.players[game.mayor]?.name ?? "Mayor";
+
+  useEffect(() => {
+    if (!game.timerStartedAt) return;
+
+    const update = () => {
+      const elapsed = (Date.now() - game.timerStartedAt!) / 1000;
+      const remaining = Math.max(0, game.timerMinutes * 60 - elapsed);
+      setTimeLeft(Math.ceil(remaining));
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [game.timerStartedAt, game.timerMinutes]);
 
   // Seer and werewolves can see the magic word
   const canSeeWord =
@@ -30,6 +52,11 @@ export default function PlayerView({ game, hand, uid, room }: Props) {
         {canSeeWord && (
           <div style={{ marginTop: "0.5rem" }}>
             Magic word: <strong>{game.magicWord}</strong>
+          </div>
+        )}
+        {timeLeft !== null && (
+          <div style={{ marginTop: "0.5rem", fontSize: "1.2rem", color: timeLeft <= 30 ? "var(--accent-danger)" : "var(--text-muted)" }}>
+            {formatTime(timeLeft)}
           </div>
         )}
       </div>

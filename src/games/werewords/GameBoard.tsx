@@ -8,6 +8,7 @@ import {
 } from "./useWerewordsGame";
 import RoleReveal from "./RoleReveal";
 import WordSetup from "./WordSetup";
+import WordReveal from "./WordReveal";
 import Gameplay from "./Gameplay";
 import WerewolfGuess from "./WerewolfGuess";
 import VotePhase from "./VotePhase";
@@ -47,6 +48,16 @@ export default function WerewordsGameBoard({
     case "word-setup":
       return (
         <WordSetup
+          roomCode={roomCode}
+          game={game}
+          hand={hand}
+          uid={uid!}
+          room={room}
+        />
+      );
+    case "word-reveal":
+      return (
+        <WordReveal
           roomCode={roomCode}
           game={game}
           hand={hand}

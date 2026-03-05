@@ -12,14 +12,11 @@ interface Props {
 }
 
 export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
-  const [word, setWord] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const isMayor = game.mayor === uid;
   const mayorName = room.players[game.mayor]?.name ?? "Mayor";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!word.trim()) return;
+  const handlePickWord = async (word: string) => {
     setSubmitting(true);
     await submitMagicWord(roomCode, word);
   };
@@ -41,25 +38,20 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
       <h2>Choose the Magic Word</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-        As the Mayor, pick a word the village will try to guess.
-        <br />
-        Choose something that's possible but not too easy!
+        As the Mayor, pick one of these words for the village to guess.
       </p>
-      <form onSubmit={handleSubmit} style={{ marginTop: "1rem" }}>
-        <input
-          type="text"
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          placeholder="Enter the magic word..."
-          autoFocus
-          style={{ fontSize: "1.1rem", textAlign: "center", maxWidth: "300px" }}
-        />
-        <div style={{ marginTop: "0.75rem" }}>
-          <button type="submit" disabled={!word.trim() || submitting}>
-            {submitting ? "Setting..." : "Set Magic Word"}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1rem", alignItems: "center" }}>
+        {game.wordChoices.map((word) => (
+          <button
+            key={word}
+            onClick={() => handlePickWord(word)}
+            disabled={submitting}
+            style={{ minWidth: "200px", fontSize: "1.1rem", textTransform: "capitalize" }}
+          >
+            {word}
           </button>
-        </div>
-      </form>
+        ))}
+      </div>
     </div>
   );
 }

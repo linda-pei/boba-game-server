@@ -2,6 +2,7 @@ import { useState } from "react";
 import { submitVote } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
+import PlayerGuessBoard from "./PlayerGuessBoard";
 
 interface Props {
   roomCode: string;
@@ -60,6 +61,8 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
           Vote submitted! Waiting for others...
         </p>
       )}
+
+      <PlayerGuessBoard game={game} room={room} />
     </div>
   );
 }
