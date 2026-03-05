@@ -6,6 +6,7 @@ import { startGame } from "../games/things-in-rings/useGame";
 import { startScoutGame } from "../games/scout/useScoutGame";
 import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
+import { DECKS } from "../games/order-overload/deck";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -235,14 +236,27 @@ export default function Lobby() {
 
           {/* Order Overload info */}
           {isOrderOverload && (
-            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Order Overload requires 2–6 players.{" "}
-              {players.length < 2
-                ? `Need ${2 - players.length} more.`
-                : players.length > 6
-                  ? "Too many players!"
-                  : `${players.length} players — ready!`}
-            </p>
+            <>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                Deck:
+                <select
+                  value={room.settings.deckId ?? "cafe"}
+                  onChange={(e) => updateRoomSettings(roomCode!, { deckId: e.target.value })}
+                >
+                  {Object.entries(DECKS).map(([id, { label }]) => (
+                    <option key={id} value={id}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+                Order Overload requires 2–6 players.{" "}
+                {players.length < 2
+                  ? `Need ${2 - players.length} more.`
+                  : players.length > 6
+                    ? "Too many players!"
+                    : `${players.length} players — ready!`}
+              </p>
+            </>
           )}
 
           <div style={{ textAlign: "center" }}>

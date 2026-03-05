@@ -8,6 +8,7 @@ export interface RoomSettings {
   knower?: string;
   mode?: "competitive" | "coop";
   limitedTokens?: boolean;
+  deckId?: string;
 }
 
 export interface Room {
@@ -126,6 +127,7 @@ export type OrderOverloadAbility = "discard" | "first-letter" | "last-letter";
 
 export interface OrderOverloadGame {
   gameType: "order-overload";
+  deckId: string;
   status: "reading" | "playing" | "level-complete" | "finished";
   level: number;
   turnOrder: string[];

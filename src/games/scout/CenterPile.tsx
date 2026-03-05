@@ -1,5 +1,6 @@
 import type { ScoutCard } from "../../types";
 import { validatePlay } from "./scoutDeck";
+import { scoutCardBackground } from "./cardColors";
 
 interface CenterPileProps {
   cards: ScoutCard[];
@@ -39,7 +40,7 @@ export default function CenterPile({
           </button>
         )}
         {cards.map((card, i) => (
-          <div key={`${card.id}-${i}`} className="scout-card pile-card">
+          <div key={`${card.id}-${i}`} className="scout-card pile-card" style={{ background: scoutCardBackground(card.top, card.bottom) }}>
             <span className="scout-card-top">{card.top}</span>
             <span className="scout-card-divider" />
             <span className="scout-card-bottom">{card.bottom}</span>

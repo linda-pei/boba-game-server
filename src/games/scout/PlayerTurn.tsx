@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
+import { scoutCardBackground } from "./cardColors";
 import {
   playScoutCards,
   scoutCard,
@@ -272,7 +273,7 @@ export default function PlayerTurn({
             const card = scoutedCardPreview();
             if (!card) return null;
             return (
-              <div className="scout-card" style={{ display: "inline-flex" }}>
+              <div className="scout-card" style={{ display: "inline-flex", background: scoutCardBackground(card.top, card.bottom) }}>
                 <span className="scout-card-top">{card.top}</span>
                 <span className="scout-card-divider" />
                 <span className="scout-card-bottom">{card.bottom}</span>

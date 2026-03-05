@@ -1,4 +1,5 @@
 import type { ScoutCard } from "../../types";
+import { scoutCardBackground } from "./cardColors";
 
 interface HandDisplayProps {
   cards: ScoutCard[];
@@ -26,6 +27,7 @@ export default function HandDisplay({
             className={`scout-card${selectedIndices?.has(i) ? " selected" : ""}`}
             onClick={() => onToggle?.(i)}
             disabled={!onToggle}
+            style={{ background: scoutCardBackground(card.top, card.bottom) }}
           >
             <span className="scout-card-top">{card.top}</span>
             <span className="scout-card-divider" />
@@ -47,7 +49,7 @@ export default function HandDisplay({
       </button>
       {cards.map((card, i) => (
         <span key={`${card.id}-${i}`} className="scout-hand-insert-group">
-          <button className="scout-card" disabled>
+          <button className="scout-card" disabled style={{ background: scoutCardBackground(card.top, card.bottom) }}>
             <span className="scout-card-top">{card.top}</span>
             <span className="scout-card-divider" />
             <span className="scout-card-bottom">{card.bottom}</span>

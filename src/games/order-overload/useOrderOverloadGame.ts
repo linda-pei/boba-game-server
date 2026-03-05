@@ -14,7 +14,7 @@ import type {
   Room,
 } from "../../types";
 import { shuffled } from "../../utils/shuffle";
-import { ORDER_DECK } from "./deck";
+import { getDeck } from "./deck";
 
 // ---- Realtime listeners ----
 
@@ -177,10 +177,12 @@ export async function startOrderOverloadGame(
   }
 
   // Draw orders for level 1
-  const drawnOrders = shuffled(ORDER_DECK).slice(0, totalOrders);
+  const deckId = room.settings.deckId ?? "cafe";
+  const drawnOrders = shuffled(getDeck(deckId)).slice(0, totalOrders);
 
   const gameDoc: OrderOverloadGame = {
     gameType: "order-overload",
+    deckId,
     status: "reading",
     level,
     turnOrder,
@@ -502,7 +504,7 @@ export async function continueToNextLevel(
   const newOrderTakerIndex = (game.orderTakerIndex + 1) % playerCount;
   const totalOrders = newLevel * playerCount;
 
-  const drawnOrders = shuffled(ORDER_DECK).slice(0, totalOrders);
+  const drawnOrders = shuffled(getDeck(game.deckId)).slice(0, totalOrders);
 
   await updateDoc(doc(db, "games", roomCode), {
     status: "reading",
@@ -543,7 +545,7 @@ export async function retryLevel(
   const playerCount = game.turnOrder.length;
   const totalOrders = game.level * playerCount;
 
-  const drawnOrders = shuffled(ORDER_DECK).slice(0, totalOrders);
+  const drawnOrders = shuffled(getDeck(game.deckId)).slice(0, totalOrders);
 
   await updateDoc(doc(db, "games", roomCode), {
     status: "reading",
