@@ -128,9 +128,12 @@ export async function startWerewordsGame(
 
   const roles = buildRoleDeck(playerCount);
 
-  // Pick a random mayor — mayor is a designation, not a role card
-  const mayorIndex = Math.floor(Math.random() * playerCount);
-  const mayor = turnOrder[mayorIndex];
+  // Mayor: use setting if specified, otherwise random
+  const mayorSetting = room.settings.mayor;
+  const mayor =
+    mayorSetting && mayorSetting !== "random" && playerUids.includes(mayorSetting)
+      ? mayorSetting
+      : turnOrder[Math.floor(Math.random() * playerCount)];
 
   // Deal one role card to each player
   const playerRoles: Record<string, WerewordsRole> = {};
@@ -294,9 +297,11 @@ export async function markCorrect(
   guesserUid: string
 ): Promise<void> {
   const current = game.guesses[guesserUid] ?? [];
+  const revealedRoles = await buildRevealedRoles(roomCode, game.turnOrder);
   await updateDoc(doc(db, "games", roomCode), {
     [`guesses.${guesserUid}`]: [...current, "correct"],
     correctGuesser: guesserUid,
+    revealedRoles,
     status: "werewolf-guess",
   });
 }

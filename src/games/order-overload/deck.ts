@@ -129,12 +129,12 @@ const duckduckGooseEntries: [string, number][] = [
   ["Hawaiian Goose", 2],
   ["Pikmin", 2],
   ["Froggo", 2],
-  ["Aflac Duck (Quack!)", 1],
-  ["SNAKE O_O", 1],
+  ["Aflac Duck", 1],
+  ["Snake", 1],
   ["Donald Duck", 1],
   ["Duck Hunt Duck", 1],
   ["Duck Hunt Doggo", 1],
-  ["Doog (Not a Cow)", 1],
+  ["Doog", 1],
   ["Maya", 1],
   ["Untitled Goose with a Knife", 1],
   ["Rubber Duck w/ Sunglasses", 1],
@@ -154,7 +154,7 @@ const duckduckGooseEntries: [string, number][] = [
   ["Bugs Bunny", 1],
   ["Salamander", 1],
   ["Barking Doggo", 1],
-  ["Shuckle?!", 1],
+  ["Shuckle", 1],
 ];
 
 const pokemonEntries: [string, number][] = [
@@ -210,25 +210,25 @@ const pokemonEntries: [string, number][] = [
 /** Registry of available decks. */
 export const DECKS: Record<string, { label: string; entries: [string, number][] }> = {
   cafe: { label: "Cafe", entries: cafeEntries },
-  duckDuckGoose: { label: "Duck Duck Goose", entries: duckduckGooseEntries },
-  mtg: { label: "Magic: The Gathering", entries: mtgEntries },
-  pokemon: { label: "Pokémon", entries: pokemonEntries, },
+duckDuckGoose: { label: "Duck Duck Goose", entries: duckduckGooseEntries },
+mtg: { label: "Magic: The Gathering", entries: mtgEntries },
+pokemon: { label: "Pokémon", entries: pokemonEntries, },
 };
 
 function flatten(entries: [string, number][]): string[] {
-  return entries.flatMap(([name, count]) =>
-    Array.from({ length: count }, () => name)
-  );
+return entries.flatMap(([name, count]) =>
+  Array.from({ length: count }, () => name)
+);
 }
 
 /** Get the flat deck array for a given deck ID. */
 export function getDeck(deckId: string): string[] {
-  const deck = DECKS[deckId] ?? DECKS.cafe;
-  return flatten(deck.entries);
+const deck = DECKS[deckId] ?? DECKS.cafe;
+return flatten(deck.entries);
 }
 
 /** Get unique order names for a given deck ID. */
 export function getUniqueOrders(deckId: string): string[] {
-  const deck = DECKS[deckId] ?? DECKS.cafe;
-  return deck.entries.map(([name]) => name);
+const deck = DECKS[deckId] ?? DECKS.cafe;
+return deck.entries.map(([name]) => name);
 }

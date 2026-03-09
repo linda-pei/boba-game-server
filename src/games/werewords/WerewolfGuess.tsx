@@ -24,6 +24,12 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
 
   const guessCandidates = game.turnOrder.filter((pid) => pid !== uid);
 
+  const werewolfNames = game.revealedRoles
+    ? Object.entries(game.revealedRoles)
+        .filter(([, role]) => role === "werewolf")
+        .map(([pid]) => room.players[pid]?.name ?? pid)
+    : [];
+
   if (!isWerewolf) {
     return (
       <div className="screen">
@@ -32,7 +38,14 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
         <div className="turn-status">
           The word was guessed correctly!
           <br />
-          The werewolf is now trying to identify the Seer...
+          {werewolfNames.length > 0 ? (
+            <>
+              <strong>{werewolfNames.join(" & ")}</strong>
+              {werewolfNames.length === 1 ? " is" : " are"} the werewolf{werewolfNames.length > 1 ? "s" : ""} — now trying to identify the Seer...
+            </>
+          ) : (
+            "The werewolf is now trying to identify the Seer..."
+          )}
         </div>
         <PlayerGuessBoard game={game} room={room} />
       </div>

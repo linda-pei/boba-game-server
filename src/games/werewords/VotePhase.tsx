@@ -27,6 +27,9 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
     <div className="screen">
       <h2>Vote</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
+      <p style={{ marginTop: "0.5rem" }}>
+        The magic word was: <strong style={{ textTransform: "capitalize" }}>{game.magicWord}</strong>
+      </p>
       <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
         Nobody guessed the word! Vote for who you think is a werewolf.
       </p>

@@ -9,8 +9,9 @@ export interface RoomSettings {
   mode?: "competitive" | "coop";
   limitedTokens?: boolean;
   deckId?: string;
-  difficulty?: "easy" | "medium" | "hard";
+  difficulty?: "easy" | "medium" | "hard" | "impossible";
   timerMinutes?: number;
+  mayor?: string;
 }
 
 export interface Room {

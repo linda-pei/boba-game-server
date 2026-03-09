@@ -64,6 +64,20 @@ export default function GameOver({ game, room }: Props) {
         </p>
       )}
 
+      {game.werewolfGuess && (
+        <div style={{ marginTop: "1.5rem" }}>
+          <h3>Werewolf's Guess</h3>
+          <p>
+            The werewolf guessed{" "}
+            <strong>{room.players[game.werewolfGuess]?.name ?? game.werewolfGuess}</strong>
+            {" "}as the Seer —{" "}
+            {game.revealedRoles?.[game.werewolfGuess] === "seer"
+              ? "and was right!"
+              : "but was wrong."}
+          </p>
+        </div>
+      )}
+
       {game.revealedRoles && (
         <div style={{ marginTop: "1.5rem" }}>
           <h3>Roles</h3>

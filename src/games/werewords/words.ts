@@ -1,4 +1,6 @@
-export const WORD_LISTS: Record<"easy" | "medium" | "hard", string[]> = {
+export type Difficulty = "easy" | "medium" | "hard" | "impossible";
+
+export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
     "pizza", "beach", "cat", "dog", "rain",
     "sun", "tree", "book", "chair", "shoe",
@@ -45,10 +47,32 @@ export const WORD_LISTS: Record<"easy" | "medium" | "hard", string[]> = {
     "Houdini", "Beethoven", "Genghis Khan", "Da Vinci", "Marie Curie",
     "Dumbledore", "Voldemort", "Darth Vader", "Willy Wonka", "Dracula",
   ],
+  impossible: [
+    // abstract concepts
+    "nostalgia", "irony", "karma", "procrastination", "deja vu",
+    "awkward silence", "gut feeling", "hindsight", "paradox", "peer pressure",
+    "stage fright", "writers block", "comfort zone", "guilty pleasure", "growing pains",
+    "second wind", "tunnel vision", "cold shoulder", "silver lining", "blind spot",
+    // vague / hard to narrow down
+    "tradition", "superstition", "etiquette", "charisma", "momentum",
+    "atmosphere", "instinct", "reputation", "tension", "plot twist",
+    "limbo", "loophole", "fine print", "red herring", "dark horse",
+    // obscure objects & things
+    "zoetrope", "astrolabe", "sextant", "abacus", "theremin",
+    "armillary sphere", "stereoscope", "thimble", "awl", "plumb bob",
+    "bellows", "spindle", "pestle", "quill", "inkwell",
+    "gaiter", "ferrule", "snuffer", "bodkin", "gimbal",
+    "lanyard", "dowel", "cleat", "gasket", "rivets",
+    // obscure people & places
+    "Rasputin", "Blackbeard", "Fibonacci", "Sisyphus", "Achilles",
+    "El Dorado", "Atlantis", "Rosetta Stone", "Bermuda Triangle", "Area 51",
+    "Schrodinger's cat", "Trojan Horse", "Pandora's box", "Occam's razor", "Murphy's law",
+  ],
 };
 
-export const DIFFICULTIES: { value: "easy" | "medium" | "hard"; label: string }[] = [
+export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "easy", label: "Easy" },
   { value: "medium", label: "Medium" },
   { value: "hard", label: "Hard" },
+  { value: "impossible", label: "Impossible" },
 ];

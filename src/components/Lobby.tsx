@@ -150,137 +150,160 @@ export default function Lobby() {
           ))}
       </div>
 
-      {isHost && (
-        <div className="settings-panel">
-          <h3>Settings</h3>
+      <div className="settings-panel">
+        <h3>Settings</h3>
 
-          {/* Game type toggle */}
-          <div className="mode-toggle" style={{ marginBottom: "1rem" }}>
-            <button
-              className={`mode-toggle-btn${gameType === "things-in-rings" ? " active" : ""}`}
-              onClick={() => handleSetGameType("things-in-rings")}
-            >
-              Things in Rings
-            </button>
-            <button
-              className={`mode-toggle-btn${gameType === "scout" ? " active" : ""}`}
-              onClick={() => handleSetGameType("scout")}
-            >
-              Scout
-            </button>
-            <button
-              className={`mode-toggle-btn${gameType === "werewords" ? " active" : ""}`}
-              onClick={() => handleSetGameType("werewords")}
-            >
-              Werewords
-            </button>
-            <button
-              className={`mode-toggle-btn${gameType === "order-overload" ? " active" : ""}`}
-              onClick={() => handleSetGameType("order-overload")}
-            >
-              Order Overload
-            </button>
-          </div>
+        {/* Game type toggle */}
+        <div className="mode-toggle" style={{ marginBottom: "1rem" }}>
+          <button
+            className={`mode-toggle-btn${gameType === "things-in-rings" ? " active" : ""}`}
+            onClick={() => handleSetGameType("things-in-rings")}
+            disabled={!isHost}
+          >
+            Things in Rings
+          </button>
+          <button
+            className={`mode-toggle-btn${gameType === "scout" ? " active" : ""}`}
+            onClick={() => handleSetGameType("scout")}
+            disabled={!isHost}
+          >
+            Scout
+          </button>
+          <button
+            className={`mode-toggle-btn${gameType === "werewords" ? " active" : ""}`}
+            onClick={() => handleSetGameType("werewords")}
+            disabled={!isHost}
+          >
+            Werewords
+          </button>
+          <button
+            className={`mode-toggle-btn${gameType === "order-overload" ? " active" : ""}`}
+            onClick={() => handleSetGameType("order-overload")}
+            disabled={!isHost}
+          >
+            Order Overload
+          </button>
+        </div>
 
-          {/* TIR settings */}
-          {!isScout && !isWerewords && !isOrderOverload && (
-            <>
-              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                3 rings: Context (red), Attribute (blue), Word (green)
-              </p>
-              <div className="mode-toggle">
-                <button
-                  className={`mode-toggle-btn${mode === "competitive" ? " active" : ""}`}
-                  onClick={() => handleSetMode("competitive")}
-                >
-                  Competitive
-                </button>
-                <button
-                  className={`mode-toggle-btn${mode === "coop" ? " active" : ""}`}
-                  onClick={() => handleSetMode("coop")}
-                >
-                  Co-op
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Scout info */}
-          {isScout && (
+        {/* TIR settings */}
+        {!isScout && !isWerewords && !isOrderOverload && (
+          <>
             <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Scout requires 3–5 players.{" "}
-              {players.length < 3
-                ? `Need ${3 - players.length} more.`
+              3 rings: Context (red), Attribute (blue), Word (green)
+            </p>
+            <div className="mode-toggle">
+              <button
+                className={`mode-toggle-btn${mode === "competitive" ? " active" : ""}`}
+                onClick={() => handleSetMode("competitive")}
+                disabled={!isHost}
+              >
+                Competitive
+              </button>
+              <button
+                className={`mode-toggle-btn${mode === "coop" ? " active" : ""}`}
+                onClick={() => handleSetMode("coop")}
+                disabled={!isHost}
+              >
+                Co-op
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Scout info */}
+        {isScout && (
+          <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+            Scout requires 3–5 players.{" "}
+            {players.length < 3
+              ? `Need ${3 - players.length} more.`
+              : `${players.length} players — ready!`}
+          </p>
+        )}
+
+        {/* Werewords info */}
+        {isWerewords && (
+          <>
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Werewords requires 4–11 players.{" "}
+              {players.length < 4
+                ? `Need ${4 - players.length} more.`
                 : `${players.length} players — ready!`}
             </p>
-          )}
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Mayor:
+              <select
+                value={room.settings.mayor ?? "random"}
+                onChange={(e) => updateRoomSettings(roomCode!, { mayor: e.target.value })}
+                disabled={!isHost}
+              >
+                <option value="random">Random</option>
+                {players.map(([id, player]) => (
+                  <option key={id} value={id}>{player.name}</option>
+                ))}
+              </select>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Difficulty:
+              <select
+                value={room.settings.difficulty ?? "medium"}
+                onChange={(e) => updateRoomSettings(roomCode!, { difficulty: e.target.value })}
+                disabled={!isHost}
+              >
+                {DIFFICULTIES.map((d) => (
+                  <option key={d.value} value={d.value}>{d.label}</option>
+                ))}
+              </select>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Timer: {room.settings.timerMinutes ?? 4} min
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={room.settings.timerMinutes ?? 4}
+                onChange={(e) => updateRoomSettings(roomCode!, { timerMinutes: Number(e.target.value) })}
+                disabled={!isHost}
+              />
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              <input
+                type="checkbox"
+                checked={room.settings.limitedTokens !== false}
+                onChange={(e) => updateRoomSettings(roomCode!, { limitedTokens: e.target.checked })}
+                disabled={!isHost}
+              />
+              Limited tokens (36 Yes/No, 10 Maybe)
+            </label>
+          </>
+        )}
 
-          {/* Werewords info */}
-          {isWerewords && (
-            <>
-              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                Werewords requires 4–11 players.{" "}
-                {players.length < 4
-                  ? `Need ${4 - players.length} more.`
+        {/* Order Overload info */}
+        {isOrderOverload && (
+          <>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Deck:
+              <select
+                value={room.settings.deckId ?? "cafe"}
+                onChange={(e) => updateRoomSettings(roomCode!, { deckId: e.target.value })}
+                disabled={!isHost}
+              >
+                {Object.entries(DECKS).map(([id, { label }]) => (
+                  <option key={id} value={id}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Order Overload requires 2–6 players.{" "}
+              {players.length < 2
+                ? `Need ${2 - players.length} more.`
+                : players.length > 6
+                  ? "Too many players!"
                   : `${players.length} players — ready!`}
-              </p>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                Difficulty:
-                <select
-                  value={room.settings.difficulty ?? "medium"}
-                  onChange={(e) => updateRoomSettings(roomCode!, { difficulty: e.target.value })}
-                >
-                  {DIFFICULTIES.map((d) => (
-                    <option key={d.value} value={d.value}>{d.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                Timer: {room.settings.timerMinutes ?? 4} min
-                <input
-                  type="range"
-                  min={1}
-                  max={10}
-                  value={room.settings.timerMinutes ?? 4}
-                  onChange={(e) => updateRoomSettings(roomCode!, { timerMinutes: Number(e.target.value) })}
-                />
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                <input
-                  type="checkbox"
-                  checked={room.settings.limitedTokens !== false}
-                  onChange={(e) => updateRoomSettings(roomCode!, { limitedTokens: e.target.checked })}
-                />
-                Limited tokens (36 Yes/No, 10 Maybe)
-              </label>
-            </>
-          )}
+            </p>
+          </>
+        )}
 
-          {/* Order Overload info */}
-          {isOrderOverload && (
-            <>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                Deck:
-                <select
-                  value={room.settings.deckId ?? "cafe"}
-                  onChange={(e) => updateRoomSettings(roomCode!, { deckId: e.target.value })}
-                >
-                  {Object.entries(DECKS).map(([id, { label }]) => (
-                    <option key={id} value={id}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-                Order Overload requires 2–6 players.{" "}
-                {players.length < 2
-                  ? `Need ${2 - players.length} more.`
-                  : players.length > 6
-                    ? "Too many players!"
-                    : `${players.length} players — ready!`}
-              </p>
-            </>
-          )}
-
+        {isHost && (
           <div style={{ textAlign: "center" }}>
             <button onClick={handleStart} disabled={!canStart || starting}>
               {starting ? "Starting..." : "Start Game"}
@@ -305,8 +328,8 @@ export default function Lobby() {
               </p>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <button onClick={handleLeave} className="btn-danger" style={{ marginTop: "1rem" }}>
         {isHost ? "Disband Room" : "Leave Room"}
