@@ -440,8 +440,12 @@ export async function useAbilityDiscard(
   if (hand.cards.length <= 1) {
     throw new Error("Cannot discard your last card");
   }
+  const discardedCard = hand.cards[cardIndex];
   const newCards = hand.cards.filter((_, i) => i !== cardIndex);
   await writeHand(roomCode, uid, { cards: newCards });
+
+  const newRevealedCards = { ...game.revealedCards };
+  newRevealedCards[uid] = [...(newRevealedCards[uid] ?? []), discardedCard];
 
   const newEmptied = [...game.emptiedPlayers];
   if (newCards.length === 0 && !newEmptied.includes(uid)) {
@@ -450,6 +454,7 @@ export async function useAbilityDiscard(
 
   const updates: Record<string, unknown> = {
     [`abilitiesUsed.${uid}`]: true,
+    revealedCards: newRevealedCards,
     emptiedPlayers: newEmptied,
     lastAction: `${uid} used Discard ability.`,
   };
