@@ -236,6 +236,7 @@ const bobaCafeEntries: [string, number][] = [
   ["Lemon Tea", 1],
   ["Watermelon Tea", 1],
   ["Brown Sugar Milk Tea with 50% Sugar", 1],
+  ["Brown Sugar Milk", 1],
   ["Classic Pearl Milk Tea without Boba", 1],
   ["Classic Pearl Milk Tea without Ice", 1],
   ["Jasmine Green Milk Tea without Ice", 1],
@@ -253,6 +254,7 @@ const bobaCafeEntries: [string, number][] = [
   ["Passion Fruit Yakult", 1],
   ["Mango Yakult", 1],
   ["Tieguanyin Boba Tea", 1],
+  ["Brown Sugar Milk Tea with Ube Cream Cheese and Mochi", 1],
 ];
 
 /** Registry of available decks. */
