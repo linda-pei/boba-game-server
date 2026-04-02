@@ -260,10 +260,10 @@ const bobaCafeEntries: [string, number][] = [
 /** Registry of available decks. */
 export const DECKS: Record<string, { label: string; entries: [string, number][] }> = {
   cafe: { label: "Cafe", entries: cafeEntries },
-duckDuckGoose: { label: "Duck Duck Goose", entries: duckduckGooseEntries },
-mtg: { label: "Magic: The Gathering", entries: mtgEntries },
-pokemon: { label: "Pokémon", entries: pokemonEntries, },
-bobaCafe: { label: "Boba Cafe", entries: bobaCafeEntries, },
+  duckDuckGoose: { label: "Duck Duck Goose", entries: duckduckGooseEntries },
+  mtg: { label: "Magic: The Gathering", entries: mtgEntries },
+  pokemon: { label: "Pokémon", entries: pokemonEntries, },
+  bobaCafe: { label: "Boba Cafe", entries: bobaCafeEntries, },
 };
 
 function flatten(entries: [string, number][]): string[] {
