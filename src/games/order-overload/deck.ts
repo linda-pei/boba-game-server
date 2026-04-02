@@ -218,8 +218,6 @@ const bobaCafeEntries: [string, number][] = [
   ["Okinawa Milk Tea", 3],
   ["Matcha Red Bean Milk Tea", 2],
   ["Peach Tea", 2],
-  ["Passionfruit Tea", 2],
-  ["Plum Tea", 2],
   ["Coconut Milk Tea", 2],
   ["Thai Milk Tea", 2],
   ["Chocolate Milk Tea", 2],
