@@ -6,6 +6,7 @@ import { startGame } from "../games/things-in-rings/useGame";
 import { startScoutGame } from "../games/scout/useScoutGame";
 import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
+import { startDeepSeaGame } from "../games/deep-sea/useDeepSeaGame";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
 
@@ -49,6 +50,7 @@ export default function Lobby() {
   const isScout = gameType === "scout";
   const isWerewords = gameType === "werewords";
   const isOrderOverload = gameType === "order-overload";
+  const isDeepSea = gameType === "deep-sea";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -66,7 +68,12 @@ export default function Lobby() {
   // Order Overload-specific
   const canStartOrderOverload = players.length >= 2 && players.length <= 6;
 
-  const canStart = isScout
+  // Deep Sea-specific
+  const canStartDeepSea = players.length >= 2 && players.length <= 6;
+
+  const canStart = isDeepSea
+    ? canStartDeepSea
+    : isScout
     ? canStartScout
     : isWerewords
       ? canStartWerewords
@@ -104,7 +111,9 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isScout) {
+      if (isDeepSea) {
+        await startDeepSeaGame(roomCode, room);
+      } else if (isScout) {
         await startScoutGame(roomCode, room);
       } else if (isWerewords) {
         await startWerewordsGame(roomCode, room);
@@ -135,10 +144,10 @@ export default function Lobby() {
             <div key={id} className="player-chip">
               {player.name}
               {id === room.host && <span className="badge badge-host">Host</span>}
-              {!isScout && !isWerewords && !isOrderOverload && id === knower && (
+              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && id === knower && (
                 <span className="badge badge-knower">Knower</span>
               )}
-              {!isScout && !isWerewords && !isOrderOverload && isHost && id !== knower && (
+              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn-small btn-secondary"
@@ -183,10 +192,29 @@ export default function Lobby() {
           >
             Order Overload
           </button>
+          <button
+            className={`mode-toggle-btn${gameType === "deep-sea" ? " active" : ""}`}
+            onClick={() => handleSetGameType("deep-sea")}
+            disabled={!isHost}
+          >
+            Deep Sea Adventure
+          </button>
         </div>
 
+        {/* Deep Sea info */}
+        {isDeepSea && (
+          <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+            Deep Sea Adventure requires 2–6 players.{" "}
+            {players.length < 2
+              ? `Need ${2 - players.length} more.`
+              : players.length > 6
+                ? "Too many players!"
+                : `${players.length} players — ready!`}
+          </p>
+        )}
+
         {/* TIR settings */}
-        {!isScout && !isWerewords && !isOrderOverload && (
+        {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && (
           <>
             <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
               3 rings: Context (red), Attribute (blue), Word (green)
@@ -310,7 +338,11 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isOrderOverload
+                {isDeepSea
+                  ? players.length < 2
+                    ? "Need at least 2 players for Deep Sea Adventure"
+                    : "Too many players (max 6 for Deep Sea Adventure)"
+                  : isOrderOverload
                   ? players.length < 2
                     ? "Need at least 2 players for Order Overload"
                     : "Too many players (max 6 for Order Overload)"

@@ -954,3 +954,461 @@
     max-width: 100%;
   }
 }
+
+/* =============== Deep Sea Adventure =============== */
+
+:root {
+  --ds-wall-color: #64748b;
+}
+
+[data-theme="dark"] {
+  --ds-wall-color: #94a3b8;
+}
+
+#root:has(.deep-sea-screen) {
+  max-width: 1100px;
+}
+
+.screen.deep-sea-screen {
+  max-width: 1000px;
+}
+
+/* Header with round + air */
+.ds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ds-header h2 {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Air gauge */
+.ds-air-gauge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 300px;
+}
+
+.ds-air-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.ds-air-segments {
+  flex: 1;
+  display: flex;
+  gap: 1.5px;
+  height: 18px;
+}
+
+.ds-air-seg {
+  flex: 1;
+  border-radius: 2px;
+  background: var(--bg-tertiary);
+  transition: background-color 0.3s ease;
+}
+
+.ds-air-seg-filled {
+  /* color set via inline style */
+}
+
+.ds-air-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 1.5em;
+  text-align: right;
+}
+
+/* Spiral board */
+.ds-board {
+  display: grid;
+  gap: 4px;
+  margin: 1rem auto;
+  max-width: 600px;
+  aspect-ratio: 1;
+}
+
+.ds-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 1;
+  font-size: 0.7rem;
+  /* Borders are computed per-cell via inline styles (wall vs path opening) */
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+
+.ds-cell-index {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Treasure levels — background tint only; wall borders set via inline styles */
+.ds-cell.ds-level-1 { background: rgba(34, 197, 94, 0.15); }
+.ds-cell.ds-level-2 { background: rgba(59, 130, 246, 0.15); }
+.ds-cell.ds-level-3 { background: rgba(168, 85, 247, 0.15); }
+.ds-cell.ds-level-4 { background: rgba(239, 68, 68, 0.15); }
+
+.ds-shape {
+  font-size: 1.6em;
+  line-height: 1;
+}
+
+/* Pentagon and hexagon unicode chars render smaller — compensate */
+.ds-level-3 .ds-shape,
+.ds-level-4 .ds-shape {
+  font-size: 2.2em;
+}
+
+.ds-shape-chip.ds-level-3,
+.ds-shape-chip.ds-level-4 {
+  font-size: 1.4rem;
+}
+
+.ds-blank {
+  background: transparent;
+}
+
+.ds-stack {
+  background: var(--bg-tertiary);
+  box-shadow: 2px 2px 0 var(--border);
+}
+
+.ds-stack-shapes {
+  display: flex;
+  gap: 1px;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-stack-shape {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* Submarine cell */
+.ds-submarine {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.ds-sub-icon {
+  font-size: 1.2em;
+}
+
+/* Diver tokens */
+.ds-diver-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ds-active-diver {
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 0 6px var(--accent-primary);
+}
+
+.ds-my-diver {
+  border: 2px solid var(--accent-danger);
+}
+
+
+/* Action area */
+.ds-action-area {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.ds-turn-prompt {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.ds-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.ds-last-action {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+/* Dice */
+.ds-dice-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ds-dice-pair {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.ds-die {
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+}
+
+.ds-die-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-primary);
+}
+
+.ds-dice-math {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.ds-dice-penalty {
+  color: var(--accent-danger);
+}
+
+/* Treasure shape chips (inline badges) */
+.ds-shape-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  border: 1.5px solid;
+}
+
+.ds-shape-chip.ds-level-1 { background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.5); color: #16a34a; }
+.ds-shape-chip.ds-level-2 { background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #2563eb; }
+.ds-shape-chip.ds-level-3 { background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5); color: #9333ea; }
+.ds-shape-chip.ds-level-4 { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #dc2626; }
+.ds-shape-chip.ds-shape-unknown { background: var(--bg-tertiary); border-color: var(--border); color: var(--text-muted); }
+.ds-shape-chip.ds-stack { background: var(--bg-tertiary); border-color: var(--text-muted); color: var(--text-primary); }
+
+[data-theme="dark"] .ds-shape-chip.ds-level-1 { color: #4ade80; }
+[data-theme="dark"] .ds-shape-chip.ds-level-2 { color: #60a5fa; }
+[data-theme="dark"] .ds-shape-chip.ds-level-3 { color: #c084fc; }
+[data-theme="dark"] .ds-shape-chip.ds-level-4 { color: #f87171; }
+
+/* Carried shapes row inside score-row */
+.ds-carried-shapes {
+  display: flex;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding-left: 80px;
+}
+
+/* Stack preview (inline shapes) */
+.ds-stack-preview {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+/* Space preview in action prompt */
+.ds-space-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Drop options */
+.ds-drop-options {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Round end */
+.ds-round-section {
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.ds-round-section h3 {
+  margin: 0 0 0.5rem;
+}
+
+.ds-round-player {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.4rem;
+}
+
+.ds-round-player.ds-safe {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.ds-round-player.ds-drowned {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.ds-revealed-treasures {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.ds-chip-reveal {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ds-chip-reveal.ds-level-1 { background: rgba(34, 197, 94, 0.2); color: #16a34a; }
+.ds-chip-reveal.ds-level-2 { background: rgba(59, 130, 246, 0.2); color: #2563eb; }
+.ds-chip-reveal.ds-level-3 { background: rgba(168, 85, 247, 0.2); color: #9333ea; }
+.ds-chip-reveal.ds-level-4 { background: rgba(239, 68, 68, 0.2); color: #dc2626; }
+
+/* Game over */
+.ds-score-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  text-align: left;
+}
+
+.ds-score-table th,
+.ds-score-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ds-score-table th {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ds-winner-row {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.ds-level-breakdown {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.ds-level-count {
+  color: var(--text-muted);
+}
+
+.ds-treasure-reveal-grid {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .ds-chip-reveal.ds-level-1 { color: #4ade80; }
+[data-theme="dark"] .ds-chip-reveal.ds-level-2 { color: #60a5fa; }
+[data-theme="dark"] .ds-chip-reveal.ds-level-3 { color: #c084fc; }
+[data-theme="dark"] .ds-chip-reveal.ds-level-4 { color: #f87171; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .ds-board {
+    gap: 2px;
+  }
+
+  .ds-cell {
+    font-size: 0.55rem;
+  }
+
+  .ds-shape {
+    font-size: 1.2em;
+  }
+
+  .ds-shape-chip {
+    width: 24px;
+    height: 24px;
+    font-size: 0.9rem;
+  }
+
+  .ds-diver-token {
+    width: 14px;
+    height: 14px;
+    font-size: 0.5rem;
+  }
+
+  .ds-die {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ds-die-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .ds-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ds-air-gauge {
+    max-width: none;
+  }
+}

@@ -4,6 +4,7 @@ import GameBoard from "../games/things-in-rings/GameBoard";
 import ScoutGameBoard from "../games/scout/GameBoard";
 import WerewordsGameBoard from "../games/werewords/GameBoard";
 import OrderOverloadGameBoard from "../games/order-overload/GameBoard";
+import DeepSeaGameBoard from "../games/deep-sea/GameBoard";
 
 export default function GameRouter() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -22,6 +23,10 @@ export default function GameRouter() {
 
   if (room?.gameType === "order-overload") {
     return <OrderOverloadGameBoard roomCode={roomCode} />;
+  }
+
+  if (room?.gameType === "deep-sea") {
+    return <DeepSeaGameBoard roomCode={roomCode} />;
   }
 
   return <GameBoard roomCode={roomCode} />;

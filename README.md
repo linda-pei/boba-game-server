@@ -5,6 +5,7 @@ Fun server for game time! Current games:
 * Scout
 * Werewords
 * Order Overload
+* Deep Sea Adventure
 
 
 ## Prerequisites

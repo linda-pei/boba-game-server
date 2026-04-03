@@ -182,3 +182,59 @@ export interface OrderOverloadHand {
   cards: string[];
   ordersToRead?: string[];
 }
+
+// ---- Deep Sea Adventure types ----
+
+export type TreasureLevel = 1 | 2 | 3 | 4;
+
+export interface TreasureChip {
+  id: string;
+  level: TreasureLevel;
+  points: number;
+}
+
+export interface PathSpace {
+  type: "treasure" | "blank" | "stack";
+  level?: TreasureLevel;
+  chipId?: string;
+  stackChipIds?: string[];
+  stackLevels?: TreasureLevel[];   // levels of chips in the stack (for display)
+}
+
+export interface DeepSeaDiver {
+  position: number;       // -1 = on submarine, 0+ = path index
+  direction: "down" | "up";
+  carriedCount: number;
+  carriedLevels: TreasureLevel[];  // publicly visible shapes (but not point values)
+  returned: boolean;
+}
+
+export type DeepSeaPhase =
+  | "round-start"
+  | "declaring"
+  | "rolling"
+  | "treasure-action"
+  | "round-end"
+  | "finished";
+
+export interface DeepSeaGame {
+  gameType: "deep-sea";
+  status: DeepSeaPhase;
+  round: number;
+  air: number;
+  path: PathSpace[];
+  divers: Record<string, DeepSeaDiver>;
+  turnOrder: string[];
+  currentTurn: number;
+  diceResult: [number, number] | null;
+  lastAction: string | null;
+  scores: Record<string, number>;              // running point totals (updated at round end)
+  winner: string | null;
+  finalScores: Record<string, number> | null;
+  tiebreaker: Record<string, number[]> | null;
+}
+
+export interface DeepSeaHand {
+  carried: TreasureChip[];
+  scored: TreasureChip[];
+}
