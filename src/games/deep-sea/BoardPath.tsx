@@ -107,7 +107,7 @@ export default function BoardPath({
         {(positionToDivers.get(-1) ?? []).map((uid) => (
           <span
             key={uid}
-            className={`ds-diver-token${uid === currentPlayerUid ? " ds-active-diver" : ""}${uid === myUid ? " ds-my-diver" : ""}`}
+            className={`ds-diver-token${uid === myUid ? " ds-my-diver" : ""}`}
             style={{ backgroundColor: colorMap.get(uid) }}
             title={playerNames[uid]}
           >
@@ -160,7 +160,7 @@ export default function BoardPath({
             {diversHere.map((uid) => (
               <span
                 key={uid}
-                className={`ds-diver-token${uid === currentPlayerUid ? " ds-active-diver" : ""}${uid === myUid ? " ds-my-diver" : ""}`}
+                className={`ds-diver-token${uid === myUid ? " ds-my-diver" : ""}`}
                 style={{ backgroundColor: colorMap.get(uid) }}
                 title={playerNames[uid]}
               >

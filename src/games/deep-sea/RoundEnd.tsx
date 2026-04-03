@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { DeepSeaGame, DeepSeaHand, Room } from "../../types";
 import { processRoundEnd } from "./useDeepSeaGame";
+import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
 import AirGauge from "./AirGauge";
 
 interface Props {
@@ -60,29 +61,25 @@ export default function RoundEnd({
         <div className="ds-round-section">
           <h3>Made it back!</h3>
           {returnedPlayers.map((pid) => {
-            // Show scored treasures (revealed for the first time!)
             const isMe = pid === uid;
+            const score = game.scores[pid] ?? 0;
             return (
               <div key={pid} className="ds-round-player ds-safe">
-                <span className="ds-player-name">
-                  {room.players[pid]?.name}
-                </span>
-                {isMe && hand && (
-                  <div className="ds-revealed-treasures">
-                    {hand.scored
-                      .slice(-hand.scored.length) // show all scored this round
-                      .map((chip, i) => (
-                        <span key={i} className={`ds-chip-reveal ds-level-${chip.level}`}>
-                          {chip.points}pts
-                        </span>
-                      ))}
-                    {hand.scored.length === 0 && (
-                      <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                        No treasures scored yet
-                      </span>
-                    )}
-                  </div>
-                )}
+                <div className="ds-round-player-header">
+                  <span className="ds-round-player-name">
+                    {room.players[pid]?.name}
+                  </span>
+                  <span className="ds-round-score">{score} pts</span>
+                </div>
+                {/* Show treasure shapes (own hand reveals values, others show shapes only) */}
+                <div className="ds-revealed-treasures">
+                  {(game.scoredThisRound?.[pid] ?? []).map((chip, i) => (
+                    <span key={i} className={`ds-chip-reveal ${LEVEL_CLASSES[chip.level]}`}>
+                      <span className="ds-chip-shape">{LEVEL_SHAPES[chip.level]}</span>
+                      {chip.points}
+                    </span>
+                  ))}
+                </div>
               </div>
             );
           })}
@@ -95,14 +92,28 @@ export default function RoundEnd({
           <h3>Lost at sea!</h3>
           {drownedPlayers.map(({ uid: pid }) => {
             const diver = game.divers[pid];
+            const levels = diver.carriedLevels ?? [];
+            const score = game.scores[pid] ?? 0;
             return (
               <div key={pid} className="ds-round-player ds-drowned">
-                <span className="ds-player-name">
-                  {room.players[pid]?.name}
-                </span>
-                <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  Lost {diver.carriedCount} treasure{diver.carriedCount !== 1 ? "s" : ""} — dropped to the deep
-                </span>
+                <div className="ds-round-player-header">
+                  <span className="ds-round-player-name">
+                    {room.players[pid]?.name}
+                  </span>
+                  <span className="ds-round-score">{score} pts</span>
+                </div>
+                {levels.length > 0 && (
+                  <div className="ds-revealed-treasures">
+                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginRight: "0.3rem" }}>
+                      Lost:
+                    </span>
+                    {levels.map((lv, i) => (
+                      <span key={i} className={`ds-chip-reveal ${LEVEL_CLASSES[lv]}`} style={{ opacity: 0.5 }}>
+                        <span className="ds-chip-shape">{LEVEL_SHAPES[lv]}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}

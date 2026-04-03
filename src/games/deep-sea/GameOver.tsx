@@ -3,7 +3,7 @@ import { useAuthContext } from "../../hooks/AuthContext";
 import confetti from "canvas-confetti";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { DeepSeaGame, Room } from "../../types";
-import { useDeepSeaHand } from "./useDeepSeaGame";
+import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
 
 interface Props {
   roomCode: string;
@@ -11,12 +11,9 @@ interface Props {
   room: Room;
 }
 
-const LEVEL_LABELS = ["L1 △", "L2 □", "L3 ⬠", "L4 ⬡"];
-
 export default function GameOver({ roomCode, game, room }: Props) {
   const { uid } = useAuthContext();
   const isHost = room.host === uid;
-  const hand = useDeepSeaHand(roomCode, uid);
 
   const isWinner = game.winner === uid;
 
@@ -44,7 +41,6 @@ export default function GameOver({ roomCode, game, room }: Props) {
 
   if (!game.finalScores) return null;
 
-  // Sort players by score (descending)
   const sorted = [...game.turnOrder].sort(
     (a, b) => game.finalScores![b] - game.finalScores![a]
   );
@@ -62,12 +58,12 @@ export default function GameOver({ roomCode, game, room }: Props) {
           <tr>
             <th>Player</th>
             <th>Score</th>
-            <th>Chips by Level</th>
+            <th>Treasures</th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((pid, rank) => {
-            const tb = game.tiebreaker?.[pid] ?? [0, 0, 0, 0];
+            const treasures = game.finalTreasures?.[pid] ?? [];
             return (
               <tr
                 key={pid}
@@ -79,32 +75,24 @@ export default function GameOver({ roomCode, game, room }: Props) {
                   {pid === uid && " (you)"}
                 </td>
                 <td style={{ fontWeight: 600 }}>{game.finalScores![pid]}</td>
-                <td className="ds-level-breakdown">
-                  {tb.map((count, i) => (
-                    <span key={i} className="ds-level-count">
-                      {LEVEL_LABELS[i]}: {count}
-                    </span>
-                  ))}
+                <td>
+                  <div className="ds-revealed-treasures">
+                    {treasures.map((chip, i) => (
+                      <span key={i} className={`ds-chip-reveal ${LEVEL_CLASSES[chip.level]}`}>
+                        <span className="ds-chip-shape">{LEVEL_SHAPES[chip.level]}</span>
+                        {chip.points}
+                      </span>
+                    ))}
+                    {treasures.length === 0 && (
+                      <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>—</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
-
-      {/* Show your scored treasures */}
-      {hand && hand.scored.length > 0 && (
-        <div style={{ marginTop: "1.5rem" }}>
-          <h3>Your Treasures</h3>
-          <div className="ds-treasure-reveal-grid">
-            {hand.scored.map((chip, i) => (
-              <span key={i} className={`ds-chip-reveal ds-level-${chip.level}`}>
-                {chip.points}pts
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       <GameEndButtons isHost={isHost} />
     </div>

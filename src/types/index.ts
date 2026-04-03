@@ -229,8 +229,10 @@ export interface DeepSeaGame {
   diceResult: [number, number] | null;
   lastAction: string | null;
   scores: Record<string, number>;              // running point totals (updated at round end)
+  scoredThisRound: Record<string, { level: TreasureLevel; points: number }[]>;  // treasures scored this round (revealed at round end)
   winner: string | null;
   finalScores: Record<string, number> | null;
+  finalTreasures: Record<string, { level: TreasureLevel; points: number }[]> | null;
   tiebreaker: Record<string, number[]> | null;
 }
 

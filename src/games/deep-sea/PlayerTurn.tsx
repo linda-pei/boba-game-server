@@ -111,7 +111,7 @@ export default function PlayerTurn({
                   {diver.returned
                     ? "✓ returned"
                     : diver.direction === "up"
-                      ? "↑ ascending"
+                      ? "↑ returning"
                       : "↓ diving"}
                 </span>
                 {game.round > 1 && (

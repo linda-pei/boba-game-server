@@ -148,8 +148,10 @@ export async function startDeepSeaGame(
     diceResult: null,
     lastAction: null,
     scores: Object.fromEntries(playerIds.map((uid) => [uid, 0])),
+    scoredThisRound: Object.fromEntries(playerIds.map((uid) => [uid, []])),
     winner: null,
     finalScores: null,
+    finalTreasures: null,
     tiebreaker: null,
   };
 
@@ -257,6 +259,7 @@ export async function rollAndMove(
       [`divers.${uid}.carriedCount`]: 0,
       [`divers.${uid}.carriedLevels`]: [],
       [`scores.${uid}`]: newTotal,
+      [`scoredThisRound.${uid}`]: hand.carried.map((c) => ({ level: c.level, points: c.points })),
       diceResult: dice,
       lastAction: `Rolled ${dice[0]}+${dice[1]}=${dice[0] + dice[1]}${diver.carriedCount > 0 ? ` - ${diver.carriedCount} carried` : ""} = ${steps} steps. Returned to the submarine!`,
     };
@@ -452,13 +455,14 @@ export async function processRoundEnd(
   if (isGameOver) {
     // Calculate final scores
     const finalScores: Record<string, number> = {};
+    const finalTreasures: Record<string, { level: number; points: number }[]> = {};
     const tiebreaker: Record<string, number[]> = {};
 
     for (const uid of game.turnOrder) {
       const handSnap = await getDoc(doc(db, "games", roomCode, "hands", uid));
       const hand = handSnap.data() as DeepSeaHand;
       finalScores[uid] = hand.scored.reduce((sum, c) => sum + c.points, 0);
-      // Count chips per level for tiebreaker (index 0 = L1, etc.)
+      finalTreasures[uid] = hand.scored.map((c) => ({ level: c.level, points: c.points }));
       const levelCounts = [0, 0, 0, 0];
       for (const chip of hand.scored) {
         levelCounts[chip.level - 1]++;
@@ -483,6 +487,7 @@ export async function processRoundEnd(
       path: newPath,
       winner: sortedPlayers[0],
       finalScores,
+      finalTreasures,
       tiebreaker,
     });
   } else {
@@ -518,6 +523,7 @@ export async function processRoundEnd(
       currentTurn: 0,
       diceResult: null,
       lastAction: null,
+      scoredThisRound: Object.fromEntries(game.turnOrder.map((uid) => [uid, []])),
     });
   }
 }
