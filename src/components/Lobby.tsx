@@ -162,43 +162,28 @@ export default function Lobby() {
       <div className="settings-panel">
         <h3>Settings</h3>
 
-        {/* Game type toggle */}
-        <div className="mode-toggle" style={{ marginBottom: "1rem" }}>
-          <button
-            className={`mode-toggle-btn${gameType === "things-in-rings" ? " active" : ""}`}
-            onClick={() => handleSetGameType("things-in-rings")}
-            disabled={!isHost}
-          >
-            Things in Rings
-          </button>
-          <button
-            className={`mode-toggle-btn${gameType === "scout" ? " active" : ""}`}
-            onClick={() => handleSetGameType("scout")}
-            disabled={!isHost}
-          >
-            Scout
-          </button>
-          <button
-            className={`mode-toggle-btn${gameType === "werewords" ? " active" : ""}`}
-            onClick={() => handleSetGameType("werewords")}
-            disabled={!isHost}
-          >
-            Werewords
-          </button>
-          <button
-            className={`mode-toggle-btn${gameType === "order-overload" ? " active" : ""}`}
-            onClick={() => handleSetGameType("order-overload")}
-            disabled={!isHost}
-          >
-            Order Overload
-          </button>
-          <button
-            className={`mode-toggle-btn${gameType === "deep-sea" ? " active" : ""}`}
-            onClick={() => handleSetGameType("deep-sea")}
-            disabled={!isHost}
-          >
-            Deep Sea Adventure
-          </button>
+        {/* Game type selector */}
+        <div className="game-selector">
+          <label className="game-selector-label">Game</label>
+          <div className="game-selector-list">
+            {([
+              { id: "things-in-rings", name: "Things in Rings", players: "2+" },
+              { id: "scout", name: "Scout", players: "3–5" },
+              { id: "werewords", name: "Werewords", players: "4–11" },
+              { id: "order-overload", name: "Order Overload", players: "2–6" },
+              { id: "deep-sea", name: "Deep Sea Adventure", players: "2–6" },
+            ] as const).map((g) => (
+              <button
+                key={g.id}
+                className={`game-selector-card${gameType === g.id ? " selected" : ""}`}
+                onClick={() => handleSetGameType(g.id)}
+                disabled={!isHost}
+              >
+                <span className="game-selector-name">{g.name}</span>
+                <span className="game-selector-players">{g.players} players</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Deep Sea info */}

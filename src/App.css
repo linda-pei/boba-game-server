@@ -155,6 +155,72 @@
   font-size: 1rem;
 }
 
+.game-selector {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.game-selector-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-light);
+  margin-bottom: 0.4rem;
+}
+
+.game-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.game-selector-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-light);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+
+.game-selector-card:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+}
+
+.game-selector-card.selected {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface));
+}
+
+.game-selector-card:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.game-selector-card:disabled.selected {
+  opacity: 1;
+}
+
+.game-selector-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.game-selector-players {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
 .settings-row {
   display: flex;
   align-items: center;
