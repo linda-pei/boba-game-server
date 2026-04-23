@@ -107,54 +107,6 @@ export default function PlayerTurn({
         myUid={uid}
       />
 
-      {/* Player table */}
-      <div className="score-board">
-        <h4>Divers</h4>
-        <div className="score-grid">
-          {game.turnOrder.map((pid) => {
-            const diver = game.divers[pid];
-            const isMe = pid === uid;
-            const isActive = pid === activeUid;
-            return (
-              <div
-                key={pid}
-                className={`score-row${isActive ? " score-row-active" : ""}`}
-                style={{ opacity: diver.returned ? 0.5 : 1, flexWrap: "wrap" }}
-              >
-                <span className="score-name">
-                  {room.players[pid]?.name}
-                  {isMe && <span className="score-you"> (you)</span>}
-                </span>
-                <span className="score-cards">
-                  {diver.returned
-                    ? "✓ returned"
-                    : diver.direction === "up"
-                      ? "↑ returning"
-                      : "↓ diving"}
-                </span>
-                {game.round > 1 && (
-                  <span className="score-cumulative" title="Points scored so far">
-                    {game.scores[pid] ?? 0} pts
-                  </span>
-                )}
-                {/* Show carried treasure shapes */}
-                {!diver.returned && diver.carriedCount > 0 && (
-                  <div className="ds-carried-shapes">
-                    {(diver.carriedLevels ?? []).map((level, i) =>
-                      level > 0 ? (
-                        <TreasureShapeChip key={i} level={level} />
-                      ) : (
-                        <span key={i} className="ds-shape-chip ds-stack" title="Stack">⊞</span>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Action area */}
       <div className="ds-action-area">
         {game.lastAction && (
@@ -273,6 +225,54 @@ export default function PlayerTurn({
             )}
           </div>
         )}
+      </div>
+
+      {/* Player table */}
+      <div className="score-board">
+        <h4>Divers</h4>
+        <div className="score-grid">
+          {game.turnOrder.map((pid) => {
+            const diver = game.divers[pid];
+            const isMe = pid === uid;
+            const isActive = pid === activeUid;
+            return (
+              <div
+                key={pid}
+                className={`score-row${isActive ? " score-row-active" : ""}`}
+                style={{ opacity: diver.returned ? 0.5 : 1, flexWrap: "wrap" }}
+              >
+                <span className="score-name">
+                  {room.players[pid]?.name}
+                  {isMe && <span className="score-you"> (you)</span>}
+                </span>
+                <span className="score-cards">
+                  {diver.returned
+                    ? "✓ returned"
+                    : diver.direction === "up"
+                      ? "↑ returning"
+                      : "↓ diving"}
+                </span>
+                {game.round > 1 && (
+                  <span className="score-cumulative" title="Points scored so far">
+                    {game.scores[pid] ?? 0} pts
+                  </span>
+                )}
+                {/* Show carried treasure shapes */}
+                {!diver.returned && diver.carriedCount > 0 && (
+                  <div className="ds-carried-shapes">
+                    {(diver.carriedLevels ?? []).map((level, i) =>
+                      level > 0 ? (
+                        <TreasureShapeChip key={i} level={level} />
+                      ) : (
+                        <span key={i} className="ds-shape-chip ds-stack" title="Stack">⊞</span>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
