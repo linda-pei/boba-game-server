@@ -1,7 +1,8 @@
+import { useState, useCallback } from "react";
 import type { DeepSeaGame, DeepSeaHand, Room, PathSpace } from "../../types";
 import BoardPath from "./BoardPath";
 import AirGauge from "./AirGauge";
-import DiceRoll from "./DiceRoll";
+import DiceRoll, { DICE_ANIM_MS } from "./DiceRoll";
 import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
 import {
   breatheAndAdvance,
@@ -50,10 +51,27 @@ export default function PlayerTurn({
   uid,
   room,
 }: Props) {
+  const [localDice, setLocalDice] = useState<[number, number] | null>(null);
+  const [localRolling, setLocalRolling] = useState(false);
+
   const activeUid = game.turnOrder[game.currentTurn];
   const isMyTurn = activeUid === uid;
   const activeDiver = game.divers[activeUid];
   const activeName = room.players[activeUid]?.name ?? "???";
+
+  const handleRoll = useCallback(async () => {
+    const faces = [1, 1, 2, 2, 3, 3];
+    const d1 = faces[Math.floor(Math.random() * 6)];
+    const d2 = faces[Math.floor(Math.random() * 6)];
+    const dice: [number, number] = [d1, d2];
+    setLocalDice(dice);
+    setLocalRolling(true);
+    // Wait for flicker animation to finish, then write to Firebase
+    await new Promise((r) => setTimeout(r, DICE_ANIM_MS));
+    await rollAndMove(roomCode, game, dice);
+    setLocalRolling(false);
+    setLocalDice(null);
+  }, [roomCode, game]);
 
   const playerNames: Record<string, string> = {};
   for (const [id, player] of Object.entries(room.players)) {
@@ -195,8 +213,12 @@ export default function PlayerTurn({
           <div className="ds-turn-prompt">
             {isMyTurn ? (
               <>
-                <p>Roll the dice!</p>
-                <button onClick={() => rollAndMove(roomCode, game)}>
+                {localDice ? (
+                  <DiceRoll dice={localDice} carriedCount={activeDiver.carriedCount} animate />
+                ) : (
+                  <p>Roll the dice!</p>
+                )}
+                <button onClick={handleRoll} disabled={localRolling}>
                   🎲 Roll
                 </button>
               </>
@@ -208,7 +230,7 @@ export default function PlayerTurn({
 
         {game.status === "treasure-action" && (
           <div className="ds-turn-prompt">
-            <DiceRoll dice={game.diceResult} carriedCount={activeDiver.carriedCount} />
+            <DiceRoll dice={game.diceResult} carriedCount={activeDiver.carriedCount} animate />
 
             {isMyTurn ? (
               <>

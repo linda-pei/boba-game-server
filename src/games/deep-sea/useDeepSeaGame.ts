@@ -224,11 +224,12 @@ export async function declareDirection(
 /** Roll dice, resolve movement, and advance to treasure-action or next turn. */
 export async function rollAndMove(
   roomCode: string,
-  game: DeepSeaGame
+  game: DeepSeaGame,
+  preRolledDice?: [number, number]
 ): Promise<void> {
   const uid = getActivePlayerUid(game);
   const diver = game.divers[uid];
-  const dice = rollDeepSeaDice();
+  const dice = preRolledDice ?? rollDeepSeaDice();
   const steps = calculateMovement(dice, diver.carriedCount);
   const occupied = getOccupiedPositions(game.divers, uid);
   const newPos = resolveMovement(
@@ -265,7 +266,7 @@ export async function rollAndMove(
     };
 
     // Check if round should end
-    const shouldEndRound = checkRoundEnd(game, uid);
+    const shouldEndRound = checkRoundEnd(game, uid) || game.air <= 0;
     if (shouldEndRound) {
       updates.status = "round-end";
     } else {
@@ -375,7 +376,7 @@ export async function treasureAction(
   }
 
   // Advance to next turn — don't pass uid; only rollAndMove passes justReturnedUid
-  const shouldEndRound = checkRoundEnd(game);
+  const shouldEndRound = checkRoundEnd(game) || game.air <= 0;
   if (shouldEndRound) {
     updates.status = "round-end";
   } else {
@@ -391,13 +392,11 @@ export async function treasureAction(
   await updateDoc(doc(db, "games", roomCode), updates);
 }
 
-/** Check if the round should end: air <= 0 or all divers returned. */
+/** Check if the round should end: all divers returned or no active players remain. */
 function checkRoundEnd(
   game: DeepSeaGame,
   justReturnedUid?: string
 ): boolean {
-  if (game.air <= 0) return true;
-
   // Check if all divers have returned
   for (const [uid, diver] of Object.entries(game.divers)) {
     if (uid === justReturnedUid) continue; // this one just returned
@@ -414,14 +413,11 @@ export async function processRoundEnd(
   game: DeepSeaGame
 ): Promise<void> {
   let newPath = [...game.path];
-  let lastReturnedPlayer: string | null = null;
 
-  // Find who returned and who drowned
+  // Find who drowned
   const drownedPlayers: { uid: string; position: number }[] = [];
   for (const [uid, diver] of Object.entries(game.divers)) {
-    if (diver.returned) {
-      lastReturnedPlayer = uid;
-    } else if (diver.position >= 0) {
+    if (!diver.returned && diver.position >= 0) {
       drownedPlayers.push({ uid, position: diver.position });
     }
   }
@@ -503,15 +499,11 @@ export async function processRoundEnd(
       };
     }
 
-    // Determine turn order: last player to return goes first
-    let newTurnOrder = [...game.turnOrder];
-    if (lastReturnedPlayer) {
-      const idx = newTurnOrder.indexOf(lastReturnedPlayer);
-      newTurnOrder = [
-        ...newTurnOrder.slice(idx),
-        ...newTurnOrder.slice(0, idx),
-      ];
-    }
+    // Rotate turn order clockwise: next player in original order starts
+    const newTurnOrder = [
+      ...game.turnOrder.slice(1),
+      game.turnOrder[0],
+    ];
 
     await updateDoc(doc(db, "games", roomCode), {
       status: "round-start",
