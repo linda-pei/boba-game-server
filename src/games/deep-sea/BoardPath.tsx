@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState, useCallback } from "react";
 import type { PathSpace, DeepSeaDiver } from "../../types";
 import { generateSpiralCoords } from "./treasureDeck";
 import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
@@ -19,11 +20,6 @@ const DIVER_COLORS = [
   "#ec4899", // pink
 ];
 
-/**
- * For each cell in the spiral, compute which borders are "walls" (edges with no
- * adjacent prev/next cell) vs "openings" (edges connecting to the next/previous
- * cell in the path). Walls get a visible border; openings get none.
- */
 function computeBorderStyles(
   coords: { row: number; col: number }[],
   spiralIndex: number
@@ -32,7 +28,6 @@ function computeBorderStyles(
   const prev = spiralIndex > 0 ? coords[spiralIndex - 1] : null;
   const next = spiralIndex < coords.length - 1 ? coords[spiralIndex + 1] : null;
 
-  // Check which directions have a neighbor in the sequence
   const hasTop = (prev && prev.row === cur.row - 1 && prev.col === cur.col) ||
                  (next && next.row === cur.row - 1 && next.col === cur.col);
   const hasBottom = (prev && prev.row === cur.row + 1 && prev.col === cur.col) ||
@@ -53,6 +48,13 @@ function computeBorderStyles(
   };
 }
 
+/** Convert a diver position (-1 = sub) to a spiral coord index (0 = sub, 1+ = path). */
+function posToCoordIdx(pos: number): number {
+  return pos + 1;
+}
+
+const HOP_DURATION = 500; // ms per cell hop
+
 export default function BoardPath({
   path,
   divers,
@@ -60,43 +62,157 @@ export default function BoardPath({
   currentPlayerUid,
   myUid,
 }: Props) {
-  // Generate spiral: index 0 = submarine (center), 1..N = path positions
+  const boardRef = useRef<HTMLDivElement>(null);
+  const cellRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const prevPositions = useRef<Record<string, number>>({});
+  const [animatingDivers, setAnimatingDivers] = useState<
+    Record<string, { left: number; top: number; hopping: boolean }>
+  >({});
+
+  const setCellRef = useCallback((coordIdx: number, el: HTMLDivElement | null) => {
+    if (el) cellRefs.current.set(coordIdx, el);
+    else cellRefs.current.delete(coordIdx);
+  }, []);
+
+  // Get center position of a cell relative to the board
+  const getCellCenter = useCallback((coordIdx: number) => {
+    const board = boardRef.current;
+    const cell = cellRefs.current.get(coordIdx);
+    if (!board || !cell) return null;
+    const boardRect = board.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    return {
+      left: cellRect.left - boardRect.left + cellRect.width / 2,
+      top: cellRect.top - boardRect.top + cellRect.height / 2,
+    };
+  }, []);
+
+  // Detect position changes and animate
+  useEffect(() => {
+    const toAnimate: { uid: string; from: number; to: number }[] = [];
+
+    for (const [uid, diver] of Object.entries(divers)) {
+      const prev = prevPositions.current[uid];
+      if (prev !== undefined && prev !== diver.position) {
+        toAnimate.push({ uid, from: prev, to: diver.position });
+      }
+    }
+
+    // Update prev positions
+    const positions: Record<string, number> = {};
+    for (const [uid, diver] of Object.entries(divers)) {
+      positions[uid] = diver.position;
+    }
+    prevPositions.current = positions;
+
+    if (toAnimate.length === 0) return;
+
+    // For each moving diver, build the list of intermediate cells to hop through
+    for (const { uid, from, to } of toAnimate) {
+      const fromIdx = posToCoordIdx(from);
+      const toIdx = posToCoordIdx(to);
+
+      // Build path of coord indices to visit
+      const steps: number[] = [];
+      if (fromIdx < toIdx) {
+        for (let i = fromIdx + 1; i <= toIdx; i++) steps.push(i);
+      } else {
+        for (let i = fromIdx - 1; i >= toIdx; i--) steps.push(i);
+      }
+
+      if (steps.length === 0) continue;
+
+      // Start from the "from" cell position
+      const startPos = getCellCenter(fromIdx);
+      if (!startPos) continue;
+
+      setAnimatingDivers((prev) => ({
+        ...prev,
+        [uid]: { left: startPos.left, top: startPos.top, hopping: true },
+      }));
+
+      // Animate through each step
+      let stepIdx = 0;
+      const interval = setInterval(() => {
+        if (stepIdx >= steps.length) {
+          clearInterval(interval);
+          setAnimatingDivers((prev) => {
+            const next = { ...prev };
+            delete next[uid];
+            return next;
+          });
+          return;
+        }
+
+        const pos = getCellCenter(steps[stepIdx]);
+        if (pos) {
+          setAnimatingDivers((prev) => ({
+            ...prev,
+            [uid]: { left: pos.left, top: pos.top, hopping: true },
+          }));
+        }
+        stepIdx++;
+      }, HOP_DURATION);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(Object.fromEntries(Object.entries(divers).map(([uid, d]) => [uid, d.position])))]);
+
+  // Generate spiral
   const totalCells = path.length + 1;
   const coords = generateSpiralCoords(totalCells);
-
-  // Calculate grid dimensions
   const maxRow = Math.max(...coords.map((c) => c.row));
   const maxCol = Math.max(...coords.map((c) => c.col));
 
-  // Build a map of position -> diver UIDs for display
+  // Build position -> diver UIDs map
   const positionToDivers = new Map<number, string[]>();
   const playerUids = Object.keys(divers);
   for (const uid of playerUids) {
     const diver = divers[uid];
     if (diver.returned) continue;
-    const pos = diver.position; // -1 = sub
+    const pos = diver.position;
     const existing = positionToDivers.get(pos) ?? [];
     existing.push(uid);
     positionToDivers.set(pos, existing);
   }
 
-  // Assign stable colors to players
+  // Assign stable colors
   const colorMap = new Map<string, string>();
   playerUids.forEach((uid, i) => {
     colorMap.set(uid, DIVER_COLORS[i % DIVER_COLORS.length]);
   });
 
+  // Render a diver token (inline in cell, hidden if animating)
+  const renderDiver = (uid: string) => {
+    const isAnimating = uid in animatingDivers;
+    return (
+      <span
+        key={uid}
+        className={`ds-diver-token${uid === myUid ? " ds-my-diver" : ""}`}
+        style={{
+          backgroundColor: colorMap.get(uid),
+          visibility: isAnimating ? "hidden" : "visible",
+        }}
+        title={playerNames[uid]}
+      >
+        {(playerNames[uid] ?? "?")[0]}
+      </span>
+    );
+  };
+
   return (
     <div
       className="ds-board"
+      ref={boardRef}
       style={{
         gridTemplateColumns: `repeat(${maxCol + 1}, 1fr)`,
         gridTemplateRows: `repeat(${maxRow + 1}, 1fr)`,
+        position: "relative",
       }}
     >
-      {/* Submarine at center (spiral index 0) */}
+      {/* Submarine at center */}
       <div
         className="ds-cell ds-submarine"
+        ref={(el) => setCellRef(0, el)}
         style={{
           gridRow: coords[0].row + 1,
           gridColumn: coords[0].col + 1,
@@ -104,21 +220,12 @@ export default function BoardPath({
         }}
       >
         <span className="ds-sub-icon">🚢</span>
-        {(positionToDivers.get(-1) ?? []).map((uid) => (
-          <span
-            key={uid}
-            className={`ds-diver-token${uid === myUid ? " ds-my-diver" : ""}`}
-            style={{ backgroundColor: colorMap.get(uid) }}
-            title={playerNames[uid]}
-          >
-            {(playerNames[uid] ?? "?")[0]}
-          </span>
-        ))}
+        {(positionToDivers.get(-1) ?? []).map((uid) => renderDiver(uid))}
       </div>
 
       {/* Path spaces */}
       {path.map((space, idx) => {
-        const coordIdx = idx + 1; // offset by 1 for submarine
+        const coordIdx = idx + 1;
         if (coordIdx >= coords.length) return null;
         const { row, col } = coords[coordIdx];
         const diversHere = positionToDivers.get(idx) ?? [];
@@ -148,6 +255,7 @@ export default function BoardPath({
         return (
           <div
             key={idx}
+            ref={(el) => setCellRef(coordIdx, el)}
             className={spaceClass}
             style={{
               gridRow: row + 1,
@@ -157,19 +265,25 @@ export default function BoardPath({
           >
             {content}
             <span className="ds-cell-index">{idx + 1}</span>
-            {diversHere.map((uid) => (
-              <span
-                key={uid}
-                className={`ds-diver-token${uid === myUid ? " ds-my-diver" : ""}`}
-                style={{ backgroundColor: colorMap.get(uid) }}
-                title={playerNames[uid]}
-              >
-                {(playerNames[uid] ?? "?")[0]}
-              </span>
-            ))}
+            {diversHere.map((uid) => renderDiver(uid))}
           </div>
         );
       })}
+
+      {/* Animated diver overlays */}
+      {Object.entries(animatingDivers).map(([uid, pos]) => (
+        <span
+          key={`anim-${uid}`}
+          className={`ds-diver-token ds-diver-floating${uid === myUid ? " ds-my-diver" : ""}`}
+          style={{
+            backgroundColor: colorMap.get(uid),
+            left: pos.left,
+            top: pos.top,
+          }}
+        >
+          {(playerNames[uid] ?? "?")[0]}
+        </span>
+      ))}
     </div>
   );
 }
