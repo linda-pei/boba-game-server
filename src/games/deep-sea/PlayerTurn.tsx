@@ -138,7 +138,9 @@ export default function PlayerTurn({
             {isMyTurn ? (
               <>
                 <p>
-                  You're carrying {activeDiver.carriedCount} treasure{activeDiver.carriedCount !== 1 ? "s" : ""}.
+                  {activeDiver.carriedCount > 0
+                    ? `You're carrying ${activeDiver.carriedCount} treasure${activeDiver.carriedCount !== 1 ? "s" : ""}. `
+                    : ""}
                   Turn back toward the submarine?
                 </p>
                 <div className="ds-action-buttons">

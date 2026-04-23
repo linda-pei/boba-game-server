@@ -186,8 +186,7 @@ export async function breatheAndAdvance(
 
   // Determine if player can/should declare direction
   // Auto-skip declaring if: already heading up, or heading down with no treasure
-  const canDeclare =
-    diver.direction === "down" && diver.carriedCount > 0;
+  const canDeclare = diver.direction === "down" && diver.position >= 0;
 
   await updateDoc(doc(db, "games", roomCode), {
     air: newAir,
@@ -314,11 +313,13 @@ export async function treasureAction(
     updates.path = newPath;
     updates[`divers.${uid}.carriedCount`] = diver.carriedCount + 1; // stacks count as 1
 
-    // Track the picked-up level publicly
-    const pickedLevel = space.type === "treasure" ? space.level! : 0; // 0 for stacks
+    // Track the picked-up levels publicly
+    const pickedLevels = space.type === "stack"
+      ? (space.stackLevels ?? [])
+      : [space.level!];
     updates[`divers.${uid}.carriedLevels`] = [
       ...diver.carriedLevels,
-      ...(space.type === "stack" ? [0] : [pickedLevel]), // stacks show as generic
+      ...pickedLevels,
     ];
 
     // Move chip data to player's hand
