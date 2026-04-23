@@ -90,7 +90,7 @@ export default function PlayerTurn({
   const canDrop =
     currentSpace != null &&
     currentSpace.type === "blank" &&
-    (hand?.carried.length ?? 0) > 0;
+    activeDiver.carriedCount > 0;
 
   return (
     <div className="screen deep-sea-screen">
@@ -209,7 +209,7 @@ export default function PlayerTurn({
                   )}
                   {canDrop && (
                     <DropTreasureButton
-                      hand={hand!}
+                      groups={activeDiver.carriedLevels}
                       onDrop={(idx) =>
                         treasureAction(roomCode, game, "drop", idx)
                       }
@@ -262,11 +262,15 @@ export default function PlayerTurn({
                 {/* Show carried treasure shapes */}
                 {!diver.returned && diver.carriedCount > 0 && (
                   <div className="ds-carried-shapes">
-                    {(diver.carriedLevels ?? []).map((level, i) =>
-                      level > 0 ? (
-                        <TreasureShapeChip key={i} level={level} />
+                    {(diver.carriedLevels ?? []).map((group, gi) =>
+                      group.levels.length > 1 ? (
+                        <span key={gi} className="ds-carried-group">
+                          {group.levels.map((level, i) => (
+                            <TreasureShapeChip key={i} level={level} />
+                          ))}
+                        </span>
                       ) : (
-                        <span key={i} className="ds-shape-chip ds-stack" title="Stack">⊞</span>
+                        <TreasureShapeChip key={gi} level={group.levels[0]} />
                       )
                     )}
                   </div>
@@ -281,16 +285,16 @@ export default function PlayerTurn({
 }
 
 function DropTreasureButton({
-  hand,
+  groups,
   onDrop,
 }: {
-  hand: DeepSeaHand;
+  groups: { levels: import("../../types").TreasureLevel[] }[];
   onDrop: (index: number) => void;
 }) {
-  if (hand.carried.length === 1) {
+  if (groups.length === 1) {
     return (
       <button className="btn-danger" onClick={() => onDrop(0)}>
-        Drop <TreasureShapeChip level={hand.carried[0].level} />
+        Drop {groups[0].levels.map((lv, i) => <TreasureShapeChip key={i} level={lv} />)}
       </button>
     );
   }
@@ -300,13 +304,13 @@ function DropTreasureButton({
       <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
         Drop:
       </span>
-      {hand.carried.map((chip, idx) => (
+      {groups.map((group, idx) => (
         <button
           key={idx}
           className="btn-danger btn-small"
           onClick={() => onDrop(idx)}
         >
-          <TreasureShapeChip level={chip.level} />
+          {group.levels.map((lv, i) => <TreasureShapeChip key={i} level={lv} />)}
         </button>
       ))}
     </div>

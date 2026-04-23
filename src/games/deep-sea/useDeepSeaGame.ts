@@ -120,7 +120,10 @@ export async function startDeepSeaGame(
   room: Room
 ): Promise<void> {
   const playerIds = Object.keys(room.players);
-  const turnOrder = shuffled(playerIds);
+  // Fixed clockwise order (sorted), rotated to a random starting player
+  const sorted = [...playerIds].sort();
+  const startIdx = Math.floor(Math.random() * sorted.length);
+  const turnOrder = [...sorted.slice(startIdx), ...sorted.slice(0, startIdx)];
 
   const chips = generateTreasureChips();
   const path = buildInitialPath(chips);
@@ -187,6 +190,17 @@ export async function breatheAndAdvance(
   // Determine if player can/should declare direction
   // Auto-skip declaring if: already heading up, or heading down with no treasure
   const canDeclare = diver.direction === "down" && diver.position >= 0;
+
+  // Auto-turn back if at the last space
+  if (canDeclare && diver.position >= game.path.length - 1) {
+    await updateDoc(doc(db, "games", roomCode), {
+      [`divers.${uid}.direction`]: "up",
+      air: newAir,
+      status: "rolling",
+      lastAction: `Air reduced by ${diver.carriedCount} (now ${newAir}). Reached the end — turning back!`,
+    });
+    return;
+  }
 
   await updateDoc(doc(db, "games", roomCode), {
     air: newAir,
@@ -313,13 +327,13 @@ export async function treasureAction(
     updates.path = newPath;
     updates[`divers.${uid}.carriedCount`] = diver.carriedCount + 1; // stacks count as 1
 
-    // Track the picked-up levels publicly
+    // Track the picked-up levels publicly (each pickup is one group)
     const pickedLevels = space.type === "stack"
       ? (space.stackLevels ?? [])
       : [space.level!];
     updates[`divers.${uid}.carriedLevels`] = [
       ...diver.carriedLevels,
-      ...pickedLevels,
+      { levels: pickedLevels },
     ];
 
     // Move chip data to player's hand
@@ -344,24 +358,46 @@ export async function treasureAction(
     if (space.type !== "blank") return;
     if (dropChipIndex === undefined) return;
 
+    // dropChipIndex indexes into carriedLevels groups
+    if (dropChipIndex < 0 || dropChipIndex >= diver.carriedLevels.length) return;
+
     const handSnap = await getDoc(doc(db, "games", roomCode, "hands", uid));
     const hand = handSnap.data() as DeepSeaHand;
-    if (dropChipIndex < 0 || dropChipIndex >= hand.carried.length) return;
 
-    const droppedChip = hand.carried[dropChipIndex];
-    const newCarried = hand.carried.filter((_, i) => i !== dropChipIndex);
+    const group = diver.carriedLevels[dropChipIndex];
+    const groupSize = group.levels.length;
 
-    // Place chip back on path
+    // Find the chips in hand that belong to this group
+    // Groups are ordered: first group = first N chips, second group = next M chips, etc.
+    let startIdx = 0;
+    for (let g = 0; g < dropChipIndex; g++) {
+      startIdx += diver.carriedLevels[g].levels.length;
+    }
+    const droppedChips = hand.carried.slice(startIdx, startIdx + groupSize);
+    const newCarried = [
+      ...hand.carried.slice(0, startIdx),
+      ...hand.carried.slice(startIdx + groupSize),
+    ];
+
+    // Place chip(s) back on path
     const newPath = [...game.path];
-    newPath[pos] = {
-      type: "treasure",
-      level: droppedChip.level,
-      chipId: droppedChip.id,
-    };
+    if (droppedChips.length === 1) {
+      newPath[pos] = {
+        type: "treasure",
+        level: droppedChips[0].level,
+        chipId: droppedChips[0].id,
+      };
+    } else {
+      newPath[pos] = {
+        type: "stack",
+        stackChipIds: droppedChips.map((c) => c.id),
+        stackLevels: droppedChips.map((c) => c.level),
+      };
+    }
     updates.path = newPath;
     updates[`divers.${uid}.carriedCount`] = diver.carriedCount - 1;
 
-    // Remove the corresponding level from carriedLevels
+    // Remove the group from carriedLevels
     const newLevels = [...diver.carriedLevels];
     newLevels.splice(dropChipIndex, 1);
     updates[`divers.${uid}.carriedLevels`] = newLevels;

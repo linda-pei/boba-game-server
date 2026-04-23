@@ -205,7 +205,7 @@ export interface DeepSeaDiver {
   position: number;       // -1 = on submarine, 0+ = path index
   direction: "down" | "up";
   carriedCount: number;
-  carriedLevels: TreasureLevel[];  // publicly visible shapes (but not point values)
+  carriedLevels: { levels: TreasureLevel[] }[];  // each entry is a group (single chip or stack)
   returned: boolean;
 }
 

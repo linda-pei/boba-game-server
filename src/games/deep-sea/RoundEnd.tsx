@@ -92,7 +92,7 @@ export default function RoundEnd({
           <h3>Lost at sea!</h3>
           {drownedPlayers.map(({ uid: pid }) => {
             const diver = game.divers[pid];
-            const levels = diver.carriedLevels ?? [];
+            const levels = (diver.carriedLevels ?? []).flatMap((g) => g.levels);
             const score = game.scores[pid] ?? 0;
             return (
               <div key={pid} className="ds-round-player ds-drowned">

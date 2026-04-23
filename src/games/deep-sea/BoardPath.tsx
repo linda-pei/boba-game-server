@@ -175,9 +175,9 @@ export default function BoardPath({
     positionToDivers.set(pos, existing);
   }
 
-  // Assign stable colors
+  // Assign stable colors based on sorted UIDs
   const colorMap = new Map<string, string>();
-  playerUids.forEach((uid, i) => {
+  [...playerUids].sort().forEach((uid, i) => {
     colorMap.set(uid, DIVER_COLORS[i % DIVER_COLORS.length]);
   });
 
