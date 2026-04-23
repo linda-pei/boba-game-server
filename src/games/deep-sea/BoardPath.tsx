@@ -157,11 +157,22 @@ export default function BoardPath({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(Object.fromEntries(Object.entries(divers).map(([uid, d]) => [uid, d.position])))]);
 
-  // Generate spiral
+  // Generate spiral and compact grid to remove empty rows/columns
   const totalCells = path.length + 1;
-  const coords = generateSpiralCoords(totalCells);
-  const maxRow = Math.max(...coords.map((c) => c.row));
-  const maxCol = Math.max(...coords.map((c) => c.col));
+  const rawCoords = generateSpiralCoords(totalCells);
+
+  // Find which rows and columns are actually used
+  const usedRows = [...new Set(rawCoords.map((c) => c.row))].sort((a, b) => a - b);
+  const usedCols = [...new Set(rawCoords.map((c) => c.col))].sort((a, b) => a - b);
+  const rowMap = new Map(usedRows.map((r, i) => [r, i]));
+  const colMap = new Map(usedCols.map((c, i) => [c, i]));
+
+  const coords = rawCoords.map((c) => ({
+    row: rowMap.get(c.row)!,
+    col: colMap.get(c.col)!,
+  }));
+  const maxRow = usedRows.length - 1;
+  const maxCol = usedCols.length - 1;
 
   // Build position -> diver UIDs map
   const positionToDivers = new Map<number, string[]>();
