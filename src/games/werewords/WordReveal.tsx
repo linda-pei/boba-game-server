@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import { confirmWordReveal } from "./useWerewordsGame";
+import { useEffect, useRef, useState } from "react";
+import { confirmWordReveal, checkWordRevealComplete } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 
@@ -11,19 +11,38 @@ interface Props {
   room: Room;
 }
 
+const REVEAL_SECONDS = 5;
+
 export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
   const needsToConfirm = uid in game.wordRevealed;
   const hasConfirmed = game.wordRevealed[uid] === true;
   const firedRef = useRef(false);
+  const [countdown, setCountdown] = useState(REVEAL_SECONDS);
 
+  // Auto-confirm after countdown
   useEffect(() => {
     if (!needsToConfirm || hasConfirmed || firedRef.current) return;
+
+    setCountdown(REVEAL_SECONDS);
+    const tick = setInterval(() => {
+      setCountdown((c) => Math.max(c - 1, 0));
+    }, 1000);
+
     const timer = setTimeout(() => {
       firedRef.current = true;
       confirmWordReveal(roomCode, uid);
-    }, 5000);
-    return () => clearTimeout(timer);
+    }, REVEAL_SECONDS * 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(tick);
+    };
   }, [needsToConfirm, hasConfirmed, roomCode, uid]);
+
+  // Any client can trigger the transition once all are confirmed
+  useEffect(() => {
+    checkWordRevealComplete(roomCode, game);
+  }, [roomCode, game.wordRevealed]);
 
   // Seer or werewolf who needs to see the word
   if (needsToConfirm) {
@@ -35,7 +54,9 @@ export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
           <strong style={{ textTransform: "capitalize" }}>{game.magicWord}</strong>
         </div>
         <p style={{ color: "var(--text-muted)" }}>
-          {hasConfirmed ? "Waiting for others..." : "Memorize the word..."}
+          {hasConfirmed
+            ? "Waiting for others..."
+            : `Memorize the word... ${countdown}s`}
         </p>
       </div>
     );

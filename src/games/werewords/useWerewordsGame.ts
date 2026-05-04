@@ -249,14 +249,15 @@ export async function confirmWordReveal(
   await updateDoc(doc(db, "games", roomCode), {
     [`wordRevealed.${uid}`]: true,
   });
+}
 
-  const gameSnap = await getDoc(doc(db, "games", roomCode));
-  if (!gameSnap.exists()) return;
-  const game = gameSnap.data() as WerewordsGame;
-
-  const updatedRevealed = { ...game.wordRevealed, [uid]: true };
-  const allConfirmed = Object.values(updatedRevealed).every((v) => v);
-
+/** Check if all word reveals are confirmed and transition to in-progress. */
+export async function checkWordRevealComplete(
+  roomCode: string,
+  game: WerewordsGame
+): Promise<void> {
+  if (game.status !== "word-reveal") return;
+  const allConfirmed = Object.values(game.wordRevealed).every((v) => v);
   if (allConfirmed) {
     await updateDoc(doc(db, "games", roomCode), {
       status: "in-progress",
