@@ -145,15 +145,15 @@ export default function PlayerTurn({
                 </p>
                 <div className="ds-action-buttons">
                   <button
-                    onClick={() => declareDirection(roomCode, game, true, activeName)}
-                    className="btn-secondary"
-                  >
-                    ↑ Turn Back
-                  </button>
-                  <button
                     onClick={() => declareDirection(roomCode, game, false, activeName)}
                   >
                     ↓ Keep Diving
+                  </button>
+                  <button
+                    onClick={() => declareDirection(roomCode, game, true, activeName)}
+                    className="btn-danger"
+                  >
+                    ↑ Turn Back
                   </button>
                 </div>
               </>

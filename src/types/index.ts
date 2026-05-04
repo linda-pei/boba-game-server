@@ -230,6 +230,7 @@ export interface DeepSeaGame {
   lastAction: string | null;
   scores: Record<string, number>;              // running point totals (updated at round end)
   scoredThisRound: Record<string, { level: TreasureLevel; points: number }[]>;  // treasures scored this round (revealed at round end)
+  airOutTurnsLeft: number | null;             // turns remaining after air hit 0 (null = air still positive)
   winner: string | null;
   finalScores: Record<string, number> | null;
   finalTreasures: Record<string, { level: TreasureLevel; points: number }[]> | null;

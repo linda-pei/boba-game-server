@@ -152,6 +152,7 @@ export async function startDeepSeaGame(
     lastAction: null,
     scores: Object.fromEntries(playerIds.map((uid) => [uid, 0])),
     scoredThisRound: Object.fromEntries(playerIds.map((uid) => [uid, []])),
+    airOutTurnsLeft: null,
     winner: null,
     finalScores: null,
     finalTreasures: null,
@@ -185,7 +186,30 @@ export async function breatheAndAdvance(
 ): Promise<void> {
   const uid = getActivePlayerUid(game);
   const diver = game.divers[uid];
+
+  // If air already ran out and all extra turns are used, end the round
+  if (game.airOutTurnsLeft !== null && game.airOutTurnsLeft <= 0) {
+    await updateDoc(doc(db, "games", roomCode), {
+      status: "round-end",
+      lastAction: "The air has run out!",
+    });
+    return;
+  }
+
   const newAir = Math.max(game.air - diver.carriedCount, 0);
+  const updates: Record<string, unknown> = { air: newAir };
+
+  if (game.airOutTurnsLeft !== null) {
+    // Already counting down extra turns
+    updates.airOutTurnsLeft = game.airOutTurnsLeft - 1;
+  } else if (newAir <= 0) {
+    // Air just hit 0 — count active players, each gets one more turn
+    let activeCount = 0;
+    for (const [, d] of Object.entries(game.divers)) {
+      if (!d.returned) activeCount++;
+    }
+    updates.airOutTurnsLeft = activeCount;
+  }
 
   // Determine if player can/should declare direction
   // Auto-skip declaring if: already heading up, or heading down with no treasure
@@ -193,23 +217,18 @@ export async function breatheAndAdvance(
 
   // Auto-turn back if at the last space
   if (canDeclare && diver.position >= game.path.length - 1) {
-    await updateDoc(doc(db, "games", roomCode), {
-      [`divers.${uid}.direction`]: "up",
-      air: newAir,
-      status: "rolling",
-      lastAction: `Air reduced by ${diver.carriedCount} (now ${newAir}). Reached the end — turning back!`,
-    });
+    updates[`divers.${uid}.direction`] = "up";
+    updates.status = "rolling";
+    updates.lastAction = `Air reduced by ${diver.carriedCount} (now ${newAir}). Reached the end — turning back!`;
+    await updateDoc(doc(db, "games", roomCode), updates);
     return;
   }
 
-  await updateDoc(doc(db, "games", roomCode), {
-    air: newAir,
-    status: canDeclare ? "declaring" : "rolling",
-    lastAction:
-      diver.carriedCount > 0
-        ? `Air reduced by ${diver.carriedCount} (now ${newAir})`
-        : null,
-  });
+  updates.status = canDeclare ? "declaring" : "rolling";
+  updates.lastAction = diver.carriedCount > 0
+    ? `Air reduced by ${diver.carriedCount} (now ${newAir})`
+    : null;
+  await updateDoc(doc(db, "games", roomCode), updates);
 }
 
 /** Player declares whether to turn back toward the submarine. */
@@ -278,8 +297,8 @@ export async function rollAndMove(
       lastAction: `Rolled ${dice[0]}+${dice[1]}=${dice[0] + dice[1]}${diver.carriedCount > 0 ? ` - ${diver.carriedCount} carried` : ""} = ${steps} steps. Returned to the submarine!`,
     };
 
-    // Check if round should end
-    const shouldEndRound = checkRoundEnd(game, uid) || game.air <= 0;
+    // Check if round should end (all others returned)
+    const shouldEndRound = checkRoundEnd(game, uid);
     if (shouldEndRound) {
       updates.status = "round-end";
     } else {
@@ -413,7 +432,7 @@ export async function treasureAction(
   }
 
   // Advance to next turn — don't pass uid; only rollAndMove passes justReturnedUid
-  const shouldEndRound = checkRoundEnd(game) || game.air <= 0;
+  const shouldEndRound = checkRoundEnd(game);
   if (shouldEndRound) {
     updates.status = "round-end";
   } else {
@@ -553,6 +572,7 @@ export async function processRoundEnd(
       diceResult: null,
       lastAction: null,
       scoredThisRound: Object.fromEntries(game.turnOrder.map((uid) => [uid, []])),
+      airOutTurnsLeft: null,
     });
   }
 }
