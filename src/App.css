@@ -570,6 +570,7 @@
   font-size: 1.1rem;
   line-height: 1.2;
   color: var(--text-primary);
+  text-shadow: 0 0 3px rgba(255,255,255,0.8), 0 0 6px rgba(255,255,255,0.5);
 }
 
 .scout-card-divider {
@@ -584,6 +585,12 @@
   line-height: 1.2;
   color: var(--text-light);
   font-weight: 500;
+  text-shadow: 0 0 3px rgba(255,255,255,0.8), 0 0 6px rgba(255,255,255,0.5);
+}
+
+[data-theme="dark"] .scout-card-top,
+[data-theme="dark"] .scout-card-bottom {
+  text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 0 6px rgba(0,0,0,0.4);
 }
 
 /* ---- Scout: Hand ---- */
