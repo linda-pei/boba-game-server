@@ -35,7 +35,7 @@ export default function RingDisplay({
   const zones = getZones();
 
   // viewBox sized for 800x800 circle layout with generous padding
-  const viewBox = "-60 -30 920 920";
+  const viewBox = "-60 -40 920 940";
 
   // Group played cards by zone id
   const cardsByZone: Record<string, string[]> = {};
@@ -78,9 +78,9 @@ export default function RingDisplay({
         {/* Background rect for "outside" zone */}
         <rect
           x="-60"
-          y="-30"
+          y="-40"
           width="920"
-          height="920"
+          height="940"
           fill="transparent"
           className={`venn-outside${interactive ? " interactive" : ""}${pendingZoneId === "outside" ? " active" : ""}`}
           onClick={() => handleClick({ id: "outside", label: "None", rings: [] })}
@@ -90,9 +90,9 @@ export default function RingDisplay({
         {interactive && (
           <text
             x="15"
-            y="855"
-            fill="var(--text-light)"
-            fontSize={18}
+            y="865"
+            fill="var(--ink-mute)"
+            fontSize={22}
             fontStyle="italic"
             pointerEvents="none"
           >
@@ -152,8 +152,8 @@ export default function RingDisplay({
           // Size: up to 2 columns, stack vertically when many cards
           const cols = Math.min(allCards.length, 2);
           const rows = Math.ceil(allCards.length / 2);
-          const chipWidth = cols * 100 + 10;
-          const chipHeight = rows * 28 + 8;
+          const chipWidth = cols * 110 + 10;
+          const chipHeight = rows * 34 + 8;
 
           return (
             <foreignObject
@@ -178,7 +178,7 @@ export default function RingDisplay({
                     className="card-chip"
                     style={
                       isPending && i === allCards.length - 1
-                        ? { borderColor: "var(--accent-primary)", fontStyle: "italic" }
+                        ? { borderColor: "var(--peach-500)", fontStyle: "italic" }
                         : undefined
                     }
                   >
@@ -195,15 +195,21 @@ export default function RingDisplay({
           const labelText = showClues && ringLabels[i]
             ? `${RING_CATEGORIES[i]}: ${ringLabels[i]}`
             : RING_CATEGORIES[i];
-          const labelWidth = 280;
-          const labelHeight = 44;
+          const labelWidth = 300;
+          const labelHeight = 52;
           const labelY = i === 0
             ? c.cy - c.r - labelHeight - 4
             : c.cy + c.r + 8;
+          // Bottom labels: shift apart horizontally to avoid overlap
+          const labelX = i === 1
+            ? c.cx - labelWidth + 40
+            : i === 2
+              ? c.cx - 40
+              : c.cx - labelWidth / 2;
           return (
             <foreignObject
               key={`label-${i}`}
-              x={c.cx - labelWidth / 2}
+              x={labelX}
               y={labelY}
               width={labelWidth}
               height={labelHeight}
@@ -212,7 +218,7 @@ export default function RingDisplay({
               <div
                 style={{
                   color: RING_COLORS[i],
-                  fontSize: "18px",
+                  fontSize: "22px",
                   fontWeight: 700,
                   textAlign: "center",
                   lineHeight: "1.2",

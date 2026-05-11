@@ -102,7 +102,7 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
             />
             <button
               type="button"
-              className="btn-small btn-secondary btn-icon"
+              className="btn btn--ghost btn--sm btn-icon"
               onClick={() => rotateClue(i)}
               title="New random clue"
             >
@@ -117,7 +117,7 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
       </h3>
 
       {selectedCard && (
-        <div className="turn-status my-turn">
+        <div className="turn-status turn-status--mine">
           Placing <strong>{selectedCard}</strong> — click a zone on the diagram
         </div>
       )}
@@ -152,10 +152,10 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
               </div>
               {isAssigned && (
                 <div style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>
-                  <span style={{ color: "var(--text-light)" }}>{zone?.label}</span>
+                  <span style={{ color: "var(--ink-mute)" }}>{zone?.label}</span>
                   <br />
                   <button
-                    className="btn-small btn-danger"
+                    className="btn btn--danger btn--sm"
                     onClick={() => handleRemoveAssignment(card)}
                   >
                     Remove
@@ -168,6 +168,7 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
       </div>
 
       <button
+        className="btn btn--primary"
         onClick={handleSubmit}
         disabled={!canSubmit || submitting}
         style={{ marginTop: "1rem" }}

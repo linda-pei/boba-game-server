@@ -88,7 +88,7 @@ export default function PlayerTurn({
 
   return (
     <div className="player-turn">
-      <div className="turn-status my-turn">
+      <div className="turn-status turn-status--mine">
         {selectedCard
           ? `Click a zone on the diagram to place "${selectedCard}"`
           : "Select a card from your hand, then place it in a zone"}

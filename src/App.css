@@ -83,40 +83,14 @@
   margin: 0.5rem 0;
 }
 
-/* ---- Buttons ---- */
-.btn-secondary {
-  background-color: var(--accent-secondary);
-}
-
-.btn-secondary:hover {
-  background-color: var(--accent-secondary-hover);
-}
-
-.btn-danger {
-  background-color: transparent;
-  color: var(--accent-danger);
-  border: 2px solid var(--accent-danger);
-  box-shadow: none;
-}
-
-.btn-danger:hover {
-  background-color: color-mix(in srgb, var(--accent-danger) 10%, transparent);
-  box-shadow: none;
-  transform: none;
-}
-
-.btn-small {
-  font-size: 0.8rem;
-  padding: 0.3em 0.8em;
-}
-
 /* ---- Player chips ---- */
 .player-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: var(--r-3);
   padding: 0.5rem 1rem;
   font-weight: 500;
 }
@@ -127,16 +101,16 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.15em 0.5em;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   color: white;
 }
 
 .badge-host {
-  background: var(--accent-primary);
+  background: var(--peach-500);
 }
 
 .badge-knower {
-  background: var(--accent-secondary);
+  background: var(--jade-500);
 }
 
 .player-list-grid {
@@ -145,141 +119,6 @@
   gap: 0.5rem;
   justify-content: center;
   margin: 1rem 0;
-}
-
-/* ---- Settings panel ---- */
-.settings-panel {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 1.25rem;
-  margin: 1.5rem 0;
-  text-align: left;
-}
-
-.settings-panel h3 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-}
-
-.game-selector {
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.game-selector-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-light);
-  margin-bottom: 0.4rem;
-}
-
-.game-selector-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.game-selector-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border-light);
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  font-family: inherit;
-  text-align: left;
-}
-
-.game-selector-card:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-}
-
-.game-selector-card.selected {
-  border-color: var(--accent-primary);
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--surface));
-}
-
-.game-selector-card:disabled {
-  cursor: default;
-  opacity: 0.7;
-}
-
-.game-selector-card:disabled.selected {
-  opacity: 1;
-}
-
-.game-selector-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.game-selector-players {
-  font-size: 0.8rem;
-  color: var(--text-light);
-}
-
-.settings-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.settings-row label {
-  font-weight: 500;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-/* ---- Mode toggle ---- */
-.mode-toggle {
-  display: flex;
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 3px;
-  margin-bottom: 1rem;
-}
-
-.mode-toggle-btn {
-  flex: 1;
-  padding: 0.45em 1em;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-light);
-  box-shadow: none;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-.mode-toggle-btn:hover {
-  background: transparent;
-  color: var(--text-muted);
-  box-shadow: none;
-  transform: none;
-}
-
-.mode-toggle-btn.active {
-  background: var(--surface);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.mode-toggle-btn.active:hover {
-  background: var(--surface);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-  transform: none;
 }
 
 /* ---- Set Username ---- */
@@ -310,18 +149,18 @@
   padding: 0.6rem 1.2rem;
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--r-3);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, background 0.2s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-1);
   user-select: none;
 }
 
 .game-card:hover:not(.disabled) {
-  border-color: var(--accent-primary);
-  box-shadow: var(--shadow-md);
+  border-color: var(--peach-500);
+  box-shadow: var(--shadow-2);
   transform: translateY(-3px);
 }
 
@@ -331,24 +170,24 @@
 }
 
 .game-card.selected {
-  border-color: var(--accent-primary);
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  border-color: var(--peach-500);
+  background: color-mix(in srgb, var(--peach-500) 10%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 20%, transparent);
   transform: translateY(-3px);
 }
 
 /* ---- Card chip (inside Venn zones) ---- */
 .card-chip {
   display: inline-block;
-  padding: 0.25em 0.5em;
+  padding: 0.3em 0.6em;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-2);
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink);
   white-space: nowrap;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-1);
   line-height: 1.3;
 }
 
@@ -374,9 +213,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3em 0.8em;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
+  padding: 0.35em 0.9em;
+  border-radius: var(--r-2);
+  font-size: 1.1rem;
   font-weight: 600;
   color: white;
 }
@@ -407,7 +246,7 @@
 
 .venn-zone.active {
   fill-opacity: 0.6;
-  stroke: var(--accent-primary);
+  stroke: var(--peach-500);
   stroke-width: 2;
   stroke-dasharray: 6 3;
 }
@@ -422,11 +261,11 @@
 }
 
 .venn-outside.interactive:hover {
-  fill: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  fill: color-mix(in srgb, var(--peach-500) 8%, transparent);
 }
 
 .venn-outside.active {
-  fill: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  fill: color-mix(in srgb, var(--peach-500) 12%, transparent);
 }
 
 @keyframes pulse-zone {
@@ -462,87 +301,33 @@
   line-height: 1;
   padding: 0.25rem 0.45rem;
   min-width: unset;
-  background: transparent;
-  border: none;
-  color: var(--text-light);
-  box-shadow: none;
-  cursor: pointer;
-}
-
-.btn-icon:hover {
-  color: var(--text-primary);
-  background: transparent;
-  box-shadow: none;
-  transform: none;
 }
 
 /* ---- Game board status ---- */
 .turn-status {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: var(--r-3);
   padding: 0.75rem 1rem;
   margin: 1rem 0;
   font-weight: 500;
+  box-shadow: var(--shadow-1);
 }
 
-.turn-status.my-turn {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
+.turn-status--mine {
+  background: color-mix(in srgb, var(--peach-500) 12%, transparent);
+  border-color: color-mix(in srgb, var(--peach-500) 30%, transparent);
 }
 
-/* ---- TIR: Player info ---- */
-.tir-players {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin: 0.75rem 0;
+.turn-status--waiting {
+  background: var(--surface-2);
 }
 
-.tir-player-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.tir-player-chip.active {
-  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
-  font-weight: 600;
-}
-
-.tir-you {
-  font-size: 0.8rem;
-  color: var(--text-light);
-}
-
-.tir-card-count {
-  font-size: 0.8rem;
-  color: var(--text-light);
-  margin-left: 0.25rem;
-}
-
-.tir-knower-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-light);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.1em 0.35em;
-  margin-left: 0.3rem;
-}
-
-/* ---- [legacy] Score board — used by Order Overload, Deep Sea.
-   Scout overrides these in scout.css. Remove once all games migrated. ---- */
+/* ---- Score board ---- */
 .score-board {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: var(--r-3);
   padding: 1rem;
   margin: 1.5rem 0 0;
   text-align: left;
@@ -565,11 +350,11 @@
   gap: 1rem;
   font-size: 0.85rem;
   padding: 0.35rem 0.5rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
 }
 
 .score-row-active {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--peach-500) 10%, transparent);
 }
 
 .score-name {
@@ -579,22 +364,20 @@
 
 .score-you {
   font-weight: 400;
-  color: var(--text-light);
+  color: var(--ink-mute);
   font-size: 0.8em;
 }
 
 .score-cards {
-  color: var(--text-muted);
+  color: var(--ink-soft);
   min-width: 55px;
   font-size: 0.8rem;
 }
 
 .score-cumulative {
   font-weight: 600;
-  color: var(--accent-primary);
+  color: var(--peach-500);
 }
-
-/* [legacy] Werewords styles moved to src/games/werewords/werewords.css */
 
 /* ---- Responsive ---- */
 @media (max-width: 480px) {
@@ -604,7 +387,7 @@
 
   .screen {
     padding: 1.25rem;
-    border-radius: var(--radius-md);
+    border-radius: var(--r-3);
   }
 
   h1 {
@@ -615,5 +398,3 @@
     max-width: 100%;
   }
 }
-
-/* [legacy] Deep Sea styles moved to src/games/deep-sea/deep-sea.css */

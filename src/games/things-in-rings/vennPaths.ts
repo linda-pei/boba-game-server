@@ -22,9 +22,9 @@ export const RING_CATEGORIES = ["Context", "Attribute", "Word"] as const;
 
 // Ring colors: Red = Context, Blue = Attribute, Green = Word
 export const RING_COLORS = [
-  "#E07A5F", // terracotta (context)
-  "#3D85C6", // warm blue (attribute)
-  "#81B29A", // sage green (word)
+  "var(--tir-red)",   // context
+  "var(--tir-blue)",  // attribute
+  "var(--tir-green)", // word
 ];
 
 // --- Circle positions (3 rings, r=220 in 800x800 viewBox) ---
@@ -214,12 +214,12 @@ export function getCircles(): CircleLayout[] {
 // Zone fill colors
 export function getZoneFill(id: string): string {
   if (id === "outside") return "transparent";
-  if (id === "0") return "rgba(224,122,95,0.18)";
-  if (id === "1") return "rgba(61,133,198,0.18)";
-  if (id === "2") return "rgba(129,178,154,0.18)";
-  if (id === "0,1") return "rgba(142,128,147,0.22)";
-  if (id === "0,2") return "rgba(177,150,125,0.22)";
-  if (id === "1,2") return "rgba(95,156,176,0.22)";
-  if (id === "0,1,2") return "rgba(140,144,139,0.28)";
+  if (id === "0") return "rgba(211,77,79,0.18)";   // --tir-red
+  if (id === "1") return "rgba(74,127,207,0.18)";  // --tir-blue
+  if (id === "2") return "rgba(93,167,117,0.18)";  // --tir-green
+  if (id === "0,1") return "rgba(143,102,143,0.22)";
+  if (id === "0,2") return "rgba(152,122,98,0.22)";
+  if (id === "1,2") return "rgba(84,147,162,0.22)";
+  if (id === "0,1,2") return "rgba(130,124,134,0.28)";
   return "transparent";
 }

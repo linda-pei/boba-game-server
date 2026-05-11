@@ -1,4 +1,5 @@
 import { useAuthContext } from "../../hooks/AuthContext";
+import "./things-in-rings.css";
 import { useGame, useHand, useAllHandCounts } from "./useGame";
 import { useRoom } from "../../hooks/useRoom";
 import KnowerSetup from "./KnowerSetup";

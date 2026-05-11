@@ -75,21 +75,21 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
   return (
     <div className="knower-judge">
       <h3>Judge This Play</h3>
-      <div className="turn-status my-turn">
+      <div className="turn-status turn-status--mine">
         <strong>{pending.cardId}</strong> was placed in{" "}
         <strong>{placedZone?.label ?? "unknown"}</strong>
       </div>
 
       <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1rem" }}>
         <button
-          className="btn-secondary"
+          className="btn btn--secondary"
           onClick={handleCorrect}
           disabled={judging}
         >
           Correct!
         </button>
         <button
-          className="btn-danger"
+          className="btn btn--danger"
           onClick={() => setCorrectingZone(true)}
           disabled={judging || correctingZone}
         >

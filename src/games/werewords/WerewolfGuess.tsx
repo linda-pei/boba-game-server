@@ -66,10 +66,9 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
         {guessCandidates.map((pid) => (
           <button
             key={pid}
-            className="player-chip"
+            className="btn btn--primary"
             onClick={() => handleGuess(pid)}
             disabled={submitting}
-            style={{ cursor: submitting ? "default" : "pointer" }}
           >
             {room.players[pid]?.name ?? pid}
           </button>

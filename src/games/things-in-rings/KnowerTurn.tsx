@@ -32,7 +32,7 @@ export default function KnowerTurn({ roomCode, game, hand, uid }: Props) {
 
   return (
     <div className="knower-turn">
-      <div className="turn-status my-turn">
+      <div className="turn-status turn-status--mine">
         {selectedCard
           ? `Click a zone to place "${selectedCard}" as a hint`
           : "Select a card from your hand to place as a hint"}

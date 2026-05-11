@@ -105,46 +105,6 @@
   --content-max: 800px;
 
   /* =========================================================
-     LEGACY ALIASES — remove once all games are migrated
-     ========================================================= */
-  /* [legacy] Backgrounds → use --bg, --surface, --surface-2 */
-  --bg-primary: var(--bg);
-  --bg-secondary: var(--surface-2);
-  --bg-tertiary: var(--milk-200);
-
-  /* [legacy] Text → use --ink, --ink-soft, --ink-mute */
-  --text-primary: var(--ink);
-  --text-muted: var(--ink-soft);
-  --text-light: var(--ink-mute);
-
-  /* [legacy] Accents → use --peach-500, --jade-500, --rose-500 */
-  --accent-primary: var(--peach-500);
-  --accent-primary-hover: var(--peach-700);
-  --accent-secondary: var(--jade-500);
-  --accent-secondary-hover: var(--jade-700);
-  --accent-danger: var(--rose-500);
-  --accent-danger-hover: #B04A4A;
-
-  /* [legacy] Ring colors → use --tir-red, --tir-blue, --tir-green */
-  --ring-1: var(--tir-red);
-  --ring-2: var(--tir-blue);
-  --ring-3: var(--tir-green);
-
-  /* [legacy] Surfaces → use --surface, --surface-2 */
-  --surface-hover: #FFF5ED;
-  --border-light: #F0E4D8;
-
-  /* [legacy] Shadows → use --shadow-1, --shadow-2, --shadow-3 */
-  --shadow-sm: var(--shadow-1);
-  --shadow-md: var(--shadow-2);
-  --shadow-lg: var(--shadow-3);
-
-  /* [legacy] Radius → use --r-2, --r-3, --r-4 */
-  --radius-sm: var(--r-2);
-  --radius-md: var(--r-3);
-  --radius-lg: var(--r-4);
-
-  /* =========================================================
      BASE STYLES
      ========================================================= */
   font-family: var(--font-body);
@@ -179,13 +139,6 @@
   --shadow-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px -4px rgba(0,0,0,0.4);
   --shadow-3: 0 2px 0 rgba(0,0,0,0.5), 0 14px 28px -8px rgba(0,0,0,0.5);
   --shadow-sticker: 3px 3px 0 var(--border-strong);
-
-  /* [legacy] dark overrides — these now derive from the tokens above automatically
-     via the aliases in :root. Only keep explicit overrides where the legacy value
-     intentionally differed from the alias mapping. */
-  --surface-hover: #2e2e52;
-  --border-light: #333358;
-  --accent-danger-hover: #d05050;
 
   color-scheme: dark;
 }

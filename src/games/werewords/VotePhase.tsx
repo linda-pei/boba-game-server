@@ -45,10 +45,9 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
             .map((pid) => (
               <button
                 key={pid}
-                className="player-chip"
+                className="btn btn--primary"
                 onClick={() => handleVote(pid)}
                 disabled={submitting}
-                style={{ cursor: submitting ? "default" : "pointer" }}
               >
                 {room.players[pid]?.name ?? pid}
                 {pid === game.mayor && (
