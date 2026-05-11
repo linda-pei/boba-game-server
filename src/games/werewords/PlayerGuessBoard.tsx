@@ -5,7 +5,7 @@ const RESPONSE_STYLES: Record<string, { bg: string; color: string; label: string
   no: { bg: "var(--ww-no)", color: "white", label: "N" },
   maybe: { bg: "var(--ww-maybe)", color: "#333", label: "?" },
   "so-close": { bg: "var(--ww-so-close)", color: "white", label: "!" },
-  correct: { bg: "var(--accent-primary)", color: "white", label: "✓" },
+  correct: { bg: "var(--peach-500)", color: "white", label: "✓" },
 };
 
 interface Props {
@@ -32,8 +32,8 @@ export default function PlayerGuessBoard({ game, room, renderActions }: Props) {
                   key={i}
                   className="ww-guess-chip"
                   style={{
-                    background: RESPONSE_STYLES[g]?.bg ?? "var(--bg-tertiary)",
-                    color: RESPONSE_STYLES[g]?.color ?? "var(--text-primary)",
+                    background: RESPONSE_STYLES[g]?.bg ?? "var(--surface-2)",
+                    color: RESPONSE_STYLES[g]?.color ?? "var(--ink)",
                   }}
                 >
                   {RESPONSE_STYLES[g]?.label ?? g}

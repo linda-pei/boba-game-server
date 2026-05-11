@@ -47,13 +47,13 @@ export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
   // Seer or werewolf who needs to see the word
   if (needsToConfirm) {
     return (
-      <div className="screen">
+      <div className="screen ww-screen">
         <h2>The Magic Word</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
         <div className="turn-status" style={{ fontSize: "1.3rem", margin: "1.5rem 0" }}>
           <strong style={{ textTransform: "capitalize" }}>{game.magicWord}</strong>
         </div>
-        <p style={{ color: "var(--text-muted)" }}>
+        <p style={{ color: "var(--ink-soft)" }}>
           {hasConfirmed
             ? "Waiting for others..."
             : `Memorize the word... ${countdown}s`}
@@ -64,7 +64,7 @@ export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
 
   // Villagers / Mayor — just wait
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Word Reveal</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
       <div className="turn-status">

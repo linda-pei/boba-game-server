@@ -7,9 +7,9 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  seer: "var(--accent-primary)",
-  werewolf: "var(--accent-danger)",
-  villager: "var(--accent-secondary)",
+  seer: "var(--peach-500)",
+  werewolf: "var(--rose-500)",
+  villager: "var(--jade-500)",
 };
 
 export default function RoleBanner({
@@ -32,7 +32,7 @@ export default function RoleBanner({
         {ROLE_LABELS[hand.role]}
       </strong>
       {isMayor && (
-        <span style={{ color: "var(--text-light)", fontSize: "0.85em" }}>
+        <span style={{ color: "var(--ink-mute)", fontSize: "0.85em" }}>
           {" "}(Mayor)
         </span>
       )}

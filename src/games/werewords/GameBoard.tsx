@@ -6,6 +6,7 @@ import {
   useWerewordsGame,
   useWerewordsHand,
 } from "./useWerewordsGame";
+import "./werewords.css";
 import RoleReveal from "./RoleReveal";
 import WordSetup from "./WordSetup";
 import WordReveal from "./WordReveal";

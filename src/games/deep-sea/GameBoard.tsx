@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
+import "./deep-sea.css";
 import { useRoom } from "../../hooks/useRoom";
 import { useDeepSeaGame, useDeepSeaHand } from "./useDeepSeaGame";
 import PlayerTurn from "./PlayerTurn";

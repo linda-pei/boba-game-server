@@ -16,9 +16,9 @@ const ROLE_LABELS: Record<WerewordsRole, string> = {
 };
 
 const ROLE_COLORS: Record<WerewordsRole, string> = {
-  seer: "var(--accent-primary)",
-  werewolf: "var(--accent-danger)",
-  villager: "var(--accent-secondary)",
+  seer: "var(--peach-500)",
+  werewolf: "var(--rose-500)",
+  villager: "var(--jade-500)",
 };
 
 function getPlayerTeam(role: WerewordsRole): "villagers" | "werewolves" {
@@ -48,13 +48,13 @@ export default function GameOver({ game, room }: Props) {
   }, []);
 
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Game Over!</h2>
       <p style={{ fontSize: "1.2rem", fontWeight: 600 }}>
         {game.winner === "villagers" ? "Villagers" : "Werewolves"} win!
       </p>
       {game.winReason && (
-        <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+        <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>
           {game.winReason}
         </p>
       )}
@@ -121,7 +121,7 @@ export default function GameOver({ game, room }: Props) {
               return (
                 <div key={pid} className="ww-player-row">
                   <span className="ww-player-row-name">{voterName}</span>
-                  <span style={{ color: "var(--text-light)", fontSize: "0.85rem" }}>
+                  <span style={{ color: "var(--ink-mute)", fontSize: "0.85rem" }}>
                     voted for
                   </span>
                   <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>

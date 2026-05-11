@@ -32,7 +32,7 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
 
   if (!isWerewolf) {
     return (
-      <div className="screen">
+      <div className="screen ww-screen">
         <h2>Werewolf Guess</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
         <div className="turn-status">
@@ -53,10 +53,10 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
   }
 
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Werewolf Guess</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
-      <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+      <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>
         The village guessed the word! But you can still win —
         <br />
         identify the <strong>Seer</strong> to steal the victory!

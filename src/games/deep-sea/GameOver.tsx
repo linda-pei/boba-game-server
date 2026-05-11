@@ -84,7 +84,7 @@ export default function GameOver({ roomCode, game, room }: Props) {
                       </span>
                     ))}
                     {treasures.length === 0 && (
-                      <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>—</span>
+                      <span style={{ color: "var(--ink-mute)", fontSize: "0.8rem" }}>—</span>
                     )}
                   </div>
                 </td>

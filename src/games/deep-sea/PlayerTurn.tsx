@@ -118,12 +118,12 @@ export default function PlayerTurn({
             {isMyTurn ? (
               <>
                 <p><strong>Your turn!</strong></p>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                <p style={{ fontSize: "0.85rem", color: "var(--ink-mute)" }}>
                   {activeDiver.carriedCount > 0
                     ? `Breathing... air will drop by ${activeDiver.carriedCount}`
                     : "You're not carrying any treasure — no air used."}
                 </p>
-                <button onClick={() => breatheAndAdvance(roomCode, game)}>
+                <button className="btn btn--primary" onClick={() => breatheAndAdvance(roomCode, game)}>
                   Continue
                 </button>
               </>
@@ -145,13 +145,14 @@ export default function PlayerTurn({
                 </p>
                 <div className="ds-action-buttons">
                   <button
+                    className="btn btn--primary"
                     onClick={() => declareDirection(roomCode, game, false, activeName)}
                   >
                     ↓ Keep Diving
                   </button>
                   <button
+                    className="btn btn--danger"
                     onClick={() => declareDirection(roomCode, game, true, activeName)}
-                    className="btn-danger"
                   >
                     ↑ Turn Back
                   </button>
@@ -172,7 +173,7 @@ export default function PlayerTurn({
                 ) : (
                   <p>Roll the dice!</p>
                 )}
-                <button onClick={handleRoll} disabled={localRolling}>
+                <button className="btn btn--primary" onClick={handleRoll} disabled={localRolling}>
                   🎲 Roll
                 </button>
               </>
@@ -201,7 +202,7 @@ export default function PlayerTurn({
                 <div className="ds-action-buttons">
                   {canPickUp && (
                     <button
-                      className="btn-secondary"
+                      className="btn btn--secondary"
                       onClick={() => treasureAction(roomCode, game, "pickup")}
                     >
                       Pick Up <SpaceShapePreview space={currentSpace!} />
@@ -216,6 +217,7 @@ export default function PlayerTurn({
                     />
                   )}
                   <button
+                    className="btn btn--primary"
                     onClick={() => treasureAction(roomCode, game, "nothing")}
                   >
                     Do Nothing
@@ -293,7 +295,7 @@ function DropTreasureButton({
 }) {
   if (groups.length === 1) {
     return (
-      <button className="btn-danger" onClick={() => onDrop(0)}>
+      <button className="btn btn--danger" onClick={() => onDrop(0)}>
         Drop {groups[0].levels.map((lv, i) => <TreasureShapeChip key={i} level={lv} />)}
       </button>
     );
@@ -301,13 +303,13 @@ function DropTreasureButton({
 
   return (
     <div className="ds-drop-options">
-      <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+      <span style={{ fontSize: "0.85rem", color: "var(--ink-mute)" }}>
         Drop:
       </span>
       {groups.map((group, idx) => (
         <button
           key={idx}
-          className="btn-danger btn-small"
+          className="btn btn--danger btn--sm"
           onClick={() => onDrop(idx)}
         >
           {group.levels.map((lv, i) => <TreasureShapeChip key={i} level={lv} />)}

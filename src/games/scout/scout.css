@@ -308,7 +308,6 @@
 
 .scout-screen .score-row-active {
   background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
-  color: var(--peach-700);
 }
 
 .scout-screen .score-name {

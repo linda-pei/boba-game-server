@@ -23,7 +23,7 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
 
   if (!isMayor) {
     return (
-      <div className="screen">
+      <div className="screen ww-screen">
         <h2>Word Setup</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
         <div className="turn-status">
@@ -34,16 +34,17 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
   }
 
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Choose the Magic Word</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
-      <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+      <p style={{ color: "var(--ink-soft)", fontSize: "0.9rem" }}>
         As the Mayor, pick one of these words for the village to guess.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "1rem", alignItems: "center" }}>
         {game.wordChoices.map((word) => (
           <button
             key={word}
+            className="btn btn--primary"
             onClick={() => handlePickWord(word)}
             disabled={submitting}
             style={{ minWidth: "200px", fontSize: "1.1rem", textTransform: "capitalize" }}

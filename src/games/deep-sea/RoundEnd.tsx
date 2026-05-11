@@ -51,7 +51,7 @@ export default function RoundEnd({
       <AirGauge air={game.air} />
 
       {game.air <= 0 && (
-        <p style={{ color: "var(--accent-danger)", fontWeight: 600, margin: "0.5rem 0" }}>
+        <p style={{ color: "var(--rose-500)", fontWeight: 600, margin: "0.5rem 0" }}>
           The air ran out!
         </p>
       )}
@@ -104,7 +104,7 @@ export default function RoundEnd({
                 </div>
                 {levels.length > 0 && (
                   <div className="ds-revealed-treasures">
-                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginRight: "0.3rem" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--ink-mute)", marginRight: "0.3rem" }}>
                       Lost:
                     </span>
                     {levels.map((lv, i) => (
@@ -122,6 +122,7 @@ export default function RoundEnd({
 
       {isHost && (
         <button
+          className="btn btn--primary"
           onClick={handleNextRound}
           disabled={processing}
           style={{ marginTop: "1.5rem" }}
@@ -135,7 +136,7 @@ export default function RoundEnd({
       )}
 
       {!isHost && (
-        <p style={{ color: "var(--text-muted)", marginTop: "1rem" }}>
+        <p style={{ color: "var(--ink-mute)", marginTop: "1rem" }}>
           Waiting for host to continue...
         </p>
       )}

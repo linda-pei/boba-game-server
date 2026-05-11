@@ -349,6 +349,11 @@ button:focus-visible {
   box-shadow: var(--shadow-sticker) !important;
 }
 
+/* ---- Active-row name highlight ---- */
+.score-row-active .score-name {
+  color: var(--peach-700);
+}
+
 input, select {
   border: 2px solid var(--border);
   border-radius: var(--r-2);

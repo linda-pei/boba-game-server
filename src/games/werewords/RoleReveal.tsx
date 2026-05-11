@@ -16,9 +16,9 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  seer: "var(--accent-primary)",
-  werewolf: "var(--accent-danger)",
-  villager: "var(--accent-secondary)",
+  seer: "var(--peach-500)",
+  werewolf: "var(--rose-500)",
+  villager: "var(--jade-500)",
 };
 
 export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
@@ -32,7 +32,7 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
   const waitingFor = game.turnOrder.filter((pid) => !game.roleRevealed[pid]);
 
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Role Reveal</h2>
 
       {isMayor && (
@@ -50,7 +50,7 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
                 {ROLE_LABELS[hand.role]}
               </div>
               {hand.fellowWerewolves.length > 0 && (
-                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                <div style={{ fontSize: "0.85rem", color: "var(--ink-soft)", marginTop: "0.5rem" }}>
                   Fellow werewolves:{" "}
                   {hand.fellowWerewolves
                     .map((w) => room.players[w]?.name ?? w)
@@ -62,7 +62,7 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
 
           {!hasConfirmed && (
             <div style={{ marginTop: "1rem" }}>
-              <button onClick={handleConfirm}>
+              <button className="btn btn--primary" onClick={handleConfirm}>
                 I've Seen My Role
               </button>
             </div>
@@ -72,7 +72,7 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
 
       {hasConfirmed && waitingFor.length > 0 && (
         <div style={{ marginTop: "1rem" }}>
-          <p style={{ color: "var(--text-light)" }}>Waiting for others...</p>
+          <p style={{ color: "var(--ink-mute)" }}>Waiting for others...</p>
           <div className="player-list-grid" style={{ marginTop: "0.75rem" }}>
             {waitingFor.map((pid) => (
               <div key={pid} className="player-chip">

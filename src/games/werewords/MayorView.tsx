@@ -69,7 +69,7 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
   };
 
   return (
-    <div className="screen">
+    <div className="screen ww-screen">
       <h2>Mayor's View</h2>
 
       <RoleBanner hand={hand} game={game} uid={uid} />
@@ -77,7 +77,7 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
       <div className="turn-status">
         Magic word: <strong>{game.magicWord}</strong>
         {timeLeft !== null && (
-          <div style={{ marginTop: "0.5rem", fontSize: "1.2rem", color: timeLeft <= 30 ? "var(--accent-danger)" : "var(--text-muted)" }}>
+          <div style={{ marginTop: "0.5rem", fontSize: "1.2rem", color: timeLeft <= 30 ? "var(--rose-500)" : "var(--ink-soft)" }}>
             {formatTime(timeLeft)}
           </div>
         )}
@@ -90,7 +90,7 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
       )}
 
       {game.limitedTokens && (
-        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", margin: "0.5rem 0", fontSize: "0.85rem" }}>
+        <div className="ww-token-bar">
           <span style={{ color: "var(--ww-yes)" }}>Yes/No: {yesNoLeft}</span>
           <span style={{ color: "var(--ww-maybe)" }}>Maybe: {maybeLeft}</span>
         </div>
@@ -141,12 +141,12 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
 
       <div className="ww-response-buttons" style={{ marginTop: "1rem" }}>
         <button
-          className={game.wayOff ? "btn-danger" : "btn-secondary"}
+          className={game.wayOff ? "btn btn--danger" : "btn btn--secondary"}
           onClick={() => toggleWayOff(roomCode, game.wayOff)}
         >
           {game.wayOff ? "Remove Way Off" : "Way Off"}
         </button>
-        <button className="btn-danger" onClick={handleNoGuess}>
+        <button className="btn btn--danger" onClick={handleNoGuess}>
           Nobody Got It
         </button>
       </div>

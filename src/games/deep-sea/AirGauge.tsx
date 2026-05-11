@@ -5,9 +5,9 @@ interface Props {
 
 function segmentColor(index: number, maxAir: number): string {
   const pct = ((index + 1) / maxAir) * 100;
-  if (pct > 50) return "var(--accent-secondary)";
-  if (pct > 25) return "var(--accent-primary)";
-  return "var(--accent-danger)";
+  if (pct > 50) return "var(--jade-500)";
+  if (pct > 25) return "var(--peach-500)";
+  return "var(--rose-500)";
 }
 
 export default function AirGauge({ air, maxAir = 25 }: Props) {
