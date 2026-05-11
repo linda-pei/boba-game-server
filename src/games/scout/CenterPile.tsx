@@ -1,6 +1,6 @@
 import type { ScoutCard } from "../../types";
 import { validatePlay } from "./scoutDeck";
-import { scoutCardBackground } from "./cardColors";
+import { scoutCardStyle } from "./cardColors";
 
 interface CenterPileProps {
   cards: ScoutCard[];
@@ -35,24 +35,23 @@ export default function CenterPile({
       </div>
       <div className="center-pile-cards">
         {scouting && !singleCard && (
-          <button className="scout-end-btn" onClick={() => onScoutEnd?.("left")}>
+          <button className="btn btn--secondary btn--sm" onClick={() => onScoutEnd?.("left")}>
             Take
           </button>
         )}
         {cards.map((card, i) => (
-          <div key={`${card.id}-${i}`} className="scout-card pile-card" style={{ background: scoutCardBackground(card.top, card.bottom) }}>
-            <span className="scout-card-top">{card.top}</span>
-            <span className="scout-card-divider" />
-            <span className="scout-card-bottom">{card.bottom}</span>
+          <div key={`${card.id}-${i}`} className="scout-card pile-card" style={scoutCardStyle(card.top, card.bottom)}>
+            <span className="top-num">{card.top}</span>
+            <span className="bot-num">{card.bottom}</span>
           </div>
         ))}
         {scouting && !singleCard && (
-          <button className="scout-end-btn" onClick={() => onScoutEnd?.("right")}>
+          <button className="btn btn--secondary btn--sm" onClick={() => onScoutEnd?.("right")}>
             Take
           </button>
         )}
         {singleCard && (
-          <button className="scout-end-btn" onClick={() => onScoutEnd?.("left")}>
+          <button className="btn btn--secondary btn--sm" onClick={() => onScoutEnd?.("left")}>
             Take
           </button>
         )}

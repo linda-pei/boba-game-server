@@ -13,10 +13,19 @@ const COLORS: Record<number, string> = {
 };
 
 export function scoutCardColor(value: number): string {
-  return COLORS[value] ?? "var(--text-primary)";
+  return COLORS[value] ?? "var(--ink)";
 }
 
-/** CSS background style for a card with top/bottom number colors. */
+/** Returns CSS custom properties for the new two-tone scout card.
+ *  Sets --top-color and --bottom-color to reference the token vars. */
+export function scoutCardStyle(top: number, bottom: number): React.CSSProperties {
+  return {
+    '--top-color': `var(--scout-card-${top})`,
+    '--bottom-color': `var(--scout-card-${bottom})`,
+  } as React.CSSProperties;
+}
+
+/** @deprecated Use scoutCardStyle() for new card markup. Remove once all callers migrated. */
 export function scoutCardBackground(top: number, bottom: number): string {
   const topColor = COLORS[top] ?? "#888";
   const bottomColor = COLORS[bottom] ?? "#888";

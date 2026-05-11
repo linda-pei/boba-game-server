@@ -74,9 +74,9 @@ export default function RoundEnd({ roomCode, game, room }: RoundEndProps) {
               <span className="score-detail">
                 +{p.captured} captured, +{p.tokens} tokens,{" "}
                 {p.isUncontestedOwner ? (
-                  <span style={{ color: "var(--accent-secondary)" }}>0 hand (uncontested)</span>
+                  <span style={{ color: "var(--jade-500)" }}>0 hand (uncontested)</span>
                 ) : (
-                  <span style={{ color: "var(--accent-danger)" }}>-{p.handPenalty} hand</span>
+                  <span style={{ color: "var(--rose-500)" }}>-{p.handPenalty} hand</span>
                 )}
               </span>
               <span className="score-round">
@@ -91,7 +91,7 @@ export default function RoundEnd({ roomCode, game, room }: RoundEndProps) {
       </div>
 
       {isHost && (
-        <button onClick={handleNextRound} disabled={advancing} style={{ marginTop: "1rem" }}>
+        <button className="btn btn--primary" onClick={handleNextRound} disabled={advancing} style={{ marginTop: "1rem" }}>
           {advancing
             ? "Starting..."
             : isLastRound
@@ -101,7 +101,7 @@ export default function RoundEnd({ roomCode, game, room }: RoundEndProps) {
       )}
 
       {!isHost && (
-        <p style={{ fontSize: "0.85rem", marginTop: "1rem", color: "var(--text-light)" }}>
+        <p style={{ fontSize: "0.85rem", marginTop: "1rem", color: "var(--ink-mute)" }}>
           Waiting for host to continue...
         </p>
       )}

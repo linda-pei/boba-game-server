@@ -1,48 +1,157 @@
 :root {
-  /* Backgrounds */
-  --bg-primary: #FFF8F0;
-  --bg-secondary: #FFF1E6;
-  --bg-tertiary: #FFE8D6;
+  /* =========================================================
+     DESIGN SYSTEM TOKENS (source of truth)
+     ========================================================= */
 
-  /* Text */
-  --text-primary: #3D2C2E;
-  --text-muted: #6B5557;
-  --text-light: #9B8486;
+  /* Boba shop palette */
+  --milk-50:  #fdf9ef;
+  --milk-100: #f8efd9;
+  --milk-200: #f0e3c4;
+  --milk-300: #e3d2a8;
+  --milk-400: #c9b487;
+  --syrup-100: #d8b894;
+  --syrup-300: #a87749;
+  --syrup-500: #6b4423;
+  --syrup-700: #3d2613;
+  --pearl:    #1f1410;
+  --pearl-soft: #2a1d12;
 
-  /* Accent */
-  --accent-primary: #D4854A;
-  --accent-primary-hover: #C4753A;
-  --accent-secondary: #81B29A;
-  --accent-secondary-hover: #6FA28A;
-  --accent-danger: #C45B5B;
-  --accent-danger-hover: #B04A4A;
+  --peach-100: #ffe1cf;
+  --peach-300: #ffb795;
+  --peach-500: #ec7c5a;
+  --peach-700: #b25030;
 
-  /* Ring colors */
-  --ring-1: #E07A5F;
-  --ring-2: #3D85C6;
-  --ring-3: #81B29A;
+  --jade-100: #d4ebde;
+  --jade-300: #8ec9aa;
+  --jade-500: #4ea584;
+  --jade-700: #2f6f56;
 
-  /* Surfaces */
-  --surface: #FFFFFF;
-  --surface-hover: #FFF5ED;
-  --border: #E8D5C4;
-  --border-light: #F0E4D8;
+  --rose-500: #d44a6a;
+  --honey-500: #e8b13d;
+
+  /* Per-game accent tokens */
+  --tir-red:   #d34d4f;
+  --tir-blue:  #4a7fcf;
+  --tir-green: #5da775;
+  --scout-1:   #ec7c5a;
+  --scout-2:   #e8b13d;
+  --scout-3:   #4ea584;
+  --scout-4:   #4a7fcf;
+  --ww-night:  #4a3d6e;
+  --ww-moon:   #f5d491;
+  --oo-cafe:   #b25030;
+  --oo-cream:  #fff5dc;
+  --ds-ocean:  #2a5b88;
+  --ds-coral:  #ec7c5a;
+
+  /* Scout card color ramp (1-10) */
+  --scout-card-1:  #1B3A8C;
+  --scout-card-2:  #2E6BC6;
+  --scout-card-3:  #5BA3D9;
+  --scout-card-4:  #3BA89E;
+  --scout-card-5:  #3DAA5C;
+  --scout-card-6:  #8CC63F;
+  --scout-card-7:  #D9C520;
+  --scout-card-8:  #DE9E26;
+  --scout-card-9:  #E8852E;
+  --scout-card-10: #D93B3B;
+  --scout-numeral-stroke: var(--pearl);
+  --scout-card-body: #fffaf0;
+  --scout-card-ink:  #1f1410;
+
+  /* Semantic colors */
+  --bg:       var(--milk-50);
+  --surface:  #fffaf0;
+  --surface-2: var(--milk-100);
+  --border:   var(--milk-300);
+  --border-strong: var(--syrup-700);
+  --ink:      var(--pearl);
+  --ink-soft: var(--syrup-500);
+  --ink-mute: #8a7458;
+
+  /* Shape scale */
+  --r-1: 4px;
+  --r-2: 8px;
+  --r-3: 12px;
+  --r-4: 16px;
+  --r-5: 24px;
+  --r-pill: 999px;
+
+  /* Spacing scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* Typography */
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(61, 44, 46, 0.08);
-  --shadow-md: 0 4px 12px rgba(61, 44, 46, 0.1);
-  --shadow-lg: 0 8px 24px rgba(61, 44, 46, 0.12);
+  --shadow-1: 0 1px 0 rgba(61,38,19,0.06), 0 2px 4px rgba(61,38,19,0.06);
+  --shadow-2: 0 1px 0 rgba(61,38,19,0.08), 0 6px 16px -4px rgba(61,38,19,0.12);
+  --shadow-3: 0 2px 0 rgba(61,38,19,0.10), 0 14px 28px -8px rgba(61,38,19,0.18);
+  --shadow-sticker: 3px 3px 0 var(--border-strong);
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* Motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring-soft: cubic-bezier(0.4, 1.3, 0.5, 1);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
 
-  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  --content-max: 800px;
+
+  /* =========================================================
+     LEGACY ALIASES — remove once all games are migrated
+     ========================================================= */
+  /* [legacy] Backgrounds → use --bg, --surface, --surface-2 */
+  --bg-primary: var(--bg);
+  --bg-secondary: var(--surface-2);
+  --bg-tertiary: var(--milk-200);
+
+  /* [legacy] Text → use --ink, --ink-soft, --ink-mute */
+  --text-primary: var(--ink);
+  --text-muted: var(--ink-soft);
+  --text-light: var(--ink-mute);
+
+  /* [legacy] Accents → use --peach-500, --jade-500, --rose-500 */
+  --accent-primary: var(--peach-500);
+  --accent-primary-hover: var(--peach-700);
+  --accent-secondary: var(--jade-500);
+  --accent-secondary-hover: var(--jade-700);
+  --accent-danger: var(--rose-500);
+  --accent-danger-hover: #B04A4A;
+
+  /* [legacy] Ring colors → use --tir-red, --tir-blue, --tir-green */
+  --ring-1: var(--tir-red);
+  --ring-2: var(--tir-blue);
+  --ring-3: var(--tir-green);
+
+  /* [legacy] Surfaces → use --surface, --surface-2 */
+  --surface-hover: #FFF5ED;
+  --border-light: #F0E4D8;
+
+  /* [legacy] Shadows → use --shadow-1, --shadow-2, --shadow-3 */
+  --shadow-sm: var(--shadow-1);
+  --shadow-md: var(--shadow-2);
+  --shadow-lg: var(--shadow-3);
+
+  /* [legacy] Radius → use --r-2, --r-3, --r-4 */
+  --radius-sm: var(--r-2);
+  --radius-md: var(--r-3);
+  --radius-lg: var(--r-4);
+
+  /* =========================================================
+     BASE STYLES
+     ========================================================= */
+  font-family: var(--font-body);
   line-height: 1.6;
   font-weight: 400;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
+  color: var(--ink);
+  background-color: var(--bg);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -52,29 +161,31 @@
 
 /* ---- Dark mode ---- */
 [data-theme="dark"] {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #222240;
-  --bg-tertiary: #2a2a4a;
+  --bg:       #1a120a;
+  --surface:  #251a10;
+  --surface-2: #2e2114;
+  --border:   #4a3520;
+  --border-strong: #7a5a3a;
+  --ink:      #faecd0;
+  --ink-soft: #d4b88a;
+  --ink-mute: #998362;
+  --milk-100: #2e2114;
+  --milk-200: #3a2918;
+  --scout-numeral-stroke: #000;
+  --scout-card-body: #251a10;
+  --scout-card-ink: #faecd0;
 
-  --text-primary: #e8e6f0;
-  --text-muted: #b0adc0;
-  --text-light: #807d94;
+  --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --shadow-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px -4px rgba(0,0,0,0.4);
+  --shadow-3: 0 2px 0 rgba(0,0,0,0.5), 0 14px 28px -8px rgba(0,0,0,0.5);
+  --shadow-sticker: 3px 3px 0 var(--border-strong);
 
-  --accent-primary: #3D7AC3;
-  --accent-primary-hover: #4A8BD4;
-  --accent-secondary: #5F9278;
-  --accent-secondary-hover: #6FA28A;
-  --accent-danger: #c04545;
-  --accent-danger-hover: #d05050;
-
-  --surface: #262645;
+  /* [legacy] dark overrides — these now derive from the tokens above automatically
+     via the aliases in :root. Only keep explicit overrides where the legacy value
+     intentionally differed from the alias mapping. */
   --surface-hover: #2e2e52;
-  --border: #3d3d60;
   --border-light: #333358;
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --accent-danger-hover: #d05050;
 
   color-scheme: dark;
 }
@@ -92,7 +203,7 @@ body {
 }
 
 h1, h2, h3, h4 {
-  color: var(--text-primary);
+  color: var(--ink);
   font-weight: 700;
   margin-top: 0;
 }
@@ -111,36 +222,40 @@ h3 {
 }
 
 p {
-  color: var(--text-muted);
+  color: var(--ink-soft);
 }
 
 a {
   font-weight: 500;
-  color: var(--accent-primary);
+  color: var(--peach-500);
   text-decoration: none;
 }
 
 a:hover {
-  color: var(--accent-primary-hover);
+  color: var(--peach-700);
 }
 
+/* =========================================================
+   LEGACY BUTTON ELEMENT STYLES — replace with .btn classes
+   when migrating each game. See scout.css for the new system.
+   ========================================================= */
 button {
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   border: none;
   padding: 0.6em 1.4em;
   font-size: 1em;
   font-weight: 600;
   font-family: inherit;
-  background-color: var(--accent-primary);
+  background-color: var(--peach-500);
   color: white;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-1);
 }
 
 button:hover {
-  background-color: var(--accent-primary-hover);
-  box-shadow: var(--shadow-md);
+  background-color: var(--peach-700);
+  box-shadow: var(--shadow-2);
   transform: translateY(-1px);
 }
 
@@ -156,29 +271,29 @@ button:disabled {
 }
 
 button:focus-visible {
-  outline: 3px solid var(--accent-primary);
+  outline: 3px solid var(--peach-500);
   outline-offset: 2px;
 }
 
 input, select {
   border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-2);
   padding: 0.5em 0.8em;
   font-size: 1em;
   font-family: inherit;
   background: var(--surface);
-  color: var(--text-primary);
+  color: var(--ink);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input:focus, select:focus {
   outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  border-color: var(--peach-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 15%, transparent);
 }
 
 input::placeholder {
-  color: var(--text-light);
+  color: var(--ink-mute);
 }
 
 select {

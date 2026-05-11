@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
-import { scoutCardBackground } from "./cardColors";
+import { scoutCardStyle } from "./cardColors";
 import {
   playScoutCards,
   scoutCard,
@@ -223,14 +223,14 @@ export default function PlayerTurn({
         const prevIndex = (game.currentTurn - 1 + game.turnOrder.length) % game.turnOrder.length;
         const prevName = room.players[game.turnOrder[prevIndex]]?.name ?? "Unknown";
         return (
-          <p style={{ fontSize: "0.85rem", color: "var(--text-light)", margin: "0 0 0.5rem" }}>
+          <p style={{ fontSize: "0.85rem", color: "var(--ink-mute)", margin: "0 0 0.5rem" }}>
             {prevName} {game.lastAction}
           </p>
         );
       })()}
 
       {/* Turn status */}
-      <div className={`turn-status${isMyTurn ? " my-turn" : ""}`}>
+      <div className={`turn-status${isMyTurn ? " turn-status--mine" : " turn-status--waiting"}`}>
         {isMyTurn ? "Your turn!" : `${currentPlayerName}'s turn`}
       </div>
 
@@ -245,7 +245,7 @@ export default function PlayerTurn({
             />
           ) : (
             <div className="center-pile">
-              <p style={{ color: "var(--text-light)" }}>Pile cleared by scout — play any valid set.</p>
+              <p style={{ color: "var(--ink-mute)" }}>Pile cleared by scout — play any valid set.</p>
             </div>
           )
         ) : (
@@ -259,7 +259,7 @@ export default function PlayerTurn({
         )
       ) : (
         <div className="center-pile">
-          <p style={{ color: "var(--text-light)" }}>No cards played yet.</p>
+          <p style={{ color: "var(--ink-mute)" }}>No cards played yet.</p>
         </div>
       )}
 
@@ -273,22 +273,25 @@ export default function PlayerTurn({
             const card = scoutedCardPreview();
             if (!card) return null;
             return (
-              <div className="scout-card" style={{ display: "inline-flex", background: scoutCardBackground(card.top, card.bottom) }}>
-                <span className="scout-card-top">{card.top}</span>
-                <span className="scout-card-divider" />
-                <span className="scout-card-bottom">{card.bottom}</span>
+              <div
+                key={`${scoutEnd}-${scoutFlip}`}
+                className="scout-card is-flipping"
+                style={{ ...scoutCardStyle(card.top, card.bottom), display: "inline-flex" }}
+              >
+                <span className="top-num">{card.top}</span>
+                <span className="bot-num">{card.bottom}</span>
               </div>
             );
           })()}
           <div style={{ marginTop: "0.5rem" }}>
             <button
-              className="btn-small btn-secondary"
+              className="btn btn--secondary btn--sm"
               onClick={() => setScoutFlip(!scoutFlip)}
             >
               {scoutFlip ? "Unflip" : "Flip"}
             </button>
           </div>
-          <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0", color: "var(--text-light)" }}>
+          <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0", color: "var(--ink-mute)" }}>
             Tap a + slot in your hand to insert
           </p>
         </div>
@@ -322,48 +325,48 @@ export default function PlayerTurn({
         />
       )}
 
-      {/* Action bar — Play button appears when cards are selected; Scout/S+P buttons always visible */}
+      {/* Action bar */}
       {isMyTurn && (
         <div className="scout-actions">
           {/* Play button (when in play mode and cards are selected) */}
           {mode === "play" && selectedIndices.size > 0 && (
-            <button onClick={handlePlay} disabled={acting || !canPlayNow()}>
+            <button className="btn btn--primary" onClick={handlePlay} disabled={acting || !canPlayNow()}>
               {acting ? "Playing..." : "Play"}
             </button>
           )}
 
           {/* Scout + Play confirm buttons */}
           {mode === "scout" && scoutEnd !== null && insertIndex !== null && (
-            <button onClick={handleScoutConfirm} disabled={acting}>
+            <button className="btn btn--primary" onClick={handleScoutConfirm} disabled={acting}>
               {acting ? "Scouting..." : "Confirm Scout"}
             </button>
           )}
           {mode === "scout+play" && spStep === "scout" && scoutEnd !== null && insertIndex !== null && (
-            <button onClick={handleSpScoutConfirm}>
+            <button className="btn btn--primary" onClick={handleSpScoutConfirm}>
               Next: Select Cards to Play
             </button>
           )}
           {mode === "scout+play" && spStep === "play" && (
-            <button onClick={handleSpPlay} disabled={acting || !canPlayNow()}>
+            <button className="btn btn--primary" onClick={handleSpPlay} disabled={acting || !canPlayNow()}>
               {acting ? "Playing..." : "Confirm Scout + Show"}
             </button>
           )}
 
           {/* Mode switchers */}
           {!isCenterEmpty && mode === "play" && (
-            <button className="btn-secondary" onClick={() => { setMode("scout"); setSelectedIndices(new Set()); if (game.centerPile?.cards.length === 1) setScoutEnd("left"); }}>
+            <button className="btn btn--secondary" onClick={() => { setMode("scout"); setSelectedIndices(new Set()); if (game.centerPile?.cards.length === 1) setScoutEnd("left"); }}>
               Scout
             </button>
           )}
           {canScoutPlay && mode === "play" && (
-            <button className="btn-secondary" onClick={() => { setMode("scout+play"); setSpStep("scout"); setSelectedIndices(new Set()); if (game.centerPile?.cards.length === 1) setScoutEnd("left"); }}>
+            <button className="btn btn--secondary" onClick={() => { setMode("scout+play"); setSpStep("scout"); setSelectedIndices(new Set()); if (game.centerPile?.cards.length === 1) setScoutEnd("left"); }}>
               Scout + Show
             </button>
           )}
 
           {/* Cancel back to play mode */}
           {mode !== "play" && (
-            <button className="btn-danger btn-small" onClick={resetAllState}>Cancel</button>
+            <button className="btn btn--danger btn--sm" onClick={resetAllState}>Cancel</button>
           )}
         </div>
       )}

@@ -58,7 +58,7 @@ export default function HandSetup({ roomCode, game, hand, uid, room }: HandSetup
     <div className="screen scout-screen">
       <h2>Round {game.roundNumber} — Choose Orientation</h2>
       <p>You may flip your entire hand (reverses order and swaps all numbers). Pick the orientation you want to keep.</p>
-      <p style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
+      <p style={{ fontSize: "0.9rem", color: "var(--ink-soft)" }}>
         {game.turnOrder[game.currentTurn] === uid
           ? "You're going first this round!"
           : `${room.players[game.turnOrder[game.currentTurn]]?.name ?? "Unknown"} goes first this round.`}
@@ -88,6 +88,7 @@ export default function HandSetup({ roomCode, game, hand, uid, room }: HandSetup
       )}
 
       <button
+        className="btn btn--primary"
         onClick={handleConfirm}
         disabled={confirming}
         style={{ marginTop: "1rem" }}

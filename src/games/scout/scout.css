@@ -1,0 +1,529 @@
+/* =========================================================
+   SCOUT — Boba sticker design system
+   ========================================================= */
+
+/* ---- Layout ---- */
+#root:has(.scout-screen) {
+  max-width: 100%;
+}
+
+.screen.scout-screen {
+  max-width: 1300px;
+  font-family: var(--font-body);
+}
+
+.scout-screen h1,
+.scout-screen h2,
+.scout-screen h3,
+.scout-screen h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* =========================================================
+   BUTTONS — .btn system
+   Use .btn + .btn--primary/secondary/danger/ghost modifiers.
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--r-pill);
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sticker);
+  cursor: pointer;
+  transition: transform 0.18s var(--ease-spring), box-shadow 0.18s;
+  text-decoration: none;
+  user-select: none;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--border-strong); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--border-strong); }
+.btn:focus-visible { outline: 3px solid var(--peach-500); outline-offset: 3px; }
+
+.btn--primary {
+  background: var(--peach-500);
+  color: white;
+  border-color: var(--peach-700);
+  box-shadow: 3px 3px 0 var(--peach-700);
+}
+.btn--primary:hover { box-shadow: 4px 4px 0 var(--peach-700); }
+.btn--primary:active { box-shadow: 1px 1px 0 var(--peach-700); }
+
+.btn--secondary {
+  background: var(--jade-500);
+  color: white;
+  border-color: var(--jade-700);
+  box-shadow: 3px 3px 0 var(--jade-700);
+}
+.btn--secondary:hover { box-shadow: 4px 4px 0 var(--jade-700); }
+.btn--secondary:active { box-shadow: 1px 1px 0 var(--jade-700); }
+
+.btn--danger {
+  background: var(--rose-500);
+  color: white;
+  border-color: #8a1f3a;
+  box-shadow: 3px 3px 0 #8a1f3a;
+}
+.btn--danger:hover { box-shadow: 4px 4px 0 #8a1f3a; }
+.btn--danger:active { box-shadow: 1px 1px 0 #8a1f3a; }
+
+.btn--ghost {
+  background: transparent;
+  border-style: dashed;
+  border-width: 2px;
+  box-shadow: none;
+}
+.btn--ghost:hover { background: var(--surface-2); transform: translateY(-1px); box-shadow: none; }
+.btn--ghost:active { transform: translateY(1px); }
+
+.btn--sm { padding: 6px 12px; font-size: 0.85rem; }
+.btn--lg { padding: 14px 24px; font-size: 1.1rem; }
+
+.btn[disabled], .btn.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: var(--shadow-sticker) !important;
+}
+
+/* =========================================================
+   SCOUT CARD
+   78×110px sticker card with two-tone color halves.
+   Colors set via --top-color / --bottom-color CSS variables.
+   Numerals: white fill + dark stroke for universal contrast.
+   ========================================================= */
+.scout-card {
+  --deck-rot: 0deg;
+  --deck-y: 0px;
+  --deck-scale: 1;
+  --flip: 0deg;
+  width: 78px;
+  height: 110px;
+  border: 2px solid var(--scout-card-ink);
+  border-radius: var(--r-3);
+  box-shadow: 3px 3px 0 var(--scout-card-ink);
+  background-color: var(--scout-card-body);
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  color: var(--scout-card-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  cursor: pointer;
+  transform:
+    translateY(var(--deck-y))
+    rotate(calc(var(--deck-rot) + var(--flip)))
+    scale(var(--deck-scale));
+  transform-origin: 50% 50%;
+  transition: transform 0.55s var(--ease-spring), box-shadow 0.25s;
+  user-select: none;
+  padding: 0;
+}
+
+.scout-card:disabled {
+  cursor: default;
+  opacity: 1;
+  transform:
+    translateY(var(--deck-y))
+    rotate(calc(var(--deck-rot) + var(--flip)))
+    scale(var(--deck-scale));
+  box-shadow: 3px 3px 0 var(--scout-card-ink);
+}
+
+.scout-card.is-flipped { --flip: 180deg; }
+
+/* Top half — solid color */
+.scout-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: var(--top-color, var(--scout-card-1));
+}
+
+/* Bottom half */
+.scout-card::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  bottom: 0;
+  background: var(--bottom-color, var(--scout-card-10));
+}
+
+/* Numerals — white fill with dark stroke (sticker style) */
+.scout-card .top-num,
+.scout-card .bot-num {
+  color: white;
+  -webkit-text-stroke: 2.5px var(--scout-numeral-stroke);
+  paint-order: stroke fill;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  position: absolute;
+  font-size: 1.4rem;
+  line-height: 1;
+  z-index: 1;
+}
+
+.scout-card .top-num { top: 8px; left: 10px; }
+.scout-card .bot-num {
+  bottom: 8px; right: 10px;
+  transform: rotate(180deg);
+}
+
+/* Selected state */
+.scout-card.selected {
+  box-shadow: 0 0 0 3px var(--peach-500), 3px 3px 0 var(--scout-card-ink);
+  --deck-y: -6px;
+}
+
+/* ---- Scout Hand ---- */
+.scout-hand {
+  display: flex;
+  padding: var(--s-4) var(--s-5);
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.scout-hand .scout-card {
+  margin: 0 -6px;
+}
+
+.scout-hand .scout-card:nth-child(odd) { --deck-rot: -2deg; }
+.scout-hand .scout-card:nth-child(even) { --deck-rot: 2deg; --deck-y: 3px; }
+
+.scout-hand .scout-card:hover:not(:disabled) {
+  --deck-rot: 0deg;
+  --deck-y: -8px;
+  --deck-scale: 1.05;
+  z-index: 2;
+}
+
+.scout-hand .scout-card.selected {
+  --deck-rot: 0deg;
+  --deck-y: -10px;
+  --deck-scale: 1.05;
+  z-index: 2;
+}
+
+/* ---- Insert mode ---- */
+.scout-hand-insert {
+  gap: 0;
+  align-items: center;
+}
+
+.scout-hand-insert-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+/* Remove playful rotation in insert mode so slots align evenly */
+.scout-hand-insert .scout-card {
+  --deck-rot: 0deg;
+  --deck-y: 0px;
+}
+
+.insert-slot {
+  width: 32px;
+  height: 80px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 2px;
+  box-shadow: none;
+  transition: border-color 0.2s, background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.insert-slot:hover {
+  border-color: var(--jade-500);
+  background: color-mix(in srgb, var(--jade-500) 10%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.insert-slot.active {
+  border-color: var(--jade-500);
+  background: color-mix(in srgb, var(--jade-500) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--jade-500) 30%, transparent);
+}
+
+/* ---- Center Pile ---- */
+.center-pile {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  padding: var(--s-4);
+  margin: var(--s-4) 0;
+  text-align: center;
+}
+
+.center-pile-info {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: var(--s-2);
+  font-size: 0.85rem;
+}
+
+.center-pile-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.center-pile-player {
+  color: var(--ink-mute);
+}
+
+.center-pile-cards {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Pile cards: not interactive */
+.pile-card {
+  cursor: default;
+}
+
+.pile-card:hover {
+  transform: none;
+  box-shadow: 3px 3px 0 var(--scout-card-ink);
+}
+
+/* ---- Actions row ---- */
+.scout-actions {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: center;
+  margin: var(--s-4) 0;
+  flex-wrap: wrap;
+}
+
+/* ---- Turn Status ---- */
+.scout-screen .turn-status {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  padding: 14px 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sticker);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  transform: rotate(-0.6deg);
+  margin: var(--s-3) 0;
+}
+
+.scout-screen .turn-status.turn-status--mine {
+  background: var(--peach-100);
+  border-color: var(--peach-700);
+  color: var(--peach-700);
+  box-shadow: 3px 3px 0 var(--peach-700);
+  animation: scout-pop 0.5s var(--ease-spring);
+}
+
+.scout-screen .turn-status.turn-status--waiting {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+/* ---- Score Board ---- */
+.scout-screen .score-board {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+  margin: var(--s-5) 0 0;
+  text-align: left;
+}
+
+.scout-screen .score-board h4 {
+  padding: 10px 14px 6px;
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.scout-screen .score-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.scout-screen .score-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.85rem;
+}
+
+.scout-screen .score-row-active {
+  background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
+  color: var(--peach-700);
+}
+
+.scout-screen .score-name {
+  font-weight: 600;
+}
+
+.scout-screen .score-you {
+  color: var(--peach-700);
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+.scout-screen .score-cards {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.scout-screen .score-token {
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.15em 0.4em;
+  border-radius: var(--r-1);
+  background: var(--jade-500);
+  color: white;
+  min-width: 32px;
+  text-align: center;
+}
+
+.scout-screen .score-token.used {
+  background: var(--milk-200);
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+
+.scout-screen .score-detail {
+  color: var(--ink-mute);
+  text-align: right;
+}
+
+.scout-screen .score-round {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 40px;
+  text-align: right;
+}
+
+.scout-screen .score-cumulative {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--peach-700);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ---- Final Scores ---- */
+.scout-screen .final-scores {
+  margin: var(--s-5) 0;
+}
+
+.scout-screen .final-score-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 12px 14px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  margin-bottom: var(--s-2);
+}
+
+.scout-screen .final-score-rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--peach-700);
+}
+
+.scout-screen .final-score-name {
+  font-weight: 600;
+}
+
+.scout-screen .final-score-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+/* ---- Mode Toggle (hand setup) ---- */
+.scout-screen .mode-toggle {
+  display: inline-flex;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  padding: 3px;
+  gap: 2px;
+  box-shadow: var(--shadow-1);
+}
+
+.scout-screen .mode-toggle-btn {
+  flex: 1;
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.scout-screen .mode-toggle-btn:hover {
+  color: var(--ink);
+  box-shadow: none;
+  transform: none;
+}
+
+.scout-screen .mode-toggle-btn.active {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+/* ---- Animations ---- */
+@keyframes scout-pop {
+  0%   { transform: scale(0.7) rotate(-3deg); opacity: 0; }
+  60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-0.6deg); opacity: 1; }
+}
+
+@keyframes scout-flip-in {
+  0%   { transform: rotateY(-180deg) scale(0.8); opacity: 0; }
+  60%  { transform: rotateY(20deg) scale(1.05); opacity: 1; }
+  100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+}
+
+.scout-card.is-flipping {
+  animation: scout-flip-in 0.7s var(--ease-spring);
+}

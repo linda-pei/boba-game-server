@@ -6,11 +6,6 @@
   width: 100%;
 }
 
-/* Widen root when Scout game is active */
-#root:has(.scout-screen) {
-  max-width: 1100px;
-}
-
 /* ---- Screen container ---- */
 .screen {
   background: var(--surface);
@@ -19,10 +14,6 @@
   padding: 2rem;
   margin: 0 auto;
   max-width: 700px;
-}
-
-.screen.scout-screen {
-  max-width: 1000px;
 }
 
 /* ---- Home ---- */
@@ -528,192 +519,8 @@
   margin-left: 0.3rem;
 }
 
-/* ---- Scout: Cards ---- */
-.scout-card {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 68px;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.2s;
-  box-shadow: var(--shadow-sm);
-  user-select: none;
-  padding: 0;
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-.scout-card:disabled {
-  opacity: 0.6;
-}
-
-.scout-card:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.scout-card.selected {
-  border-color: var(--accent-primary);
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  transform: translateY(-3px);
-}
-
-.scout-card-top {
-  font-weight: 700;
-  font-size: 1.1rem;
-  line-height: 1.2;
-  color: var(--text-primary);
-  text-shadow: 0 0 3px rgba(255,255,255,0.8), 0 0 6px rgba(255,255,255,0.5);
-}
-
-.scout-card-divider {
-  width: 60%;
-  height: 1px;
-  background: var(--border);
-  margin: 2px 0;
-}
-
-.scout-card-bottom {
-  font-size: 0.8rem;
-  line-height: 1.2;
-  color: var(--text-light);
-  font-weight: 500;
-  text-shadow: 0 0 3px rgba(255,255,255,0.8), 0 0 6px rgba(255,255,255,0.5);
-}
-
-[data-theme="dark"] .scout-card-top,
-[data-theme="dark"] .scout-card-bottom {
-  text-shadow: 0 0 3px rgba(0,0,0,0.6), 0 0 6px rgba(0,0,0,0.4);
-}
-
-/* ---- Scout: Hand ---- */
-.scout-hand {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-  margin: 1rem 0;
-  overflow-x: auto;
-  padding: 6px 0;
-}
-
-/* ---- Scout: Insert mode layout ---- */
-.scout-hand-insert {
-  gap: 0;
-}
-
-.scout-hand-insert-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-}
-
-/* ---- Scout: Insert slots ---- */
-.insert-slot {
-  width: 28px;
-  height: 52px;
-  border: 2px dashed var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-light);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  margin: 0 2px;
-  box-shadow: none;
-  transition: border-color 0.2s, background 0.2s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.insert-slot:hover {
-  border-color: var(--accent-secondary);
-  background: color-mix(in srgb, var(--accent-secondary) 10%, transparent);
-  box-shadow: none;
-  transform: none;
-}
-
-.insert-slot.active {
-  border-color: var(--accent-secondary);
-  background: color-mix(in srgb, var(--accent-secondary) 18%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-secondary) 30%, transparent);
-}
-
-/* ---- Scout: Center pile ---- */
-.center-pile {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  margin: 1rem 0;
-  text-align: center;
-}
-
-.center-pile-info {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.center-pile-label {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.center-pile-player {
-  color: var(--text-light);
-}
-
-.center-pile-cards {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  align-items: center;
-}
-
-.pile-card {
-  cursor: default;
-}
-
-.pile-card:hover {
-  transform: none;
-  box-shadow: var(--shadow-sm);
-  border-color: var(--border);
-}
-
-.scout-end-btn {
-  font-size: 0.75rem;
-  padding: 0.3em 0.6em;
-  background: var(--accent-secondary);
-  border-radius: var(--radius-sm);
-}
-
-.scout-end-btn:hover {
-  background: var(--accent-secondary-hover);
-}
-
-/* ---- Scout: Actions row ---- */
-.scout-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  margin: 1rem 0;
-  flex-wrap: wrap;
-}
-
-/* ---- Scout: Score board ---- */
+/* ---- [legacy] Score board — used by Order Overload, Deep Sea.
+   Scout overrides these in scout.css. Remove once all games migrated. ---- */
 .score-board {
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
@@ -763,68 +570,9 @@
   font-size: 0.8rem;
 }
 
-.score-token {
-  font-weight: 700;
-  font-size: 0.75rem;
-  padding: 0.15em 0.4em;
-  border-radius: 3px;
-  background: var(--accent-secondary);
-  color: white;
-  min-width: 32px;
-  text-align: center;
-}
-
-.score-token.used {
-  background: var(--bg-tertiary);
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-.score-detail {
-  color: var(--text-light);
-}
-
-.score-round {
-  font-weight: 700;
-  color: var(--text-primary);
-  min-width: 40px;
-  text-align: right;
-}
-
 .score-cumulative {
   font-weight: 600;
   color: var(--accent-primary);
-}
-
-/* ---- Scout: Final scores ---- */
-.final-scores {
-  margin: 1.5rem 0;
-}
-
-.final-score-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 1rem;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  margin-bottom: 0.4rem;
-}
-
-.final-score-rank {
-  font-weight: 700;
-  color: var(--accent-primary);
-  min-width: 2rem;
-}
-
-.final-score-name {
-  flex: 1;
-  font-weight: 600;
-}
-
-.final-score-value {
-  font-weight: 700;
-  color: var(--text-primary);
 }
 
 /* ---- Werewords ---- */

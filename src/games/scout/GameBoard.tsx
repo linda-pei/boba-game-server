@@ -7,6 +7,7 @@ import HandSetup from "./HandSetup";
 import PlayerTurn from "./PlayerTurn";
 import RoundEnd from "./RoundEnd";
 import GameOver from "./GameOver";
+import "./scout.css";
 
 export default function ScoutGameBoard({ roomCode }: { roomCode: string }) {
   const { uid } = useAuthContext();

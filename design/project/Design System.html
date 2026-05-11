@@ -1,0 +1,1919 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Boba Game Server — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* =========================================================
+     TOKENS
+     ========================================================= */
+  :root {
+    /* Boba shop palette — light */
+    --milk-50:  #fdf9ef;  /* page bg */
+    --milk-100: #f8efd9;  /* surface */
+    --milk-200: #f0e3c4;  /* surface raised */
+    --milk-300: #e3d2a8;  /* border */
+    --milk-400: #c9b487;
+    --syrup-100: #d8b894;
+    --syrup-300: #a87749;
+    --syrup-500: #6b4423;  /* brown text */
+    --syrup-700: #3d2613;
+    --pearl:    #1f1410;   /* near-black, warm */
+    --pearl-soft: #2a1d12;
+
+    --peach-100: #ffe1cf;
+    --peach-300: #ffb795;
+    --peach-500: #ec7c5a;   /* primary accent */
+    --peach-700: #b25030;
+
+    --jade-100: #d4ebde;
+    --jade-300: #8ec9aa;
+    --jade-500: #4ea584;    /* secondary accent */
+    --jade-700: #2f6f56;
+
+    --rose-500: #d44a6a;    /* danger */
+    --honey-500: #e8b13d;   /* warning / star */
+
+    /* Per-game accents */
+    --tir-red:   #d34d4f;
+    --tir-blue:  #4a7fcf;
+    --tir-green: #5da775;
+    --scout-1:   #ec7c5a; /* peach */
+    --scout-2:   #e8b13d; /* honey */
+    --scout-3:   #4ea584; /* jade */
+    --scout-4:   #4a7fcf; /* blue */
+    --ww-night:  #4a3d6e;
+    --ww-moon:   #f5d491;
+    --oo-cafe:   #b25030;
+    --oo-cream:  #fff5dc;
+    --ds-ocean:  #2a5b88;
+    --ds-coral:  #ec7c5a;
+
+    /* Scout card ramp — 1 → 10, hue-adjacent so neighbors blend */
+    --scout-card-1:  #1B3A8C;
+    --scout-card-2:  #2E6BC6;
+    --scout-card-3:  #5BA3D9;
+    --scout-card-4:  #3BA89E;
+    --scout-card-5:  #3DAA5C;
+    --scout-card-6:  #8CC63F;
+    --scout-card-7:  #D9C520;
+    --scout-card-8:  #DE9E26;
+    --scout-card-9:  #E8852E;
+    --scout-card-10: #D93B3B;
+    /* Sticker numeral stroke — the dark outline that makes white fill
+       readable on every ramp color. Stays dark in both modes (sticker outlines
+       are always dark); the dark-mode override pushes it to pure black for
+       extra punch against the dim card body. */
+    --scout-numeral-stroke: var(--pearl);
+    /* Body colors the card sits on — bottom half is 50% alpha over this */
+    --scout-card-body: #fffaf0;
+    --scout-card-ink:  #1f1410;
+
+    /* Semantic */
+    --bg:       var(--milk-50);
+    --surface:  #fffaf0;
+    --surface-2:var(--milk-100);
+    --border:   var(--milk-300);
+    --border-strong: var(--syrup-700);
+    --ink:      var(--pearl);
+    --ink-soft: var(--syrup-500);
+    --ink-mute: #8a7458;
+
+    /* Shape */
+    --r-1: 4px;
+    --r-2: 8px;
+    --r-3: 12px;
+    --r-4: 16px;
+    --r-5: 24px;
+    --r-pill: 999px;
+
+    /* Spacing scale */
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 24px;
+    --s-6: 32px;
+    --s-7: 48px;
+    --s-8: 64px;
+
+    /* Type */
+    --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
+
+    /* Shadows — paper cards (soft, warm) */
+    --shadow-1: 0 1px 0 rgba(61,38,19,0.06), 0 2px 4px rgba(61,38,19,0.06);
+    --shadow-2: 0 1px 0 rgba(61,38,19,0.08), 0 6px 16px -4px rgba(61,38,19,0.12);
+    --shadow-3: 0 2px 0 rgba(61,38,19,0.10), 0 14px 28px -8px rgba(61,38,19,0.18);
+    --shadow-sticker: 3px 3px 0 var(--border-strong);
+
+    /* Motion — bouncy springs */
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-spring-soft: cubic-bezier(0.4, 1.3, 0.5, 1);
+    --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+    --content-max: 800px;
+    --grain-opacity: 0.35;
+  }
+
+  [data-theme="dark"] {
+    --bg:       #1a120a;
+    --surface:  #251a10;
+    --surface-2:#2e2114;
+    --border:   #4a3520;
+    --border-strong: #7a5a3a;
+    --ink:      #faecd0;
+    --ink-soft: #d4b88a;
+    --ink-mute: #998362;
+    --milk-100: #2e2114;
+    --milk-200: #3a2918;
+    --scout-numeral-stroke: #000;
+    --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+    --shadow-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px -4px rgba(0,0,0,0.4);
+    --shadow-3: 0 2px 0 rgba(0,0,0,0.5), 0 14px 28px -8px rgba(0,0,0,0.5);
+    --shadow-sticker: 3px 3px 0 var(--border-strong);
+    --grain-opacity: 0.25;
+  }
+
+  /* =========================================================
+     PAGE
+     ========================================================= */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.55;
+    /* Subtle paper grain */
+    background-image:
+      radial-gradient(circle at 25% 20%, rgba(168,119,73,0.04) 0, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(168,119,73,0.04) 0, transparent 35%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.27  0 0 0 0 0.13  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+    background-size: auto, auto, 200px 200px;
+    transition: background 0.4s ease, color 0.3s ease;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.27  0 0 0 0 0.13  0 0 0 0.25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+    opacity: var(--grain-opacity);
+    pointer-events: none; z-index: 0;
+    mix-blend-mode: multiply;
+  }
+  [data-theme="dark"] body::before { mix-blend-mode: screen; opacity: 0.15; }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  h1 { font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -0.025em; }
+  h2 { font-size: 1.6rem; margin-top: var(--s-7); }
+  h3 { font-size: 1.15rem; margin-top: var(--s-5); }
+  h4 { font-size: 0.95rem; font-family: var(--font-body); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+  p { margin: 0.4em 0; max-width: 64ch; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--surface-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .page {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: var(--s-6) var(--s-5) var(--s-8);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* =========================================================
+     TOP BAR
+     ========================================================= */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
+    background: color-mix(in oklab, var(--bg) 80%, transparent);
+    border-bottom: 1px solid var(--border);
+    padding: var(--s-3) 0;
+  }
+  .topbar-inner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0 var(--s-5);
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    justify-content: space-between;
+  }
+  .topbar nav { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+  .topbar nav a {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    transition: background 0.2s, color 0.2s;
+  }
+  .topbar nav a:hover { background: var(--surface-2); color: var(--ink); }
+
+  /* Theme toggle */
+  .theme-toggle {
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-sticker);
+    transition: transform 0.2s var(--ease-spring), box-shadow 0.2s;
+  }
+  .theme-toggle:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--border-strong); }
+  .theme-toggle:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--border-strong); }
+
+  /* =========================================================
+     HERO / WORDMARK
+     ========================================================= */
+  .hero {
+    padding: var(--s-7) 0 var(--s-6);
+    text-align: left;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.6rem, 6vw, 4rem);
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+    transform: rotate(-1.5deg);
+    transform-origin: left center;
+  }
+  .wordmark .pearl-cup {
+    width: 0.95em; height: 0.95em;
+    flex: none;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--syrup-100) 0%, var(--syrup-500) 60%, var(--pearl) 100%);
+    box-shadow:
+      inset -2px -3px 8px rgba(0,0,0,0.25),
+      inset 4px 5px 8px rgba(255,255,255,0.15),
+      var(--shadow-2);
+    position: relative;
+    animation: bobble 4s ease-in-out infinite;
+  }
+  .wordmark .pearl-cup::before {
+    /* highlight */
+    content: ""; position: absolute;
+    top: 18%; left: 22%;
+    width: 25%; height: 18%;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+  .wordmark .pearl-cup::after {
+    /* second pearl peeking */
+    content: ""; position: absolute;
+    bottom: -12%; right: -8%;
+    width: 38%; height: 38%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--syrup-300) 0%, var(--pearl) 90%);
+    box-shadow: var(--shadow-1);
+  }
+  @keyframes bobble {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-3px) rotate(4deg); }
+  }
+  .tagline {
+    margin-top: var(--s-4);
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+    max-width: 50ch;
+  }
+
+  /* =========================================================
+     SECTION
+     ========================================================= */
+  section.spec {
+    margin-top: var(--s-7);
+    padding-top: var(--s-5);
+    border-top: 1px dashed var(--border);
+  }
+  .lede { color: var(--ink-soft); margin: var(--s-2) 0 var(--s-5); }
+
+  /* =========================================================
+     COLOR SWATCHES
+     ========================================================= */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--s-3);
+  }
+  .swatch {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    overflow: hidden;
+    box-shadow: var(--shadow-1);
+    background: var(--surface);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .swatch:hover { transform: translateY(-2px) rotate(-0.5deg); }
+  .swatch-block { height: 70px; }
+  .swatch-meta {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    font-family: ui-monospace, monospace;
+    border-top: 2px solid var(--border-strong);
+    background: var(--surface);
+  }
+  .swatch-meta b { display: block; font-family: var(--font-body); font-size: 0.85rem; }
+
+  /* =========================================================
+     TYPE RAMP
+     ========================================================= */
+  .type-ramp { display: flex; flex-direction: column; gap: var(--s-3); }
+  .type-row {
+    display: flex; align-items: baseline; gap: var(--s-4);
+    padding: var(--s-3); border-bottom: 1px dashed var(--border);
+  }
+  .type-row .sample { flex: 1; }
+  .type-row .meta {
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem; color: var(--ink-mute);
+    flex: none; min-width: 200px;
+  }
+
+  /* =========================================================
+     CARD (paper)
+     ========================================================= */
+  .paper {
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    box-shadow: var(--shadow-2);
+    padding: var(--s-4);
+    position: relative;
+  }
+  .paper.tilted { transform: rotate(-1.2deg); }
+  .paper.sticker {
+    box-shadow: var(--shadow-sticker);
+  }
+  .paper-grain::before {
+    content: ""; position: absolute; inset: 0;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4  0 0 0 0 0.27  0 0 0 0 0.13  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/></svg>");
+    opacity: 0.5; pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  [data-theme="dark"] .paper-grain::before { mix-blend-mode: screen; opacity: 0.25; }
+
+  .card-stack {
+    display: flex; gap: var(--s-3); flex-wrap: wrap;
+  }
+  .game-card-demo {
+    width: 92px; height: 130px;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    box-shadow: var(--shadow-sticker);
+    padding: 8px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.25s var(--ease-spring), box-shadow 0.25s;
+    cursor: pointer;
+  }
+  .game-card-demo:nth-child(1) { transform: rotate(-3deg); }
+  .game-card-demo:nth-child(2) { transform: rotate(1deg) translateY(2px); }
+  .game-card-demo:nth-child(3) { transform: rotate(-1deg); }
+  .game-card-demo:nth-child(4) { transform: rotate(2.5deg); }
+  .game-card-demo:hover {
+    transform: rotate(0deg) translateY(-6px) scale(1.05);
+    box-shadow: 6px 6px 0 var(--border-strong);
+  }
+  .game-card-demo .corner-num {
+    font-size: 1.4rem; line-height: 1; color: var(--peach-700);
+  }
+  .game-card-demo .corner-num.flip { align-self: flex-end; transform: rotate(180deg); }
+
+  /* =========================================================
+     BUTTONS
+     ========================================================= */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: var(--r-pill);
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-sticker);
+    cursor: pointer;
+    transition: transform 0.18s var(--ease-spring), box-shadow 0.18s;
+    text-decoration: none;
+    user-select: none;
+  }
+  .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--border-strong); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--border-strong); }
+  .btn:focus-visible { outline: 3px solid var(--peach-500); outline-offset: 3px; }
+
+  .btn--primary {
+    background: var(--peach-500);
+    color: white;
+    border-color: var(--peach-700);
+    box-shadow: 3px 3px 0 var(--peach-700);
+  }
+  .btn--primary:hover { box-shadow: 4px 4px 0 var(--peach-700); }
+  .btn--primary:active { box-shadow: 1px 1px 0 var(--peach-700); }
+
+  .btn--secondary {
+    background: var(--jade-500);
+    color: white;
+    border-color: var(--jade-700);
+    box-shadow: 3px 3px 0 var(--jade-700);
+  }
+  .btn--secondary:hover { box-shadow: 4px 4px 0 var(--jade-700); }
+  .btn--secondary:active { box-shadow: 1px 1px 0 var(--jade-700); }
+
+  .btn--danger {
+    background: var(--rose-500);
+    color: white;
+    border-color: #8a1f3a;
+    box-shadow: 3px 3px 0 #8a1f3a;
+  }
+  .btn--danger:hover { box-shadow: 4px 4px 0 #8a1f3a; }
+  .btn--danger:active { box-shadow: 1px 1px 0 #8a1f3a; }
+
+  .btn--ghost {
+    background: transparent;
+    border-style: dashed;
+    border-width: 2px;
+    box-shadow: none;
+  }
+  .btn--ghost:hover { background: var(--surface-2); transform: translateY(-1px); box-shadow: none; }
+  .btn--ghost:active { transform: translateY(1px); }
+
+  .btn--sm { padding: 6px 12px; font-size: 0.85rem; }
+  .btn--lg { padding: 14px 24px; font-size: 1.1rem; }
+
+  .btn[disabled], .btn.is-disabled { opacity: 0.45; cursor: not-allowed; transform: none !important; box-shadow: var(--shadow-sticker) !important; }
+
+  .btn-grid { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+
+  /* =========================================================
+     INPUTS
+     ========================================================= */
+  .field { display: flex; flex-direction: column; gap: 6px; max-width: 320px; }
+  .field label { font-size: 0.85rem; font-weight: 600; color: var(--ink-soft); }
+
+  .input, .select {
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    border-radius: var(--r-3);
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-1);
+    transition: transform 0.15s var(--ease-spring), box-shadow 0.15s, border-color 0.15s;
+  }
+  .input:focus, .select:focus {
+    outline: none;
+    border-color: var(--peach-500);
+    box-shadow: 0 0 0 3px var(--peach-100);
+    transform: translateY(-1px);
+  }
+  .input--code {
+    text-align: center;
+    letter-spacing: 0.4em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+  }
+
+  /* Slider */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--milk-200);
+    border: 2px solid var(--border-strong);
+    outline: none;
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--peach-500);
+    border: 2px solid var(--peach-700);
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--peach-700);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .slider::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--peach-500);
+    border: 2px solid var(--peach-700);
+    cursor: pointer;
+  }
+
+  /* Checkbox */
+  .checkbox-row { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+  .checkbox-row input { position: absolute; opacity: 0; pointer-events: none; }
+  .checkbox-box {
+    width: 22px; height: 22px;
+    border-radius: var(--r-2);
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    box-shadow: 2px 2px 0 var(--border-strong);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .checkbox-row:hover .checkbox-box { transform: translate(-1px, -1px); }
+  .checkbox-row input:checked + .checkbox-box {
+    background: var(--peach-500);
+    border-color: var(--peach-700);
+  }
+  .checkbox-row input:checked + .checkbox-box::after {
+    content: "✓"; color: white; font-weight: 700; font-size: 14px;
+    animation: pop 0.35s var(--ease-spring);
+  }
+
+  /* Segmented toggle */
+  .segmented {
+    display: inline-flex;
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    padding: 3px;
+    gap: 2px;
+    box-shadow: var(--shadow-1);
+  }
+  .segmented button {
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .segmented button.is-active {
+    background: var(--ink);
+    color: var(--surface);
+  }
+
+  /* =========================================================
+     PILLS / BADGES
+     ========================================================= */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .pill--solid { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  .pill--peach { background: var(--peach-100); border-color: var(--peach-700); color: var(--peach-700); }
+  .pill--jade  { background: var(--jade-100); border-color: var(--jade-700); color: var(--jade-700); }
+  .pill--rose  { background: #ffd6df; border-color: #8a1f3a; color: #8a1f3a; }
+  .pill--honey { background: #fff3cf; border-color: #8a6816; color: #8a6816; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--peach-500);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 2px solid var(--peach-700);
+  }
+  .badge--knower { background: var(--rose-500); border-color: #8a1f3a; }
+  .badge--host { background: var(--ink); border-color: var(--ink); }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* =========================================================
+     PLAYER ROW + SCORE GRID
+     ========================================================= */
+  .score-board {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: var(--shadow-2);
+  }
+  .score-board h4 { padding: 10px 14px 6px; margin: 0; }
+  .score-grid { display: flex; flex-direction: column; }
+  .player-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    gap: var(--s-3);
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .player-row.is-active {
+    background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
+  }
+  .player-row.is-eliminated { opacity: 0.45; text-decoration: line-through; }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: var(--shadow-1);
+  }
+  .player-name { font-weight: 600; }
+  .player-name .you { color: var(--peach-700); font-weight: 500; font-size: 0.85em; }
+  .player-meta { font-size: 0.85rem; color: var(--ink-soft); }
+  .player-score {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--peach-700);
+    min-width: 40px; text-align: right;
+  }
+
+  /* =========================================================
+     TURN STATUS
+     ========================================================= */
+  .turn-status {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    padding: 14px 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sticker);
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    transform: rotate(-0.6deg);
+  }
+  .turn-status--mine {
+    background: var(--peach-100);
+    border-color: var(--peach-700);
+    color: var(--peach-700);
+    box-shadow: 3px 3px 0 var(--peach-700);
+    animation: pop 0.5s var(--ease-spring);
+  }
+  .turn-status--waiting { background: var(--surface-2); color: var(--ink-soft); }
+  .turn-status--warning { background: #fff3cf; border-color: #8a6816; color: #8a6816; box-shadow: 3px 3px 0 #8a6816; }
+  .turn-status--win { background: var(--jade-100); border-color: var(--jade-700); color: var(--jade-700); box-shadow: 3px 3px 0 var(--jade-700); animation: pop 0.5s var(--ease-spring); }
+
+  /* =========================================================
+     ANIMATION PRIMITIVES
+     ========================================================= */
+  @keyframes pop {
+    0%   { transform: scale(0.7) rotate(-3deg); opacity: 0; }
+    60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-0.6deg); opacity: 1; }
+  }
+  @keyframes pop-flat {
+    0%   { transform: scale(0.7); opacity: 0; }
+    60%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes flip-in {
+    0%   { transform: rotateY(-180deg) scale(0.8); opacity: 0; }
+    60%  { transform: rotateY(20deg) scale(1.05); opacity: 1; }
+    100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px) rotate(-2deg); }
+    40% { transform: translateX(6px) rotate(2deg); }
+    60% { transform: translateX(-4px) rotate(-1deg); }
+    80% { transform: translateX(4px) rotate(1deg); }
+  }
+  @keyframes confetti-rise {
+    0%   { transform: translateY(20px) rotate(0deg); opacity: 0; }
+    20%  { opacity: 1; }
+    100% { transform: translateY(-180px) rotate(720deg); opacity: 0; }
+  }
+  @keyframes squish {
+    0%, 100% { transform: scaleY(1) scaleX(1); }
+    25%      { transform: scaleY(0.8) scaleX(1.15); }
+    50%      { transform: scaleY(1.15) scaleX(0.9); }
+    75%      { transform: scaleY(0.95) scaleX(1.05); }
+  }
+  @keyframes dice-roll {
+    0%   { transform: rotateX(0) rotateY(0); }
+    50%  { transform: rotateX(540deg) rotateY(360deg) scale(0.85); }
+    100% { transform: rotateX(720deg) rotateY(720deg) scale(1); }
+  }
+
+  .anim-demo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--s-4);
+  }
+  .anim-card {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    padding: var(--s-4);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    min-height: 160px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  }
+  .anim-card .demo-stage {
+    height: 60px; display: flex; align-items: center; justify-content: center;
+  }
+  .anim-card .demo-name {
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .anim-card .replay {
+    font-size: 0.75rem;
+    color: var(--peach-700);
+    font-weight: 600;
+  }
+
+  .demo-pearl {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--syrup-100) 0%, var(--syrup-500) 60%, var(--pearl) 100%);
+    box-shadow: var(--shadow-1);
+  }
+  .demo-die {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+    box-shadow: var(--shadow-sticker);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    transform-style: preserve-3d;
+  }
+  .anim-pop      .demo-stage > * { animation: pop-flat 0.6s var(--ease-spring); }
+  .anim-flip     .demo-stage > * { animation: flip-in 0.7s var(--ease-spring); }
+  .anim-shake    .demo-stage > * { animation: shake 0.5s ease-in-out; }
+  .anim-squish   .demo-stage > * { animation: squish 0.6s var(--ease-spring); }
+  .anim-roll     .demo-stage > * { animation: dice-roll 0.9s var(--ease-out); }
+
+  .confetti-stage { position: relative; width: 100%; height: 60px; }
+  .confetti-stage span {
+    position: absolute;
+    bottom: 0;
+    width: 8px; height: 12px;
+    border-radius: 2px;
+  }
+  .anim-confetti .confetti-stage span { animation: confetti-rise 1.4s ease-out infinite; }
+  .confetti-stage span:nth-child(1) { left: 10%; background: var(--peach-500); animation-delay: 0s !important; }
+  .confetti-stage span:nth-child(2) { left: 25%; background: var(--jade-500); animation-delay: 0.15s !important; }
+  .confetti-stage span:nth-child(3) { left: 40%; background: var(--honey-500); animation-delay: 0.3s !important; }
+  .confetti-stage span:nth-child(4) { left: 55%; background: var(--rose-500); animation-delay: 0.45s !important; }
+  .confetti-stage span:nth-child(5) { left: 70%; background: var(--tir-blue); animation-delay: 0.6s !important; }
+  .confetti-stage span:nth-child(6) { left: 85%; background: var(--peach-300); animation-delay: 0.2s !important; }
+
+  /* =========================================================
+     ICON SET (sticker style)
+     ========================================================= */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: var(--s-3);
+  }
+  .icon-tile {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    padding: var(--s-3);
+    background: var(--surface);
+    text-align: center;
+    box-shadow: var(--shadow-sticker);
+    transition: transform 0.2s var(--ease-spring);
+  }
+  .icon-tile:hover { transform: translate(-1px, -1px) rotate(-1deg); }
+  .icon-tile .icon {
+    width: 48px; height: 48px; margin: 6px auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icon-tile .name { font-size: 0.75rem; font-family: ui-monospace, monospace; color: var(--ink-mute); }
+
+  /* Sticker icons (simple geometric only) */
+  .icn-pearl { width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--syrup-100) 0%, var(--syrup-500) 60%, var(--pearl) 100%); border: 3px solid var(--ink); }
+  .icn-cup {
+    width: 32px; height: 40px;
+    background: var(--peach-100);
+    border: 3px solid var(--ink);
+    border-radius: 4px 4px 18px 18px;
+    position: relative;
+  }
+  .icn-cup::before { content: ""; position: absolute; left: -3px; right: -3px; top: -8px; height: 6px; background: var(--peach-300); border: 3px solid var(--ink); border-radius: 4px; }
+  .icn-cup::after { content: ""; position: absolute; left: 5px; right: 5px; bottom: 4px; height: 8px; background: var(--syrup-500); border-radius: 50%; box-shadow: 6px 0 0 -2px var(--syrup-500); }
+  .icn-die {
+    width: 36px; height: 36px;
+    border: 3px solid var(--ink);
+    border-radius: 8px;
+    background: var(--surface);
+    position: relative;
+  }
+  .icn-die::before, .icn-die::after { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+  .icn-die::before { top: 6px; left: 6px; box-shadow: 14px 14px 0 var(--ink); }
+  .icn-die::after { top: 6px; right: 6px; box-shadow: -14px 14px 0 var(--ink); }
+  .icn-circle  { width: 32px; height: 32px; border-radius: 50%; background: var(--peach-300); border: 3px solid var(--ink); }
+  .icn-square  { width: 32px; height: 32px; border-radius: 4px; background: var(--jade-300); border: 3px solid var(--ink); }
+  .icn-triangle{ width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-bottom: 30px solid var(--rose-500); filter: drop-shadow(0 0 0 var(--ink)); position: relative; }
+  .icn-triangle::after { content: ""; position: absolute; left: -22px; top: -3px; width: 0; height: 0; border-left: 22px solid transparent; border-right: 22px solid transparent; border-bottom: 36px solid var(--ink); z-index: -1; }
+  .icn-diamond { width: 28px; height: 28px; background: var(--honey-500); border: 3px solid var(--ink); transform: rotate(45deg); }
+  .icn-star {
+    width: 36px; height: 36px;
+    background: var(--honey-500);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+  .icn-eye {
+    width: 36px; height: 24px;
+    background: var(--surface);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .icn-eye::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--ws-blue, var(--tir-blue)); }
+  .icn-wolf {
+    width: 30px; height: 30px;
+    background: var(--ww-night);
+    border: 3px solid var(--ink);
+    clip-path: polygon(20% 0%, 0% 30%, 10% 100%, 90% 100%, 100% 30%, 80% 0%, 65% 25%, 35% 25%);
+  }
+  .icn-ring {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 6px solid var(--tir-red);
+    background: transparent;
+    position: relative;
+  }
+  .icn-ring::before, .icn-ring::after {
+    content: ""; position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 6px solid;
+    top: 0;
+  }
+  .icn-ring::before { border-color: var(--tir-blue); left: -10px; }
+  .icn-ring::after  { border-color: var(--tir-green); right: -10px; top: 14px; width: 28px; height: 28px; }
+
+  /* =========================================================
+     GAME ACCENT TILES
+     ========================================================= */
+  .game-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--s-4);
+  }
+  .game-tile {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-4);
+    padding: var(--s-4);
+    box-shadow: var(--shadow-sticker);
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+    min-height: 140px;
+    transition: transform 0.25s var(--ease-spring);
+    cursor: pointer;
+  }
+  .game-tile:hover { transform: translateY(-3px) rotate(-0.5deg); }
+  .game-tile h3 { font-family: var(--font-display); margin-top: 0; font-size: 1.25rem; }
+  .game-tile .sub { font-size: 0.85rem; color: var(--ink-soft); }
+  .game-tile .accent-bar {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 8px;
+  }
+  .game-tile .accent-swatches {
+    display: flex; gap: 4px; margin-top: var(--s-3);
+  }
+  .game-tile .accent-swatches span {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+  }
+  .game-tile.tir   .accent-bar { background: linear-gradient(180deg, var(--tir-red) 0%, var(--tir-red) 33%, var(--tir-blue) 33%, var(--tir-blue) 66%, var(--tir-green) 66%); }
+  .game-tile.scout .accent-bar { background: linear-gradient(180deg, var(--scout-1), var(--scout-2), var(--scout-3), var(--scout-4)); }
+  .game-tile.ww    .accent-bar { background: var(--ww-night); }
+  .game-tile.oo    .accent-bar { background: var(--oo-cafe); }
+  .game-tile.ds    .accent-bar { background: linear-gradient(180deg, var(--ds-ocean), var(--ds-coral)); }
+
+  /* =========================================================
+     REACTION DEMO
+     ========================================================= */
+  .reactions {
+    display: flex; gap: var(--s-2); flex-wrap: wrap;
+    padding: var(--s-3);
+    border: 2px dashed var(--border);
+    border-radius: var(--r-3);
+    align-items: center;
+  }
+  .reaction-btn {
+    border: 2px solid var(--border-strong);
+    background: var(--surface);
+    border-radius: 50%;
+    width: 44px; height: 44px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sticker);
+    transition: transform 0.2s var(--ease-spring);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .reaction-btn:hover { transform: translate(-1px, -1px) scale(1.1); }
+  .reaction-btn:active { transform: translate(2px, 2px) scale(0.95); }
+  .reaction-stage {
+    flex: 1; min-height: 60px;
+    position: relative;
+  }
+  .reaction-stage .floater {
+    position: absolute; bottom: 0; left: 50%;
+    font-size: 1.6rem;
+    animation: rise 1.4s var(--ease-out) forwards;
+    pointer-events: none;
+  }
+  @keyframes rise {
+    0%   { transform: translate(-50%, 20px) scale(0.4); opacity: 0; }
+    20%  { transform: translate(-50%, 0) scale(1.2); opacity: 1; }
+    60%  { opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
+  }
+
+  /* =========================================================
+     SCOUT CARD RAMP
+     ========================================================= */
+  .scout-ramp {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0;
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    overflow: hidden;
+    box-shadow: var(--shadow-sticker);
+  }
+  .scout-ramp-step {
+    aspect-ratio: 1 / 1.4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px;
+    color: white;
+    font-family: var(--font-display);
+    font-weight: 700;
+    -webkit-text-stroke: 2px var(--scout-numeral-stroke);
+    paint-order: stroke fill;
+    position: relative;
+  }
+  .scout-ramp-step .num { font-size: 1.4rem; line-height: 1; }
+  .scout-ramp-step .hex {
+    font-family: ui-monospace, monospace;
+    font-size: 0.55rem;
+    font-weight: 500;
+    -webkit-text-stroke: 0;
+    color: white;
+    background: rgba(0,0,0,0.4);
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Scout card — double-value (top / bottom).
+     Flippable: clicking rotates 180° in-plane (the card you "hold upside
+     down" — what was the bottom number is now the readable one).
+     Composable transform via CSS variables so deck-rotation, hover-lift,
+     and flip can stack without overriding each other. */
+  .scout-card {
+    --deck-rot: 0deg;
+    --deck-y: 0px;
+    --deck-scale: 1;
+    --flip: 0deg;
+    width: 78px;
+    height: 110px;
+    border: 2px solid var(--scout-card-ink);
+    border-radius: var(--r-3);
+    box-shadow: 3px 3px 0 var(--scout-card-ink);
+    background-color: var(--scout-card-body);
+    position: relative;
+    overflow: hidden;
+    flex: none;
+    color: var(--scout-card-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    cursor: pointer;
+    transform:
+      translateY(var(--deck-y))
+      rotate(calc(var(--deck-rot) + var(--flip)))
+      scale(var(--deck-scale));
+    transform-origin: 50% 50%;
+    transition: transform 0.55s var(--ease-spring), box-shadow 0.25s;
+    user-select: none;
+  }
+  .scout-card.is-flipped { --flip: 180deg; }
+
+  .scout-card::before {
+    /* top half — solid */
+    content: ""; position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: var(--top-color, var(--scout-card-1));
+  }
+  .scout-card::after {
+    /* bottom half — 50% alpha over body */
+    content: ""; position: absolute;
+    top: 50%; left: 0; right: 0;
+    bottom: 0;
+    background: var(--bottom-color, var(--scout-card-10));
+    opacity: 0.5;
+  }
+  /* Numerals — white fill with dark stroke (sticker style).
+     The stroke is what makes EVERY ramp color — including yellow #7 — pass
+     contrast uniformly. We don't special-case yellow anymore. */
+  .scout-card .top-num,
+  .scout-card .bot-num {
+    color: white;
+    -webkit-text-stroke: 2.5px var(--scout-numeral-stroke);
+    paint-order: stroke fill;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+    position: absolute;
+    font-size: 1.4rem;
+    line-height: 1;
+    z-index: 1;
+  }
+  .scout-card .top-num { top: 8px; left: 10px; }
+  .scout-card .bot-num {
+    bottom: 8px; right: 10px;
+    transform: rotate(180deg);
+  }
+
+  .scout-hand {
+    display: flex;
+    padding: var(--s-3);
+    margin: 0 -8px;
+  }
+  .scout-hand .scout-card { margin: 0 -10px; }
+  .scout-hand .scout-card:nth-child(odd) { --deck-rot: -2deg; }
+  .scout-hand .scout-card:nth-child(even) { --deck-rot: 2deg; --deck-y: 3px; }
+  .scout-hand .scout-card:hover:not(.is-flipping) {
+    --deck-rot: 0deg;
+    --deck-y: -8px;
+    --deck-scale: 1.05;
+    z-index: 2;
+  }
+
+  /* Dedicated flip demo */
+  .flip-demo {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    padding: var(--s-5);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+    display: flex;
+    align-items: center;
+    gap: var(--s-5);
+    flex-wrap: wrap;
+  }
+  .flip-demo .stage {
+    width: 120px;
+    display: flex; align-items: center; justify-content: center;
+    perspective: 600px;
+  }
+  .flip-demo .scout-card {
+    width: 96px; height: 134px;
+  }
+  .flip-demo .scout-card .top-num,
+  .flip-demo .scout-card .bot-num { font-size: 1.7rem; }
+  .flip-demo .controls { display: flex; flex-direction: column; gap: var(--s-2); }
+  .flip-demo .label {
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    color: var(--ink-mute);
+  }
+  .flip-demo .reading {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .mode-strip {
+    border: 2px solid var(--border-strong);
+    border-radius: var(--r-3);
+    padding: var(--s-4);
+    background: var(--scout-card-body);
+    color: var(--scout-card-ink);
+    flex: 1;
+    min-width: 280px;
+  }
+  .mode-strip h4 { color: var(--scout-card-ink); margin-top: 0; }
+  .mode-strip.dark {
+    --scout-card-body: #251a10;
+    --scout-card-ink:  #faecd0;
+    /* Push stroke to pure black in dark mode — the dim body color makes the
+       default --pearl read brownish; #000 keeps the sticker outline crisp. */
+    --scout-numeral-stroke: #000;
+    background: #251a10;
+    color: #faecd0;
+    border-color: #7a5a3a;
+    box-shadow: 3px 3px 0 #7a5a3a;
+  }
+  .mode-strip.dark h4 { color: #faecd0; }
+
+  /* Layout helper */
+  .row { display: flex; gap: var(--s-4); flex-wrap: wrap; align-items: flex-start; }
+  .stack { display: flex; flex-direction: column; gap: var(--s-3); }
+
+  /* Caption / footnote */
+  .caption {
+    font-size: 0.8rem; color: var(--ink-mute); font-family: ui-monospace, monospace;
+    margin-top: var(--s-2);
+  }
+
+  @media (max-width: 600px) {
+    .topbar nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <strong style="font-family: var(--font-display); font-size: 1rem;">boba.system</strong>
+    <nav>
+      <a href="#brand">Brand</a>
+      <a href="#color">Color</a>
+      <a href="#type">Type</a>
+      <a href="#shape">Shape</a>
+      <a href="#cards">Cards</a>
+      <a href="#buttons">Buttons</a>
+      <a href="#inputs">Inputs</a>
+      <a href="#pills">Pills</a>
+      <a href="#players">Players</a>
+      <a href="#turn">Turn status</a>
+      <a href="#motion">Motion</a>
+      <a href="#icons">Icons</a>
+      <a href="#games">Per-game</a>
+      <a href="#scout-cards">Scout cards</a>
+    </nav>
+    <button class="theme-toggle" onclick="toggleTheme()">☀ / ☾</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section id="brand" class="hero">
+    <div class="wordmark">
+      <span class="pearl-cup" aria-hidden="true"></span>
+      Boba Game Time
+    </div>
+    <p class="tagline">A playful, paper-textured design system for a server of casual party games. Sticker outlines, bouncy springs, milky beige.</p>
+  </section>
+
+  <!-- COLOR -->
+  <section id="color" class="spec">
+    <h2>Color</h2>
+    <p class="lede">Warm milky beige base, deep brown ink, peach as primary accent and jade as secondary. Per-game accents layer over the neutrals — chrome stays calm, the game does the singing.</p>
+
+    <h3>Surfaces & ink</h3>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-block" style="background: var(--milk-50);"></div><div class="swatch-meta"><b>milk-50</b>page bg · #fdf9ef</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--milk-100);"></div><div class="swatch-meta"><b>milk-100</b>surface · #f8efd9</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--milk-200);"></div><div class="swatch-meta"><b>milk-200</b>raised · #f0e3c4</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--milk-300);"></div><div class="swatch-meta"><b>milk-300</b>border · #e3d2a8</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--syrup-500);"></div><div class="swatch-meta" style="color: white; background: var(--syrup-700);"><b style="color: white;">syrup-500</b>ink soft · #6b4423</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--pearl);"></div><div class="swatch-meta" style="color: white; background: var(--pearl);"><b style="color: white;">pearl</b>ink · #1f1410</div></div>
+    </div>
+
+    <h3>Accents</h3>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-block" style="background: var(--peach-100);"></div><div class="swatch-meta"><b>peach-100</b>tint</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--peach-300);"></div><div class="swatch-meta"><b>peach-300</b>hover</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--peach-500);"></div><div class="swatch-meta"><b>peach-500</b>primary</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--peach-700);"></div><div class="swatch-meta"><b>peach-700</b>primary edge</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--jade-100);"></div><div class="swatch-meta"><b>jade-100</b>tint</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--jade-300);"></div><div class="swatch-meta"><b>jade-300</b>hover</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--jade-500);"></div><div class="swatch-meta"><b>jade-500</b>secondary</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--jade-700);"></div><div class="swatch-meta"><b>jade-700</b>secondary edge</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--rose-500);"></div><div class="swatch-meta"><b>rose-500</b>danger</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--honey-500);"></div><div class="swatch-meta"><b>honey-500</b>warning · star</div></div>
+    </div>
+
+    <h3>Light / dark</h3>
+    <p class="lede">Toggle the theme using the button top-right — every token re-binds. Dark mode reads like a dim teahouse: deep brown surface, cream ink, accents stay saturated.</p>
+  </section>
+
+  <!-- TYPE -->
+  <section id="type" class="spec">
+    <h2>Type</h2>
+    <p class="lede">Bricolage Grotesque for display (loose, playful, optical-size aware). Inter for body — neutral and readable.</p>
+    <div class="paper paper-grain type-ramp">
+      <div class="type-row">
+        <span class="sample" style="font-family: var(--font-display); font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -0.025em;">Display XL</span>
+        <span class="meta">Bricolage 800 · 48px / -2.5%</span>
+      </div>
+      <div class="type-row">
+        <span class="sample" style="font-family: var(--font-display); font-size: 2rem; font-weight: 700; letter-spacing: -0.02em;">Display L</span>
+        <span class="meta">Bricolage 700 · 32px / -2%</span>
+      </div>
+      <div class="type-row">
+        <span class="sample" style="font-family: var(--font-display); font-size: 1.4rem; font-weight: 700;">Display M (phase header)</span>
+        <span class="meta">Bricolage 700 · 22.4px</span>
+      </div>
+      <div class="type-row">
+        <span class="sample" style="font-size: 1.05rem; font-weight: 600;">Body strong</span>
+        <span class="meta">Inter 600 · 16.8px</span>
+      </div>
+      <div class="type-row">
+        <span class="sample" style="font-size: 1rem;">Body — the village asks yes-or-no questions to find the magic word before the timer runs out.</span>
+        <span class="meta">Inter 400 · 16px / 1.55</span>
+      </div>
+      <div class="type-row">
+        <span class="sample" style="font-size: 0.85rem; color: var(--ink-soft);">Caption / metadata · Aisha is choosing the magic word</span>
+        <span class="meta">Inter 400 · 13.6px</span>
+      </div>
+      <div class="type-row" style="border: 0;">
+        <span class="sample" style="font-family: ui-monospace, monospace; font-size: 0.8rem; background: var(--surface-2); padding: 4px 10px; border-radius: 4px;">ROOM ABCD · 4 / 11</span>
+        <span class="meta">Mono · 12.8px</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHAPE / SPACING -->
+  <section id="shape" class="spec">
+    <h2>Shape & spacing</h2>
+    <p class="lede"><b>Mixed shape language:</b> rounded rectangles for cards (12–16px), pills for buttons & status (∞), circles for tokens & avatars. The thick border + offset shadow ("sticker") is the system's strongest visual idea.</p>
+    <div class="row">
+      <div class="paper" style="display: flex; gap: 12px; align-items: center;">
+        <div style="width: 48px; height: 48px; border: 2px solid var(--border-strong); border-radius: var(--r-1); box-shadow: var(--shadow-1); background: var(--surface);"></div>
+        <div style="font-size: 0.85rem;"><b>r-1</b> · 4px<br><span style="color: var(--ink-mute);">tiny tags, dividers</span></div>
+      </div>
+      <div class="paper" style="display: flex; gap: 12px; align-items: center;">
+        <div style="width: 48px; height: 48px; border: 2px solid var(--border-strong); border-radius: var(--r-3); box-shadow: var(--shadow-sticker);"></div>
+        <div style="font-size: 0.85rem;"><b>r-3</b> · 12px<br><span style="color: var(--ink-mute);">cards, inputs</span></div>
+      </div>
+      <div class="paper" style="display: flex; gap: 12px; align-items: center;">
+        <div style="width: 48px; height: 48px; border: 2px solid var(--border-strong); border-radius: var(--r-pill); box-shadow: var(--shadow-sticker);"></div>
+        <div style="font-size: 0.85rem;"><b>r-pill</b> · ∞<br><span style="color: var(--ink-mute);">buttons, pills, avatars</span></div>
+      </div>
+    </div>
+    <h3>Spacing scale</h3>
+    <div style="display: flex; gap: 6px; align-items: flex-end; padding: var(--s-3); background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-3);">
+      <div style="text-align: center;"><div style="height: 4px; width: 24px; background: var(--peach-500);"></div><span class="caption">4</span></div>
+      <div style="text-align: center;"><div style="height: 8px; width: 24px; background: var(--peach-500);"></div><span class="caption">8</span></div>
+      <div style="text-align: center;"><div style="height: 12px; width: 24px; background: var(--peach-500);"></div><span class="caption">12</span></div>
+      <div style="text-align: center;"><div style="height: 16px; width: 24px; background: var(--peach-500);"></div><span class="caption">16</span></div>
+      <div style="text-align: center;"><div style="height: 24px; width: 24px; background: var(--peach-500);"></div><span class="caption">24</span></div>
+      <div style="text-align: center;"><div style="height: 32px; width: 24px; background: var(--peach-500);"></div><span class="caption">32</span></div>
+      <div style="text-align: center;"><div style="height: 48px; width: 24px; background: var(--peach-500);"></div><span class="caption">48</span></div>
+      <div style="text-align: center;"><div style="height: 64px; width: 24px; background: var(--peach-500);"></div><span class="caption">64</span></div>
+    </div>
+    <p class="caption">Content max-width is <b>800px</b> on desktop — generous, readable, never edge-to-edge.</p>
+  </section>
+
+  <!-- CARDS -->
+  <section id="cards" class="spec">
+    <h2>Cards & surfaces</h2>
+    <p class="lede">Paper, with subtle grain, soft drop-shadow, and a slight rotation when stacked. Hover lifts and straightens. Three flavors: <code>.paper</code> (raised), <code>.paper.sticker</code> (offset shadow), and the <b>game-card</b> in-hand presentation.</p>
+    <div class="row">
+      <div class="paper paper-grain" style="max-width: 320px;">
+        <h4 style="margin: 0 0 6px;">Raised paper</h4>
+        <p style="margin: 0; font-size: 0.9rem;">Soft drop-shadow, no outline rotation. Used for content blocks, score boards, modals.</p>
+      </div>
+      <div class="paper paper-grain sticker tilted" style="max-width: 320px;">
+        <h4 style="margin: 0 0 6px;">Sticker paper</h4>
+        <p style="margin: 0; font-size: 0.9rem;">Hard offset shadow, slight tilt. Used for "fun" surfaces — turn status, found cards, results banners.</p>
+      </div>
+    </div>
+    <h3>Hand of cards</h3>
+    <p class="lede">Five cards stacked with rotation. Hover to peek (lifts and straightens).</p>
+    <div class="card-stack">
+      <div class="game-card-demo paper-grain"><span class="corner-num">3</span><span style="text-align: center; font-size: 0.8rem; color: var(--ink-soft);">apple</span><span class="corner-num flip">3</span></div>
+      <div class="game-card-demo paper-grain"><span class="corner-num">7</span><span style="text-align: center; font-size: 0.8rem; color: var(--ink-soft);">river</span><span class="corner-num flip">7</span></div>
+      <div class="game-card-demo paper-grain"><span class="corner-num">2</span><span style="text-align: center; font-size: 0.8rem; color: var(--ink-soft);">moon</span><span class="corner-num flip">2</span></div>
+      <div class="game-card-demo paper-grain"><span class="corner-num">8</span><span style="text-align: center; font-size: 0.8rem; color: var(--ink-soft);">echo</span><span class="corner-num flip">8</span></div>
+    </div>
+  </section>
+
+  <!-- BUTTONS -->
+  <section id="buttons" class="spec">
+    <h2>Buttons</h2>
+    <p class="lede">All buttons have the same chunky 2px outline and a colored offset shadow. On hover, the button shifts up-left by 1px (extending the shadow). On press, it slams into its shadow.</p>
+
+    <h3>Variants</h3>
+    <div class="btn-grid">
+      <button class="btn btn--primary">Create New Room</button>
+      <button class="btn btn--secondary">Join Room</button>
+      <button class="btn">Cancel</button>
+      <button class="btn btn--danger">Leave Room</button>
+      <button class="btn btn--ghost">More options</button>
+    </div>
+
+    <h3>Sizes</h3>
+    <div class="btn-grid">
+      <button class="btn btn--primary btn--sm">Roll</button>
+      <button class="btn btn--primary">Default</button>
+      <button class="btn btn--primary btn--lg">Start Game →</button>
+    </div>
+
+    <h3>States</h3>
+    <div class="btn-grid">
+      <button class="btn btn--primary">Default</button>
+      <button class="btn btn--primary" style="transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--peach-700);">Hover</button>
+      <button class="btn btn--primary" style="transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--peach-700);">Active / pressed</button>
+      <button class="btn btn--primary" style="outline: 3px solid var(--peach-500); outline-offset: 3px;">Focused</button>
+      <button class="btn btn--primary" disabled>Disabled</button>
+      <button class="btn btn--primary" disabled>
+        <span class="spin" style="display: inline-block; width: 14px; height: 14px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+        Loading…
+      </button>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+  </section>
+
+  <!-- INPUTS -->
+  <section id="inputs" class="spec">
+    <h2>Inputs</h2>
+    <div class="row">
+      <div class="field">
+        <label>Username</label>
+        <input class="input" placeholder="aisha" />
+      </div>
+      <div class="field">
+        <label>Room code</label>
+        <input class="input input--code" placeholder="ABCD" maxlength="4" />
+      </div>
+      <div class="field">
+        <label>Difficulty</label>
+        <select class="select">
+          <option>Easy</option>
+          <option selected>Medium</option>
+          <option>Hard</option>
+          <option>Impossible</option>
+        </select>
+      </div>
+    </div>
+
+    <h3>Slider</h3>
+    <div class="field" style="max-width: 400px;">
+      <label>Timer · 4 minutes</label>
+      <input class="slider" type="range" min="1" max="10" value="4" />
+    </div>
+
+    <h3>Checkbox</h3>
+    <label class="checkbox-row">
+      <input type="checkbox" checked />
+      <span class="checkbox-box"></span>
+      <span>Limited tokens (36 Yes/No, 10 Maybe)</span>
+    </label>
+
+    <h3>Segmented toggle</h3>
+    <div class="segmented" role="tablist">
+      <button class="is-active">Competitive</button>
+      <button>Co-op</button>
+    </div>
+    <p class="caption">Use for binary or 2–3 mode toggles. For 4+ options, use a select.</p>
+  </section>
+
+  <!-- PILLS -->
+  <section id="pills" class="spec">
+    <h2>Pills, badges, chips</h2>
+    <h3>Status pills</h3>
+    <div class="chip-row">
+      <span class="pill">Default</span>
+      <span class="pill pill--solid">Mayor</span>
+      <span class="pill pill--peach">Your turn</span>
+      <span class="pill pill--jade">Confirmed</span>
+      <span class="pill pill--rose">Eliminated</span>
+      <span class="pill pill--honey">★★ Level 3</span>
+    </div>
+    <h3>Inline badges</h3>
+    <div class="chip-row">
+      <span class="pill">
+        Aisha <span class="badge badge--host">H</span>
+      </span>
+      <span class="pill">
+        Bo <span class="badge badge--knower">K</span>
+      </span>
+      <span class="pill">
+        Cy <span class="badge">3</span>
+      </span>
+    </div>
+    <p class="caption">Badge inside pill = role; standalone badge with number = unread count or hand size.</p>
+  </section>
+
+  <!-- PLAYER ROWS -->
+  <section id="players" class="spec">
+    <h2>Player rows & score grid</h2>
+    <p class="lede">A single component handles every game's player table. Slots: <code>avatar</code>, <code>name + meta</code>, optional <code>middle</code> (status / tokens / cards), and <code>score</code>. Active row has a peach gradient background.</p>
+    <div class="score-board">
+      <h4>Players · 4 / 6</h4>
+      <div class="score-grid">
+        <div class="player-row is-active">
+          <div class="avatar" style="background: var(--peach-100); color: var(--peach-700);">A</div>
+          <div>
+            <div class="player-name">Aisha <span class="you">(you)</span></div>
+            <div class="player-meta">↓ diving · carrying ○ □</div>
+          </div>
+          <span class="pill pill--peach">Your turn</span>
+          <div class="player-score">12</div>
+        </div>
+        <div class="player-row">
+          <div class="avatar" style="background: var(--jade-100); color: var(--jade-700);">B</div>
+          <div>
+            <div class="player-name">Bo <span class="badge badge--host">H</span></div>
+            <div class="player-meta">↑ returning · carrying △</div>
+          </div>
+          <span class="pill">Waiting</span>
+          <div class="player-score">8</div>
+        </div>
+        <div class="player-row">
+          <div class="avatar" style="background: var(--milk-200); color: var(--syrup-500);">C</div>
+          <div>
+            <div class="player-name">Cy</div>
+            <div class="player-meta">✓ returned</div>
+          </div>
+          <span class="pill pill--jade">Safe</span>
+          <div class="player-score">15</div>
+        </div>
+        <div class="player-row is-eliminated">
+          <div class="avatar" style="background: var(--milk-200); color: var(--ink-mute);">D</div>
+          <div>
+            <div class="player-name">Devi</div>
+            <div class="player-meta">lost at sea</div>
+          </div>
+          <span class="pill pill--rose">Drowned</span>
+          <div class="player-score">0</div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Avatar background is the player's auto-assigned color (deterministic from username hash). One color carries through every game they join.</p>
+  </section>
+
+  <!-- TURN STATUS -->
+  <section id="turn" class="spec">
+    <h2>Turn status banners</h2>
+    <p class="lede">A single banner pattern with four moods. Always rotated slightly for visual energy. <b>Mine</b> uses a pop-in spring animation.</p>
+    <div class="stack" style="max-width: 480px;">
+      <div class="turn-status turn-status--mine">Your turn — pick a card!</div>
+      <div class="turn-status turn-status--waiting">Waiting for <b>Bo</b> to play…</div>
+      <div class="turn-status turn-status--warning">⚠ Air running out — 4 left</div>
+      <div class="turn-status turn-status--win">🏆 Cy emptied their hand</div>
+    </div>
+  </section>
+
+  <!-- MOTION -->
+  <section id="motion" class="spec">
+    <h2>Motion primitives</h2>
+    <p class="lede">Bouncy springs everywhere. <b>Click any tile to replay the animation.</b> Reduced-motion users get a 1-frame fade.</p>
+    <div class="anim-demo">
+      <div class="anim-card anim-pop" onclick="replay(this)">
+        <div class="demo-stage"><span class="pill pill--peach">Your turn</span></div>
+        <div class="demo-name">pop · 0.6s spring</div>
+        <span class="replay">↻ replay</span>
+      </div>
+      <div class="anim-card anim-flip" onclick="replay(this)">
+        <div class="demo-stage"><div class="game-card-demo paper-grain" style="width: 60px; height: 84px; transform: none;"><span class="corner-num" style="font-size: 1rem;">7</span><span></span><span class="corner-num flip" style="font-size: 1rem;">7</span></div></div>
+        <div class="demo-name">flip-in · 0.7s spring</div>
+        <span class="replay">↻ replay</span>
+      </div>
+      <div class="anim-card anim-shake" onclick="replay(this)">
+        <div class="demo-stage"><span class="pill pill--rose">Wrong!</span></div>
+        <div class="demo-name">shake · 0.5s</div>
+        <span class="replay">↻ replay</span>
+      </div>
+      <div class="anim-card anim-squish" onclick="replay(this)">
+        <div class="demo-stage"><span class="demo-pearl"></span></div>
+        <div class="demo-name">squish · 0.6s spring</div>
+        <span class="replay">↻ replay</span>
+      </div>
+      <div class="anim-card anim-roll" onclick="replay(this)">
+        <div class="demo-stage"><span class="demo-die">⚂</span></div>
+        <div class="demo-name">dice-roll · 0.9s</div>
+        <span class="replay">↻ replay</span>
+      </div>
+      <div class="anim-card anim-confetti" onclick="replay(this)">
+        <div class="demo-stage"><div class="confetti-stage"><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+        <div class="demo-name">confetti · 1.4s loop</div>
+        <span class="replay">on win</span>
+      </div>
+    </div>
+
+    <h3>Reaction emojis</h3>
+    <p class="lede">During others' turns, players can tap a reaction. Emojis float up from the bottom of the screen, lightly squashing the avatar that sent it.</p>
+    <div class="reactions">
+      <button class="reaction-btn" onclick="sendReaction(event, '👏')">👏</button>
+      <button class="reaction-btn" onclick="sendReaction(event, '😂')">😂</button>
+      <button class="reaction-btn" onclick="sendReaction(event, '🔥')">🔥</button>
+      <button class="reaction-btn" onclick="sendReaction(event, '😱')">😱</button>
+      <button class="reaction-btn" onclick="sendReaction(event, '🎉')">🎉</button>
+      <button class="reaction-btn" onclick="sendReaction(event, '🤔')">🤔</button>
+      <div class="reaction-stage" id="reactionStage"></div>
+    </div>
+  </section>
+
+  <!-- ICONS -->
+  <section id="icons" class="spec">
+    <h2>Iconography</h2>
+    <p class="lede">Sticker style: thick black outlines, bright fills, simple geometric shapes. No fine detail. Built from CSS shapes — no hand-drawn SVGs needed.</p>
+    <div class="icon-grid">
+      <div class="icon-tile"><div class="icon"><div class="icn-pearl"></div></div><div class="name">pearl</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-cup"></div></div><div class="name">cup</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-die"></div></div><div class="name">die</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-circle"></div></div><div class="name">circle · L1</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-square"></div></div><div class="name">square · L2</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-triangle"></div></div><div class="name">tri · L3</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-diamond"></div></div><div class="name">diamond · L4</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-star"></div></div><div class="name">star</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-eye"></div></div><div class="name">eye · seer</div></div>
+      <div class="icon-tile"><div class="icon"><div class="icn-wolf"></div></div><div class="name">wolf</div></div>
+      <div class="icon-tile"><div class="icon" style="position: relative; width: 60px;"><div class="icn-ring"></div></div><div class="name">rings</div></div>
+    </div>
+    <p class="caption">Real screen icons can layer onto these primitives — e.g. a treasure shape gets a number badge for level, a player avatar gets a wolf-tooth corner if they're a werewolf in their post-game reveal.</p>
+  </section>
+
+  <!-- PER-GAME ACCENTS -->
+  <section id="games" class="spec">
+    <h2>Per-game accents</h2>
+    <p class="lede">Each game inherits the full system but is allowed <b>one</b> dedicated accent or palette to differentiate. Game-specific elements (rings, treasure shapes, role colors) override these.</p>
+
+    <div class="game-tiles">
+      <div class="game-tile tir">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Things in Rings</h3>
+        <div class="sub" style="margin-left: 12px;">Tri-color rings — already part of the game's vocabulary.</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--tir-red);"></span>
+          <span style="background: var(--tir-blue);"></span>
+          <span style="background: var(--tir-green);"></span>
+        </div>
+      </div>
+      <div class="game-tile scout">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Scout</h3>
+        <div class="sub" style="margin-left: 12px;">Rainbow numbered cards. The cards are the game's identity.</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--scout-1);"></span>
+          <span style="background: var(--scout-2);"></span>
+          <span style="background: var(--scout-3);"></span>
+          <span style="background: var(--scout-4);"></span>
+        </div>
+      </div>
+      <div class="game-tile ww">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Werewords</h3>
+        <div class="sub" style="margin-left: 12px;">Moonlit night. Roles get their own colors (seer/wolf/villager).</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--ww-night);"></span>
+          <span style="background: var(--ww-moon);"></span>
+          <span style="background: var(--rose-500);"></span>
+          <span style="background: var(--jade-500);"></span>
+        </div>
+      </div>
+      <div class="game-tile oo">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Order Overload</h3>
+        <div class="sub" style="margin-left: 12px;">Café warmth. Stars for level progress.</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--oo-cafe);"></span>
+          <span style="background: var(--oo-cream);"></span>
+          <span style="background: var(--honey-500);"></span>
+        </div>
+      </div>
+      <div class="game-tile ds">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Deep Sea Adventure</h3>
+        <div class="sub" style="margin-left: 12px;">Ocean to coral gradient — depth metaphor. Treasure shapes inherit from icon set.</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--ds-ocean);"></span>
+          <span style="background: var(--ds-coral);"></span>
+          <span style="background: var(--honey-500);"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCOUT CARDS -->
+  <section id="scout-cards" class="spec">
+    <h2>Scout cards · color ramp</h2>
+    <p class="lede">Scout cards carry two numbers (one at each end — the card flips). The card's value drives the color, and the ramp is hue-adjacent so neighboring values blend visually. The bottom half is the <em>flip</em> value — solid color on top, 50% alpha on the bottom over the card body.</p>
+
+    <h3>The ramp · 1 → 10</h3>
+    <div class="scout-ramp">
+      <div class="scout-ramp-step" style="background: var(--scout-card-1);"><span class="num">1</span><span class="hex">1B3A8C</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-2);"><span class="num">2</span><span class="hex">2E6BC6</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-3);"><span class="num">3</span><span class="hex">5BA3D9</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-4);"><span class="num">4</span><span class="hex">3BA89E</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-5);"><span class="num">5</span><span class="hex">3DAA5C</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-6);"><span class="num">6</span><span class="hex">8CC63F</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-7);"><span class="num">7</span><span class="hex">D9C520</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-8);"><span class="num">8</span><span class="hex">DE9E26</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-9);"><span class="num">9</span><span class="hex">E8852E</span></div>
+      <div class="scout-ramp-step" style="background: var(--scout-card-10);"><span class="num">10</span><span class="hex">D93B3B</span></div>
+    </div>
+    <p class="caption">blue · cyan · teal · green · lime · yellow · amber · orange · red — a single rainbow walk. Adjacent values look like neighbors; far values clearly contrast.</p>
+
+    <h3>Single card anatomy</h3>
+    <p class="lede">Top number = primary value (drives the solid top half). Bottom number = flip value (drives the tinted bottom half). Big numeral centered for table readability; small numerals at corners for in-hand fans.</p>
+    <div class="row" style="align-items: flex-end;">
+      <div class="scout-card" style="--top-color: var(--scout-card-3); --bottom-color: var(--scout-card-7);" onclick="this.classList.toggle('is-flipped')">
+        <span class="top-num">3</span>
+        
+        <span class="bot-num">7</span>
+      </div>
+      <div class="scout-card" style="--top-color: var(--scout-card-9); --bottom-color: var(--scout-card-2);" onclick="this.classList.toggle('is-flipped')">
+        <span class="top-num">9</span>
+        
+        <span class="bot-num">2</span>
+      </div>
+      <div class="scout-card" style="--top-color: var(--scout-card-5); --bottom-color: var(--scout-card-6);" onclick="this.classList.toggle('is-flipped')">
+        <span class="top-num">5</span>
+        
+        <span class="bot-num">6</span>
+      </div>
+      <div class="scout-card" style="--top-color: var(--scout-card-10); --bottom-color: var(--scout-card-1);" onclick="this.classList.toggle('is-flipped')">
+        <span class="top-num">10</span>
+        
+        <span class="bot-num">1</span>
+      </div>
+      <p class="caption" style="flex: 1; min-width: 220px;">Cards 5/6 (lime/green) — the toughest adjacency. Numerals + the body color visible between them keep them legible.</p>
+    </div>
+
+    <h3>Hand · adjacent in-color</h3>
+    <p class="lede">A run-of-six demonstrating that cards close in number sit comfortably next to each other; runs read as a gradient.</p>
+    <div class="paper paper-grain" style="overflow: visible;">
+      <div class="scout-hand">
+        <div class="scout-card" style="--top-color: var(--scout-card-2); --bottom-color: var(--scout-card-9);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">2</span><span class="bot-num">9</span></div>
+        <div class="scout-card" style="--top-color: var(--scout-card-3); --bottom-color: var(--scout-card-8);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">3</span><span class="bot-num">8</span></div>
+        <div class="scout-card" style="--top-color: var(--scout-card-4); --bottom-color: var(--scout-card-1);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">4</span><span class="bot-num">1</span></div>
+        <div class="scout-card" style="--top-color: var(--scout-card-5); --bottom-color: var(--scout-card-10);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">5</span><span class="bot-num">10</span></div>
+        <div class="scout-card" style="--top-color: var(--scout-card-6); --bottom-color: var(--scout-card-2);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">6</span><span class="bot-num">2</span></div>
+        <div class="scout-card" style="--top-color: var(--scout-card-7); --bottom-color: var(--scout-card-4);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">7</span><span class="bot-num">4</span></div>
+      </div>
+    </div>
+    <p class="caption">All numerals use a white fill with a 2.5–4px dark stroke (<code>-webkit-text-stroke</code> + <code>paint-order: stroke fill</code>). The stroke makes white pass contrast uniformly across every ramp color — including #7 yellow — and reinforces the sticker aesthetic. No yellow special-case needed.</p>
+
+    <h3>Flip · interactive</h3>
+    <p class="lede">Click any card to flip it 180°. The numeral that was upside-down at the bottom is now reading at the top — that's the "flipped" value you'd commit to playing.</p>
+    <div class="flip-demo">
+      <div class="stage">
+        <div class="scout-card" id="flipHero" style="--top-color: var(--scout-card-3); --bottom-color: var(--scout-card-8);" onclick="this.classList.toggle('is-flipped'); updateFlipReading();">
+          <span class="top-num">3</span>
+          <span class="bot-num">8</span>
+        </div>
+      </div>
+      <div class="controls">
+        <span class="label">reading value</span>
+        <span class="reading" id="flipReading">3</span>
+        <span class="label" id="flipFace">right-side up</span>
+        <button class="btn btn--sm btn--ghost" onclick="document.getElementById('flipHero').classList.toggle('is-flipped'); updateFlipReading();">↻ flip</button>
+      </div>
+      <p class="caption" style="flex: 1; min-width: 200px; margin: 0;">All cards in the section above are also clickable — try it on the ramp hand.</p>
+    </div>
+
+    <h3>Light vs. dark</h3>
+    <p class="lede">In light mode the bottom half tints the cream card body warm. In dark mode it darkens against deep brown — bottom values stay distinguishable but read more muted, which is fine; the top half (the value you played) remains the dominant signal.</p>
+    <div class="row">
+      <div class="mode-strip">
+        <h4>☀ Light</h4>
+        <div class="scout-hand" style="margin: 0;">
+          <div class="scout-card" style="--top-color: var(--scout-card-1); --bottom-color: var(--scout-card-6);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">1</span><span class="bot-num">6</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-4); --bottom-color: var(--scout-card-9);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">4</span><span class="bot-num">9</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-7); --bottom-color: var(--scout-card-3);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">7</span><span class="bot-num">3</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-10); --bottom-color: var(--scout-card-5);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">10</span><span class="bot-num">5</span></div>
+        </div>
+      </div>
+      <div class="mode-strip dark">
+        <h4>☾ Dark</h4>
+        <div class="scout-hand" style="margin: 0;">
+          <div class="scout-card" style="--top-color: var(--scout-card-1); --bottom-color: var(--scout-card-6);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">1</span><span class="bot-num">6</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-4); --bottom-color: var(--scout-card-9);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">4</span><span class="bot-num">9</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-7); --bottom-color: var(--scout-card-3);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">7</span><span class="bot-num">3</span></div>
+          <div class="scout-card" style="--top-color: var(--scout-card-10); --bottom-color: var(--scout-card-5);" onclick="this.classList.toggle('is-flipped')"><span class="top-num">10</span><span class="bot-num">5</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">Note: in dark mode, the bottom half over a dark body falls into shadow — if we want bottom-value parity, raise the bottom alpha to ~0.7 in dark mode (CSS: <code>--scout-bottom-alpha</code>). The current 0.5 is from the codebase as-shipped.</p>
+
+    <h3>The 10 colors as tokens</h3>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-1);"></div><div class="swatch-meta"><b>scout-1</b>1B3A8C · navy</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-2);"></div><div class="swatch-meta"><b>scout-2</b>2E6BC6 · blue</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-3);"></div><div class="swatch-meta"><b>scout-3</b>5BA3D9 · sky</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-4);"></div><div class="swatch-meta"><b>scout-4</b>3BA89E · teal</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-5);"></div><div class="swatch-meta"><b>scout-5</b>3DAA5C · green</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-6);"></div><div class="swatch-meta"><b>scout-6</b>8CC63F · lime</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-7);"></div><div class="swatch-meta"><b>scout-7</b>D9C520 · yellow</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-8);"></div><div class="swatch-meta"><b>scout-8</b>DE9E26 · amber</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-9);"></div><div class="swatch-meta"><b>scout-9</b>E8852E · orange</div></div>
+      <div class="swatch"><div class="swatch-block" style="background: var(--scout-card-10);"></div><div class="swatch-meta"><b>scout-10</b>D93B3B · red</div></div>
+    </div>
+  </section>
+
+  <section class="spec" style="border: 0;">
+    <h2>What's next</h2>
+    <p class="lede">With the system locked, the next steps are:</p>
+    <ol style="line-height: 1.8;">
+      <li>Pick one game to redesign hi-fi end-to-end (recommend <b>Deep Sea</b> — most complex, will stress every token).</li>
+      <li>Extract the React component layer (<code>&lt;Card&gt;</code>, <code>&lt;Button&gt;</code>, <code>&lt;PlayerRow&gt;</code>, etc.) into a real shared package.</li>
+      <li>Apply the accent treatment to the other four games.</li>
+      <li>Revisit information architecture once the visual layer is consistent.</li>
+    </ol>
+  </section>
+
+</div>
+
+<!-- ===== TWEAKS PANEL ===== -->
+<div id="tweaksPanel" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 280px; z-index: 100; background: var(--surface); border: 2px solid var(--border-strong); border-radius: var(--r-3); box-shadow: 6px 6px 0 var(--border-strong); padding: 16px; font-family: var(--font-body);">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+    <strong style="font-family: var(--font-display); font-size: 1.05rem;">Tweaks</strong>
+    <button onclick="dismissTweaks()" style="border: 0; background: transparent; cursor: pointer; font-size: 1.2rem; color: var(--ink-mute); padding: 0; line-height: 1;">×</button>
+  </div>
+  <p style="font-size: 0.75rem; color: var(--ink-mute); margin: 0 0 14px;">Three expressive knobs that reshape the system's vibe — not pixel-pushing.</p>
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+    <div>
+      <label style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;"><span>Sticker boldness</span><span id="boldVal" style="font-family: ui-monospace, monospace; color: var(--peach-700);">1.0×</span></label>
+      <input type="range" class="slider" id="boldSlider" min="0" max="2.5" step="0.1" value="1" />
+      <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--ink-mute); margin-top: 2px;"><span>flat</span><span>chunky</span></div>
+    </div>
+    <div>
+      <label style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;"><span>Tilt energy</span><span id="tiltVal" style="font-family: ui-monospace, monospace; color: var(--peach-700);">1.0×</span></label>
+      <input type="range" class="slider" id="tiltSlider" min="0" max="3" step="0.1" value="1" />
+      <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--ink-mute); margin-top: 2px;"><span>composed</span><span>chaotic</span></div>
+    </div>
+    <div>
+      <label style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px;"><span>Bounce</span><span id="bounceVal" style="font-family: ui-monospace, monospace; color: var(--peach-700);">1.0×</span></label>
+      <input type="range" class="slider" id="bounceSlider" min="0" max="2" step="0.05" value="1" />
+      <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--ink-mute); margin-top: 2px;"><span>linear</span><span>boingy</span></div>
+    </div>
+  </div>
+</div>
+<style id="tweaksOverrides"></style>
+
+<script>
+  // ===== Tweaks panel =====
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "boldness": 1,
+    "tilt": 3,
+    "bounce": 1
+  }/*EDITMODE-END*/;
+  let tweakState = { ...TWEAK_DEFAULTS };
+
+  function applyTweaks() {
+    const b = tweakState.boldness;
+    const t = tweakState.tilt;
+    const k = tweakState.bounce;
+    // Bounce: blend cubic-bezier(0.4, 1.0, 0.5, 1) -> cubic-bezier(0.34, 1.85, 0.5, 1)
+    const overshoot = (1 + 0.56 * k).toFixed(3);
+    const css = `
+      :root {
+        --shadow-sticker: ${(3*b).toFixed(2)}px ${(3*b).toFixed(2)}px 0 var(--border-strong);
+        --ease-spring: cubic-bezier(0.34, ${overshoot}, 0.64, 1);
+      }
+      .btn { border-width: ${(2*Math.max(0.5,b)).toFixed(1)}px; }
+      .btn--primary { box-shadow: ${(3*b).toFixed(2)}px ${(3*b).toFixed(2)}px 0 var(--peach-700); }
+      .btn--secondary { box-shadow: ${(3*b).toFixed(2)}px ${(3*b).toFixed(2)}px 0 var(--jade-700); }
+      .btn--danger { box-shadow: ${(3*b).toFixed(2)}px ${(3*b).toFixed(2)}px 0 #8a1f3a; }
+      .scout-card { box-shadow: ${(3*b).toFixed(2)}px ${(3*b).toFixed(2)}px 0 var(--scout-card-ink); border-width: ${(2*Math.max(0.5,b)).toFixed(1)}px; }
+      .scout-card .top-num, .scout-card .bot-num { -webkit-text-stroke-width: ${(2.5*Math.max(0.5,b)).toFixed(2)}px; }
+      .wordmark { transform: rotate(${(-1.5 * t).toFixed(2)}deg); }
+      .turn-status { transform: rotate(${(-0.6 * t).toFixed(2)}deg); }
+      .paper.tilted { transform: rotate(${(-1.2 * t).toFixed(2)}deg); }
+      .game-card-demo:nth-child(1) { transform: rotate(${(-3 * t).toFixed(2)}deg); }
+      .game-card-demo:nth-child(2) { transform: rotate(${(1 * t).toFixed(2)}deg) translateY(2px); }
+      .game-card-demo:nth-child(3) { transform: rotate(${(-1 * t).toFixed(2)}deg); }
+      .game-card-demo:nth-child(4) { transform: rotate(${(2.5 * t).toFixed(2)}deg); }
+      .scout-hand .scout-card:nth-child(odd) { --deck-rot: ${(-2 * t).toFixed(2)}deg; }
+      .scout-hand .scout-card:nth-child(even) { --deck-rot: ${(2 * t).toFixed(2)}deg; }
+    `;
+    document.getElementById('tweaksOverrides').textContent = css;
+  }
+
+  function setTweak(key, val) {
+    tweakState[key] = val;
+    applyTweaks();
+    document.getElementById(key === 'boldness' ? 'boldVal' : key === 'tilt' ? 'tiltVal' : 'bounceVal').textContent = val.toFixed(1) + '×';
+    try {
+      window.parent.postMessage({type: '__edit_mode_set_keys', edits: { [key]: val }}, '*');
+    } catch (e) {}
+  }
+
+  function dismissTweaks() {
+    document.getElementById('tweaksPanel').style.display = 'none';
+    try { window.parent.postMessage({type: '__edit_mode_dismissed'}, '*'); } catch (e) {}
+  }
+
+  // Register listener BEFORE announcing availability
+  window.addEventListener('message', (e) => {
+    const d = e.data || {};
+    if (d.type === '__activate_edit_mode') {
+      document.getElementById('tweaksPanel').style.display = 'block';
+    } else if (d.type === '__deactivate_edit_mode') {
+      document.getElementById('tweaksPanel').style.display = 'none';
+    }
+  });
+
+  // Wire sliders
+  ['boldSlider','tiltSlider','bounceSlider'].forEach(id => {
+    const el = document.getElementById(id);
+    const key = id === 'boldSlider' ? 'boldness' : id === 'tiltSlider' ? 'tilt' : 'bounce';
+    el.value = tweakState[key];
+    el.addEventListener('input', () => setTweak(key, parseFloat(el.value)));
+  });
+  applyTweaks();
+
+  // Announce
+  try { window.parent.postMessage({type: '__edit_mode_available'}, '*'); } catch (e) {}
+
+  // ===== Flip reading =====
+  function updateFlipReading() {
+    const card = document.getElementById('flipHero');
+    const flipped = card.classList.contains('is-flipped');
+    document.getElementById('flipReading').textContent = flipped ? '8' : '3';
+    document.getElementById('flipFace').textContent = flipped ? 'flipped (8 active)' : 'right-side up';
+  }
+
+  function toggleTheme() {
+    const cur = document.documentElement.dataset.theme;
+    document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark";
+    try { localStorage.setItem("theme", document.documentElement.dataset.theme); } catch (e) {}
+  }
+  try {
+    const saved = localStorage.getItem("theme");
+    if (saved) document.documentElement.dataset.theme = saved;
+  } catch (e) {}
+
+  function replay(card) {
+    card.classList.remove("playing");
+    // Force reflow to restart animation
+    void card.offsetWidth;
+    const inner = card.querySelector(".demo-stage > *");
+    if (!inner) return;
+    inner.style.animation = "none";
+    void inner.offsetWidth;
+    inner.style.animation = "";
+  }
+
+  function sendReaction(e, emoji) {
+    const btn = e.currentTarget;
+    btn.style.animation = "none";
+    void btn.offsetWidth;
+    btn.style.animation = "squish 0.5s var(--ease-spring)";
+
+    const stage = document.getElementById("reactionStage");
+    const fl = document.createElement("span");
+    fl.className = "floater";
+    fl.textContent = emoji;
+    fl.style.left = (50 + (Math.random() - 0.5) * 30) + "%";
+    stage.appendChild(fl);
+    setTimeout(() => fl.remove(), 1500);
+  }
+</script>
+
+</body>
+</html>
