@@ -68,18 +68,16 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
   };
 
   return (
-    <div className="screen" style={{ textAlign: "center" }}>
+    <div className="screen oo-screen" style={{ textAlign: "center" }}>
       <h2>Level {game.level} {passed ? "Passed!" : "Failed"}</h2>
 
       {stars > 0 && (
-        <p style={{ fontSize: "1.5rem", margin: "0.5rem 0" }}>
-          {"★".repeat(stars)}
-        </p>
+        <p className="oo-stars">{"★".repeat(stars)}</p>
       )}
 
       {passed ? (
         <>
-          <p style={{ fontSize: "1.1rem", color: "var(--text-light)", margin: "1rem 0" }}>
+          <p style={{ fontSize: "1.1rem", color: "var(--ink-soft)", margin: "1rem 0" }}>
             {isMaxLevel
               ? "You completed all 7 levels! Amazing!"
               : `Ready for Level ${game.level + 1}?`}
@@ -88,12 +86,12 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
           {isHost && (
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
               {!isMaxLevel && (
-                <button onClick={handleContinue} disabled={acting}>
+                <button className="btn btn--primary" onClick={handleContinue} disabled={acting}>
                   {acting ? "..." : `Continue to Level ${game.level + 1}`}
                 </button>
               )}
               <button
-                className="btn-danger"
+                className="btn btn--danger"
                 onClick={handleFinish}
                 disabled={acting}
               >
@@ -102,29 +100,29 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
             </div>
           )}
           {!isHost && (
-            <p style={{ color: "var(--text-light)", fontSize: "0.9rem" }}>
+            <p style={{ color: "var(--ink-mute)", fontSize: "0.9rem" }}>
               Waiting for host to continue...
             </p>
           )}
         </>
       ) : (
         <>
-          <p style={{ fontSize: "1.1rem", color: "var(--text-light)", margin: "1rem 0" }}>
+          <p style={{ fontSize: "1.1rem", color: "var(--ink-soft)", margin: "1rem 0" }}>
             All players were eliminated. Try again?
           </p>
 
           {isHost && (
             <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
-              <button onClick={handleRetry} disabled={acting}>
+              <button className="btn btn--primary" onClick={handleRetry} disabled={acting}>
                 {acting ? "..." : `Retry Level ${game.level}`}
               </button>
-              <button className="btn-danger" onClick={handleFinish} disabled={acting}>
+              <button className="btn btn--danger" onClick={handleFinish} disabled={acting}>
                 {acting ? "..." : "End Game"}
               </button>
             </div>
           )}
           {!isHost && (
-            <p style={{ color: "var(--text-light)", fontSize: "0.9rem" }}>
+            <p style={{ color: "var(--ink-mute)", fontSize: "0.9rem" }}>
               Waiting for host...
             </p>
           )}

@@ -119,27 +119,27 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   if (!hand) return <p>Loading hand...</p>;
 
   return (
-    <div className="screen">
+    <div className="screen oo-screen">
       <h2>
         Level {game.level}
-        {stars > 0 && ` ${"★".repeat(stars)}`}
+        {stars > 0 && <span className="oo-stars">{" "}{"★".repeat(stars)}</span>}
       </h2>
 
       {/* Turn status — right under level */}
       {isMyTurn && !isResponding && (
-        <div className="turn-status my-turn">
+        <div className="turn-status turn-status--mine">
           Your turn!
         </div>
       )}
       {!isMyTurn && !isResponding && (
-        <div className="turn-status">
+        <div className="turn-status turn-status--waiting">
           {currentPlayerName}'s turn to guess
         </div>
       )}
 
       {/* Last action */}
       {game.lastAction && (
-        <p style={{ fontSize: "0.85rem", color: "var(--text-light)", margin: "0.5rem 0" }}>
+        <p style={{ fontSize: "0.85rem", color: "var(--ink-mute)", margin: "0.5rem 0" }}>
           {(() => {
             const action = game.lastAction;
             let display = action;
@@ -154,7 +154,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
 
       {/* Ability reveals (persistent through level) */}
       {game.abilityReveals.length > 0 && (
-        <div style={{ background: "var(--bg-secondary)", borderRadius: "8px", padding: "0.75rem", margin: "0.75rem 0" }}>
+        <div className="oo-hints">
           <p style={{ fontSize: "0.8rem", fontWeight: 600, margin: "0 0 0.25rem" }}>Hints:</p>
           {game.abilityReveals.map((reveal, i) => {
             const targetName = room.players[reveal.targetUid]?.name ?? "Unknown";
@@ -170,11 +170,11 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
 
       {/* Responding phase */}
       {isResponding && (
-        <div style={{ background: "var(--bg-secondary)", borderRadius: "12px", padding: "1rem", margin: "1rem 0", textAlign: "center" }}>
-          <p style={{ fontSize: "0.9rem", margin: "0 0 0.5rem", color: "var(--text-light)" }}>
+        <div className="oo-guess-panel">
+          <p style={{ fontSize: "0.9rem", margin: "0 0 0.5rem", color: "var(--ink-mute)" }}>
             {room.players[game.guessingPlayer!]?.name ?? "Unknown"} guessed:
           </p>
-          <p style={{ fontSize: "1.3rem", fontWeight: 700, margin: "0 0 0.75rem" }}>
+          <p className="oo-guess-word">
             "{game.currentGuess}"
           </p>
 
@@ -183,15 +183,15 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
               <p style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 0.5rem" }}>
                 Do you have this order?
               </p>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-light)", margin: "0 0 0.75rem" }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--ink-mute)", margin: "0 0 0.75rem" }}>
                 Your hand: {hand.cards.join(", ") || "(empty)"}
               </p>
               {selectedCardIndex !== null ? (
                 <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                  <button onClick={() => handleRespond(true, selectedCardIndex)} disabled={acting}>
+                  <button className="btn btn--primary" onClick={() => handleRespond(true, selectedCardIndex)} disabled={acting}>
                     {acting ? "..." : `Reveal "${hand.cards[selectedCardIndex]}"`}
                   </button>
-                  <button className="btn-danger" onClick={() => setSelectedCardIndex(null)}>
+                  <button className="btn btn--danger btn--sm" onClick={() => setSelectedCardIndex(null)}>
                     Cancel
                   </button>
                 </div>
@@ -216,15 +216,15 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                       <div style={{ width: "100%", marginTop: "0.5rem" }}>
                         {confirmDontHave ? (
                           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                            <button className="btn-danger" onClick={() => handleRespond(false)} disabled={acting}>
+                            <button className="btn btn--danger" onClick={() => handleRespond(false)} disabled={acting}>
                               {acting ? "..." : "Yes, I don't have it"}
                             </button>
-                            <button className="btn-secondary" onClick={() => setConfirmDontHave(false)}>
+                            <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDontHave(false)}>
                               Cancel
                             </button>
                           </div>
                         ) : (
-                          <button className="btn-danger" onClick={() => setConfirmDontHave(true)}>
+                          <button className="btn btn--danger" onClick={() => setConfirmDontHave(true)}>
                             I don't have it
                           </button>
                         )}
@@ -234,15 +234,15 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                   {hand.cards.length === 0 && (
                     confirmDontHave ? (
                       <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                        <button className="btn-danger" onClick={() => handleRespond(false)} disabled={acting}>
+                        <button className="btn btn--danger" onClick={() => handleRespond(false)} disabled={acting}>
                           {acting ? "..." : "Yes, I don't have it"}
                         </button>
-                        <button className="btn-secondary" onClick={() => setConfirmDontHave(false)}>
+                        <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDontHave(false)}>
                           Cancel
                         </button>
                       </div>
                     ) : (
-                      <button className="btn-danger" onClick={() => setConfirmDontHave(true)}>
+                      <button className="btn btn--danger" onClick={() => setConfirmDontHave(true)}>
                         I don't have it
                       </button>
                     )
@@ -251,7 +251,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
               )}
             </div>
           ) : (
-            <p style={{ color: "var(--text-light)", fontSize: "0.9rem" }}>
+            <p style={{ color: "var(--ink-mute)", fontSize: "0.9rem" }}>
               Waiting for {room.players[currentResponder!]?.name ?? "Unknown"} to respond...
             </p>
           )}
@@ -264,7 +264,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
           {/* Ability section */}
           {!abilityUsed && !showAbility && (
             <button
-              className="btn-secondary btn-small"
+              className="btn btn--secondary btn--sm"
               onClick={() => setShowAbility(true)}
               disabled={myAbility === "discard" && hand.cards.length <= 1}
               style={{ marginBottom: "0.75rem" }}
@@ -274,23 +274,23 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
           )}
 
           {showAbility && myAbility === "discard" && (
-            <div style={{ background: "var(--bg-secondary)", borderRadius: "8px", padding: "0.75rem", marginBottom: "0.75rem" }}>
+            <div className="oo-ability-panel">
               <p style={{ fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
                 Tap a card in your hand to discard it
               </p>
               {selectedCardIndex !== null && (
-                <button className="btn-secondary" onClick={() => handleDiscard(selectedCardIndex)} disabled={acting}>
+                <button className="btn btn--secondary btn--sm" onClick={() => handleDiscard(selectedCardIndex)} disabled={acting}>
                   {acting ? "..." : `Discard "${hand.cards[selectedCardIndex]}"`}
                 </button>
               )}
-              <button className="btn-small btn-danger" onClick={() => { setShowAbility(false); setSelectedCardIndex(null); }} style={{ marginLeft: "0.5rem" }}>
+              <button className="btn btn--danger btn--sm" onClick={() => { setShowAbility(false); setSelectedCardIndex(null); }} style={{ marginLeft: "0.5rem" }}>
                 Cancel
               </button>
             </div>
           )}
 
           {showAbility && (myAbility === "first-letter" || myAbility === "last-letter") && (
-            <div style={{ background: "var(--bg-secondary)", borderRadius: "8px", padding: "0.75rem", marginBottom: "0.75rem" }}>
+            <div className="oo-ability-panel">
               <p style={{ fontSize: "0.85rem", margin: "0 0 0.5rem" }}>
                 Choose a player to reveal their {myAbility === "first-letter" ? "first" : "last"} letters:
               </p>
@@ -300,7 +300,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                   .map((pid) => (
                     <button
                       key={pid}
-                      className={selectedTarget === pid ? "" : "btn-secondary"}
+                      className={selectedTarget === pid ? "btn btn--primary btn--sm" : "btn btn--secondary btn--sm"}
                       onClick={() => {
                         if (selectedTarget === pid) {
                           handleLetterAbility(pid);
@@ -316,7 +316,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                     </button>
                   ))}
               </div>
-              <button className="btn-small btn-danger" onClick={() => { setShowAbility(false); setSelectedTarget(null); }} style={{ marginTop: "0.5rem" }}>
+              <button className="btn btn--danger btn--sm" onClick={() => { setShowAbility(false); setSelectedTarget(null); }} style={{ marginTop: "0.5rem" }}>
                 Cancel
               </button>
             </div>
@@ -333,18 +333,9 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
               }}
               placeholder="Type an order..."
               disabled={acting}
-              style={{
-                padding: "0.5rem 0.75rem",
-                borderRadius: "8px",
-                border: "1px solid var(--border)",
-                background: "var(--bg-secondary)",
-                color: "var(--text)",
-                fontSize: "1rem",
-                flex: 1,
-                maxWidth: "250px",
-              }}
+              className="oo-guess-input"
             />
-            <button onClick={handleSubmitGuess} disabled={acting || !guessText.trim()}>
+            <button className="btn btn--primary" onClick={handleSubmitGuess} disabled={acting || !guessText.trim()}>
               {acting ? "..." : "Guess"}
             </button>
           </div>
@@ -359,11 +350,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
             {hand.cards.map((card, i) => (
               <div
                 key={i}
-                className="player-chip"
-                style={{
-                  cursor: showAbility && myAbility === "discard" ? "pointer" : "default",
-                  border: selectedCardIndex === i ? "2px solid var(--accent)" : "2px solid transparent",
-                }}
+                className={`oo-hand-chip${showAbility && myAbility === "discard" ? " discardable" : ""}${selectedCardIndex === i ? " chip-selected" : ""}`}
                 onClick={() => {
                   if (showAbility && myAbility === "discard") {
                     setSelectedCardIndex(i);
@@ -375,7 +362,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
             ))}
           </div>
         ) : (
-          <p style={{ color: "var(--text-light)", fontSize: "0.85rem" }}>Hand empty!</p>
+          <p style={{ color: "var(--ink-mute)", fontSize: "0.85rem" }}>Hand empty!</p>
         )}
       </div>
 
@@ -410,12 +397,12 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                 <span className="score-cards" style={{ minWidth: "65px", textAlign: "right" }}>
                   {isEmptied ? "✓ done" : `${cardCount} cards`}
                 </span>
-                <span style={{ minWidth: "90px", textAlign: "right", paddingLeft: "0.75rem", fontSize: "0.8rem", color: "var(--accent)" }}>
+                <span style={{ minWidth: "90px", textAlign: "right", paddingLeft: "0.75rem", fontSize: "0.8rem", color: "var(--peach-500)" }}>
                   {isGuessing && "Guessing..."}
                   {isJudging && "Judging..."}
                 </span>
                 {revealed.length > 0 && (
-                  <div style={{ width: "100%", fontSize: "0.75rem", color: "var(--text-light)", paddingLeft: "calc(24px + 1rem)" }}>
+                  <div style={{ gridColumn: "1 / -1", fontSize: "0.75rem", color: "var(--ink-mute)", paddingLeft: "calc(32px + 1rem)" }}>
                     Revealed: {revealed.join(", ")}
                   </div>
                 )}

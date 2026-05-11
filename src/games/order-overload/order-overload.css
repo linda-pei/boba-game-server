@@ -1,0 +1,256 @@
+/* =========================================================
+   ORDER OVERLOAD — Boba sticker design system
+   ========================================================= */
+
+.oo-screen {
+  font-family: var(--font-body);
+}
+
+.oo-screen h2,
+.oo-screen h3,
+.oo-screen h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* ---- Turn status ---- */
+.oo-screen .turn-status {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  padding: 12px 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sticker);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: center;
+  transform: rotate(-0.5deg);
+  margin: var(--s-3) 0;
+}
+
+.oo-screen .turn-status.turn-status--mine {
+  background: var(--peach-100);
+  border-color: var(--peach-700);
+  color: var(--peach-700);
+  box-shadow: 3px 3px 0 var(--peach-700);
+  animation: oo-pop 0.5s var(--ease-spring);
+}
+
+.oo-screen .turn-status.turn-status--waiting {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+/* ---- Order card (reading phase) ---- */
+.oo-order-card {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-sticker);
+  padding: 1.5rem 2rem;
+  margin: 1rem auto;
+  max-width: 320px;
+  text-align: center;
+  transform: rotate(-0.8deg);
+}
+
+.oo-order-card p {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* ---- Guess panel ---- */
+.oo-guess-panel {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.oo-guess-word {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+}
+
+/* ---- Hints panel ---- */
+.oo-hints {
+  border: 2px dashed var(--border);
+  border-radius: var(--r-3);
+  background: var(--surface-2);
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+
+/* ---- Ability panel ---- */
+.oo-ability-panel {
+  border: 2px dashed var(--border);
+  border-radius: var(--r-3);
+  background: var(--surface-2);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ---- Hand cards ---- */
+.oo-screen .game-card {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-2);
+  box-shadow: var(--shadow-sticker);
+  background: var(--surface);
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s, border-color 0.15s;
+}
+
+.oo-screen .game-card:hover:not(.disabled) {
+  border-color: var(--peach-500);
+  box-shadow: 4px 4px 0 var(--border-strong);
+  transform: translateY(-4px);
+}
+
+.oo-screen .game-card.selected {
+  border-color: var(--peach-500);
+  background: color-mix(in srgb, var(--peach-500) 10%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 25%, transparent), var(--shadow-sticker);
+  transform: translateY(-4px);
+}
+
+/* ---- Player hand chips ---- */
+.oo-hand-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background: var(--surface-2);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-1);
+  user-select: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.oo-hand-chip.discardable {
+  cursor: pointer;
+}
+
+.oo-hand-chip.discardable:hover {
+  border-color: var(--rose-500);
+  box-shadow: var(--shadow-sticker);
+}
+
+.oo-hand-chip.chip-selected {
+  border-color: var(--peach-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 25%, transparent);
+}
+
+/* ---- Progress bar ---- */
+.oo-progress {
+  width: 80%;
+  max-width: 300px;
+  height: 10px;
+  background: var(--surface-2);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  margin: 1rem auto;
+  overflow: hidden;
+}
+
+.oo-progress-fill {
+  height: 100%;
+  background: var(--oo-cafe);
+  border-radius: var(--r-pill);
+  transition: width 0.3s ease;
+}
+
+/* ---- Score board ---- */
+.oo-screen .score-board {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+  margin: var(--s-4) 0 0;
+  text-align: left;
+}
+
+.oo-screen .score-board h4 {
+  padding: 10px 14px 6px;
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.oo-screen .score-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto auto;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.85rem;
+}
+
+.oo-screen .score-row-active {
+  background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
+}
+
+
+
+.oo-screen .score-name {
+  font-weight: 600;
+}
+
+.oo-screen .score-you {
+  color: var(--peach-700);
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+/* ---- Guess input ---- */
+.oo-guess-input {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  flex: 1;
+  max-width: 250px;
+}
+
+.oo-guess-input:focus {
+  border-color: var(--peach-500);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 20%, transparent);
+}
+
+/* ---- Stars display ---- */
+.oo-stars {
+  font-size: 1.5rem;
+  margin: 0.5rem 0;
+  color: var(--honey-500);
+}
+
+.oo-stars-big {
+  font-size: 2rem;
+  margin: 0.5rem 0;
+  color: var(--honey-500);
+}
+
+/* ---- Animations ---- */
+@keyframes oo-pop {
+  0%   { transform: scale(0.7) rotate(-2deg); opacity: 0; }
+  60%  { transform: scale(1.06) rotate(1deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-0.5deg); opacity: 1; }
+}

@@ -22,7 +22,7 @@ export default function JoinRedirect() {
     return (
       <div className="screen">
         <p className="error-message">{error}</p>
-        <button onClick={() => navigate("/")}>Back to Home</button>
+        <button className="btn btn--primary" onClick={() => navigate("/")}>Back to Home</button>
       </div>
     );
   }

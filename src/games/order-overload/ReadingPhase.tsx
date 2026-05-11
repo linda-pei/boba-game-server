@@ -50,33 +50,18 @@ export default function ReadingPhase({ roomCode, game, hand, uid, room }: Props)
 
   if (!isOrderTaker) {
     return (
-      <div className="screen">
+      <div className="screen oo-screen">
         <h2><LevelBadge level={game.level} /></h2>
         <p style={{ fontSize: "1.1rem", marginTop: "1.5rem" }}>
           {orderTakerName} is reading orders...
         </p>
-        <p style={{ color: "var(--text-light)", fontSize: "0.9rem" }}>
+        <p style={{ color: "var(--ink-mute)", fontSize: "0.9rem" }}>
           {game.readingIndex + 1} / {game.totalOrdersForLevel} orders read
         </p>
-        <div
-          style={{
-            width: "80%",
-            maxWidth: "300px",
-            height: "8px",
-            background: "var(--bg-secondary)",
-            borderRadius: "4px",
-            margin: "1rem auto",
-            overflow: "hidden",
-          }}
-        >
+        <div className="oo-progress">
           <div
-            style={{
-              width: `${((game.readingIndex + 1) / game.totalOrdersForLevel) * 100}%`,
-              height: "100%",
-              background: "var(--accent)",
-              borderRadius: "4px",
-              transition: "width 0.3s ease",
-            }}
+            className="oo-progress-fill"
+            style={{ width: `${((game.readingIndex + 1) / game.totalOrdersForLevel) * 100}%` }}
           />
         </div>
       </div>
@@ -88,38 +73,27 @@ export default function ReadingPhase({ roomCode, game, hand, uid, room }: Props)
   const currentOrder = ordersToRead[game.readingIndex] ?? "";
 
   return (
-    <div className="screen">
+    <div className="screen oo-screen">
       <h2><LevelBadge level={game.level} /></h2>
-      <p style={{ color: "var(--text-light)", fontSize: "0.9rem", margin: "0.5rem 0" }}>
+      <p style={{ color: "var(--ink-mute)", fontSize: "0.9rem", margin: "0.5rem 0" }}>
         You are the Order Taker. Read each order!
       </p>
 
-      <p style={{ fontSize: "0.85rem", color: "var(--text-light)" }}>
+      <p style={{ fontSize: "0.85rem", color: "var(--ink-mute)" }}>
         Order {game.readingIndex + 1} of {game.totalOrdersForLevel}
       </p>
 
-      <div
-        style={{
-          background: "var(--bg-secondary)",
-          borderRadius: "12px",
-          padding: "1.5rem 2rem",
-          margin: "1rem auto",
-          maxWidth: "320px",
-          textAlign: "center",
-        }}
-      >
-        <p style={{ fontSize: "1.4rem", fontWeight: 600, margin: 0 }}>
-          {currentOrder}
-        </p>
+      <div className="oo-order-card">
+        <p>{currentOrder}</p>
       </div>
 
       <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1rem" }}>
         {!allRead ? (
-          <button onClick={handleNext} disabled={acting}>
+          <button className="btn btn--primary" onClick={handleNext} disabled={acting}>
             {acting ? "..." : "Next Order"}
           </button>
         ) : (
-          <button onClick={handleDone} disabled={acting}>
+          <button className="btn btn--primary" onClick={handleDone} disabled={acting}>
             {acting ? "Dealing..." : "Done Reading"}
           </button>
         )}

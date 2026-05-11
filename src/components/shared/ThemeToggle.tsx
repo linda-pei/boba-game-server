@@ -20,9 +20,9 @@ export default function ThemeToggle() {
         justifyContent: "center",
         borderRadius: "50%",
         background: "var(--surface)",
-        color: "var(--text-muted)",
-        border: "1px solid var(--border)",
-        boxShadow: "var(--shadow-sm)",
+        color: "var(--ink-soft)",
+        border: "2px solid var(--border-strong)",
+        boxShadow: "var(--shadow-sticker)",
         fontSize: 16,
         cursor: "pointer",
       }}

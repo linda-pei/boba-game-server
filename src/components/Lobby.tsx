@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
+import "./lobby.css";
 import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
 import { startGame } from "../games/things-in-rings/useGame";
 import { startScoutGame } from "../games/scout/useScoutGame";
@@ -39,7 +40,7 @@ export default function Lobby() {
     return (
       <div className="lobby screen">
         <p className="error-message">{error || "Room not found"}</p>
-        <button onClick={() => navigate("/")}>Back to Home</button>
+        <button className="btn btn--primary" onClick={() => navigate("/")}>Back to Home</button>
       </div>
     );
   }
@@ -150,7 +151,7 @@ export default function Lobby() {
               {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
-                  className="btn-small btn-secondary"
+                  className="btn btn--secondary btn--sm"
                 >
                   Set Knower
                 </button>
@@ -176,6 +177,7 @@ export default function Lobby() {
               <button
                 key={g.id}
                 className={`game-selector-card${gameType === g.id ? " selected" : ""}`}
+                data-game={g.id}
                 onClick={() => handleSetGameType(g.id)}
                 disabled={!isHost}
               >
@@ -318,7 +320,7 @@ export default function Lobby() {
 
         {isHost && (
           <div style={{ textAlign: "center" }}>
-            <button onClick={handleStart} disabled={!canStart || starting}>
+            <button className="btn btn--primary" onClick={handleStart} disabled={!canStart || starting}>
               {starting ? "Starting..." : "Start Game"}
             </button>
             {!canStart && (
@@ -348,7 +350,7 @@ export default function Lobby() {
         )}
       </div>
 
-      <button onClick={handleLeave} className="btn-danger" style={{ marginTop: "1rem" }}>
+      <button onClick={handleLeave} className="btn btn--danger" style={{ marginTop: "1rem" }}>
         {isHost ? "Disband Room" : "Leave Room"}
       </button>
     </div>

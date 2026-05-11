@@ -36,13 +36,13 @@ export default function GameEndButtons({ isHost }: Props) {
   return (
     <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", marginTop: "1.5rem" }}>
       {isHost && (
-        <button onClick={handleBackToLobby}>
+        <button className="btn btn--primary" onClick={handleBackToLobby}>
           Back to Lobby
         </button>
       )}
       <button
         onClick={handleLeave}
-        className="btn-danger"
+        className="btn btn--danger"
         disabled={leaving}
       >
         Leave Game

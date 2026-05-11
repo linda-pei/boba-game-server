@@ -26,7 +26,7 @@ export default function SetUsername({ onSubmit }: SetUsernameProps) {
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
-        <button type="submit" disabled={!name.trim()}>
+        <button className="btn btn--primary" type="submit" disabled={!name.trim()}>
           Continue
         </button>
       </form>

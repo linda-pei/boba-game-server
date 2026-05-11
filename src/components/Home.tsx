@@ -49,7 +49,7 @@ export default function Home() {
       {error && <p className="error-message">{error}</p>}
 
       <div className="home-actions">
-        <button onClick={handleCreate} disabled={creating}>
+        <button className="btn btn--primary" onClick={handleCreate} disabled={creating}>
           {creating ? "Creating..." : "Create New Room"}
         </button>
 
@@ -66,7 +66,7 @@ export default function Home() {
           <button
             onClick={handleJoin}
             disabled={roomCode.length !== 4 || joining}
-            className="btn-secondary"
+            className="btn btn--secondary"
           >
             {joining ? "Joining..." : "Join Room"}
           </button>

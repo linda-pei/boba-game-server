@@ -9,11 +9,21 @@
 /* ---- Screen container ---- */
 .screen {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-4);
+  box-shadow: var(--shadow-2);
   padding: 2rem;
   margin: 0 auto;
   max-width: 700px;
+  font-family: var(--font-body);
+}
+
+.screen h1,
+.screen h2,
+.screen h3,
+.screen h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }
 
 /* ---- Home ---- */
@@ -36,6 +46,10 @@
   text-align: center;
   font-size: 1.2rem;
   letter-spacing: 0.2em;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-2);
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 /* ---- Divider ---- */
@@ -43,7 +57,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: var(--text-light);
+  color: var(--ink-mute);
   font-size: 0.9rem;
   margin: 0.5rem 0;
 }
@@ -52,19 +66,20 @@
 .divider::after {
   content: "";
   flex: 1;
-  height: 1px;
-  background: var(--border-light);
+  height: 2px;
+  border-top: 2px dashed var(--border);
+  background: none;
 }
 
 /* ---- Error ---- */
 .error-message {
-  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
-  color: var(--accent-danger);
-  border: 1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent);
-  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--rose-500) 10%, transparent);
+  color: var(--rose-500);
+  border: 2px solid color-mix(in srgb, var(--rose-500) 30%, transparent);
+  border-radius: var(--r-2);
   padding: 0.5em 1em;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0.5rem 0;
 }
 
@@ -271,9 +286,9 @@
 .set-username form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
 .set-username input {
@@ -281,6 +296,10 @@
   max-width: 280px;
   text-align: center;
   font-size: 1.1rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-2);
+  font-family: var(--font-body);
+  padding: 0.6em 1em;
 }
 
 /* ---- Game cards ---- */

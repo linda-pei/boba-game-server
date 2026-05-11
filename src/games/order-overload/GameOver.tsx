@@ -29,7 +29,7 @@ export default function GameOver({ game, room }: Props) {
   }, []);
 
   return (
-    <div className="screen" style={{ textAlign: "center" }}>
+    <div className="screen oo-screen" style={{ textAlign: "center" }}>
       <h2>Game Over!</h2>
 
       {level > 0 ? (
@@ -38,18 +38,16 @@ export default function GameOver({ game, room }: Props) {
             You reached Level {level}!
           </p>
           {stars > 0 && (
-            <p style={{ fontSize: "2rem", margin: "0.5rem 0" }}>
-              {"★".repeat(stars)}
-            </p>
+            <p className="oo-stars-big">{"★".repeat(stars)}</p>
           )}
           {level >= 7 && (
-            <p style={{ fontSize: "1rem", color: "var(--text-light)" }}>
+            <p style={{ fontSize: "1rem", color: "var(--ink-soft)" }}>
               Perfect run! All 7 levels completed!
             </p>
           )}
         </>
       ) : (
-        <p style={{ fontSize: "1.1rem", color: "var(--text-light)", margin: "1rem 0" }}>
+        <p style={{ fontSize: "1.1rem", color: "var(--ink-soft)", margin: "1rem 0" }}>
           Better luck next time!
         </p>
       )}
