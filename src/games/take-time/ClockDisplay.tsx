@@ -1,5 +1,5 @@
-import type { TakeTimePlacedCard, TakeTimeSegmentRule } from "../../types";
-import { RuleGlyph, CenterGlyph } from "./RuleGlyph";
+import type { TakeTimePlacedCard, TakeTimeSegmentRule, TakeTimeBetweenRule } from "../../types";
+import { RuleGlyph, CenterGlyph, BetweenRuleGlyph, type CenterGlyphType } from "./RuleGlyph";
 import CardSlot from "./CardSlot";
 import { TT } from "./theme";
 
@@ -7,7 +7,7 @@ interface Props {
   segments: Record<number, TakeTimePlacedCard[]>;
   segmentRules: Record<number, TakeTimeSegmentRule[]>;
   clockRotation: number;
-  clockRule: "normal" | "infinity";
+  clockRule: string;
   chapter?: number;
   test?: number;
   specialRules?: string[];
@@ -16,6 +16,13 @@ interface Props {
   showSums?: boolean;
   interactive?: boolean;
   onSegmentClick?: (segIndex: number) => void;
+  playerNames?: Record<string, string>;
+  uid?: string;
+  blockedSegments?: Set<number>;
+  boardRotation?: number;
+  secondHandPosition?: number;
+  hourHand?: number;
+  betweenRules?: TakeTimeBetweenRule[];
 }
 
 // SVG viewBox dimensions
@@ -28,8 +35,6 @@ const RRIM = R + 14; // outer rim band
 
 const SEGMENT_COUNT = 6;
 const ANGLE_STEP = (2 * Math.PI) / SEGMENT_COUNT;
-
-const toRoman = (n: number) => ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"][n - 1] ?? String(n);
 
 function getWedgePath(i: number): string {
   const a0 = (i * 60 - 90) * Math.PI / 180;
@@ -54,16 +59,32 @@ export default function ClockDisplay({
   showSums,
   interactive,
   onSegmentClick,
+  playerNames,
+  uid,
+  blockedSegments,
+  boardRotation,
+  secondHandPosition,
+  hourHand,
+  betweenRules,
 }: Props) {
   const handDeg = clockRotation * 60;
   const handLen = R - 6;
 
   // For card/glyph positioning outside the SVG
   // Container is sized by CSS; we use percentage-based positioning
-  const hasCenterRule = clockRule === "infinity" || specialRules?.includes("no-faceup");
-  const centerRuleType = clockRule === "infinity" ? "no-24-cap" as const
-    : specialRules?.includes("no-faceup") ? "no-faceup" as const
-    : null;
+  const clockRuleToCenterGlyph: Record<string, CenterGlyphType> = {
+    infinity: "no-24-cap",
+    "high-to-low": "high-to-low",
+    "low-to-high": "low-to-high",
+    "locked-order": "locked-order",
+    "two-per-segment": "two-per-segment",
+    difference: "difference",
+    "max-spread": "max-spread",
+  };
+  let centerRuleType: CenterGlyphType | null = clockRuleToCenterGlyph[clockRule] ?? null;
+  if (!centerRuleType && specialRules?.includes("no-faceup")) {
+    centerRuleType = "no-faceup";
+  }
 
   return (
     <div className="tt-board-container">
@@ -111,125 +132,102 @@ export default function ClockDisplay({
           {/* Dial face */}
           <circle cx={CX} cy={CY} r={R} fill="url(#tt-dial)" stroke={TT.ink} strokeWidth="1.4" />
 
-          {/* 6 segment wedges */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const seg = i + 1;
-            const isHighlighted = highlightSegment === seg || highlightSegment === -1;
-            const revealOrder = ((seg - 1 - clockRotation + 600) % 6);
-            const isNext = revealedUpTo !== undefined && revealOrder === revealedUpTo;
-
-            return (
+          {/* Rotating clock face: wedges, dividers, segment numbers */}
+          <g
+            style={{
+              transform: `rotate(${(boardRotation ?? 0) * 60}deg)`,
+              transformOrigin: `${CX}px ${CY}px`,
+              transition: "transform .6s cubic-bezier(.34,1.56,.64,1)",
+            }}
+            pointerEvents="none"
+          >
+            {/* 6 segment wedges (decorative) */}
+            {Array.from({ length: 6 }).map((_, i) => (
               <path
                 key={i}
                 d={getWedgePath(i)}
+                fill={segFill(i)}
+                stroke={TT.goldDeep}
+                strokeWidth="1"
+              />
+            ))}
+
+            {/* Radial dividers */}
+            {Array.from({ length: 6 }).map((_, i) => {
+              const a = (i * 60 - 90) * Math.PI / 180;
+              const x = CX + R * Math.cos(a);
+              const y = CY + R * Math.sin(a);
+              return (
+                <line
+                  key={i} x1={CX} y1={CY} x2={x} y2={y}
+                  stroke={TT.ink} strokeWidth="1.4" opacity="0.55"
+                />
+              );
+            })}
+
+            {/* Segment numbers near rim edge */}
+            {Array.from({ length: 6 }).map((_, i) => {
+              const mid = ((i + 0.5) * 60 - 90) * Math.PI / 180;
+              const nx = CX + (R - 14) * Math.cos(mid);
+              const ny = CY + (R - 14) * Math.sin(mid);
+              return (
+                <text
+                  key={i} x={nx} y={ny + 2} textAnchor="middle"
+                  fontFamily="'Cormorant Garamond', serif" fontWeight="600" fontSize="18"
+                  fill={TT.ink} opacity="0.55"
+                >
+                  {i + 1}
+                </text>
+              );
+            })}
+          </g>
+
+          {/* Interactive click targets (fixed at physical positions) */}
+          {Array.from({ length: 6 }).map((_, i) => {
+            const seg = i + 1;
+            const isBlocked = blockedSegments?.has(seg);
+            const isHighlighted = !isBlocked && (highlightSegment === seg || highlightSegment === -1);
+            const revealOrder = ((seg - 1 - clockRotation + 600) % 6);
+            const isNext = revealedUpTo !== undefined && revealOrder === revealedUpTo;
+            const segInteractive = interactive && !isBlocked;
+
+            return (
+              <path
+                key={`click-${i}`}
+                d={getWedgePath(i)}
                 fill={
-                  isHighlighted
+                  isBlocked
+                    ? "rgba(120,100,80,0.35)"
+                    : isHighlighted
                     ? "rgba(201,147,57,0.2)"
                     : isNext
                     ? "rgba(201,147,57,0.1)"
-                    : segFill(i)
+                    : "transparent"
                 }
-                stroke={TT.goldDeep}
-                strokeWidth="1"
+                stroke="none"
                 className={[
                   "tt-segment",
-                  interactive ? "tt-segment-interactive" : "",
+                  segInteractive ? "tt-segment-interactive" : "",
                 ].filter(Boolean).join(" ")}
-                onClick={() => interactive && onSegmentClick?.(seg)}
+                onClick={() => segInteractive && onSegmentClick?.(seg)}
               />
             );
           })}
 
-          {/* Radial dividers */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const a = (i * 60 - 90) * Math.PI / 180;
-            const x = CX + R * Math.cos(a);
-            const y = CY + R * Math.sin(a);
-            return (
-              <line
-                key={i} x1={CX} y1={CY} x2={x} y2={y}
-                stroke={TT.ink} strokeWidth="1.4" opacity="0.55"
-              />
-            );
-          })}
-
-          {/* Segment numbers near rim edge */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const mid = ((i + 0.5) * 60 - 90) * Math.PI / 180;
-            const nx = CX + (R - 14) * Math.cos(mid);
-            const ny = CY + (R - 14) * Math.sin(mid);
-            return (
-              <text
-                key={i} x={nx} y={ny + 2} textAnchor="middle"
-                fontFamily="'Cormorant Garamond', serif" fontWeight="600" fontSize="11"
-                fill={TT.ink} opacity="0.55"
-              >
-                {i + 1}
-              </text>
-            );
-          })}
-
-          {/* Rule glyphs inside segments */}
-          {Array.from({ length: 6 }).map((_, i) => {
-            const seg = i + 1;
-            const rules = segmentRules[seg] || [];
-            if (rules.length === 0) return null;
-            const mid = ((i + 0.5) * 60 - 90) * Math.PI / 180;
-            const glyphR = (R + RINNER) / 2; // midpoint between hub and rim
-            const gx = CX + glyphR * Math.cos(mid);
-            const gy = CY + glyphR * Math.sin(mid);
-            const glyphSize = 48;
-            const totalH = rules.length * (glyphSize + 4) - 4;
-            return (
-              <foreignObject
-                key={`glyph-${seg}`}
-                x={gx - glyphSize / 2}
-                y={gy - totalH / 2}
-                width={glyphSize}
-                height={totalH + 4}
-              >
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  {rules.map((r, j) => (
-                    <RuleGlyph key={j} rule={r} size={glyphSize} />
-                  ))}
-                </div>
-              </foreignObject>
-            );
-          })}
+          {/* Rule glyphs rendered as HTML overlay below */}
 
           {/* Hub */}
           <circle cx={CX} cy={CY} r={RINNER + 4} fill={TT.ink} />
           <circle cx={CX} cy={CY} r={RINNER} fill="url(#tt-hub)" stroke={TT.goldDeep} strokeWidth="1" />
           <circle cx={CX} cy={CY} r={RINNER - 6} fill="none" stroke={TT.goldDeep} strokeWidth="0.5" />
 
-          {/* Hub content: center glyph or chapter/test */}
-          {centerRuleType ? (
+          {/* Hub content: center glyph when there's a clock-wide rule */}
+          {centerRuleType && (
             <foreignObject x={CX - 30} y={CY - 30} width={60} height={60}>
               <div style={{ width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <CenterGlyph type={centerRuleType} size={56} />
               </div>
             </foreignObject>
-          ) : (
-            <>
-              {chapter && (
-                <text
-                  x={CX} y={CY - 6} textAnchor="middle"
-                  fontFamily="'Cormorant Garamond', serif" fontWeight="500" fontSize="11"
-                  fill={TT.solarInk} opacity="0.65" style={{ letterSpacing: "0.18em" }}
-                >
-                  {toRoman(chapter)}
-                </text>
-              )}
-              {test && (
-                <text
-                  x={CX} y={CY + 22} textAnchor="middle"
-                  fontFamily="'Cormorant Garamond', serif" fontWeight="600" fontSize="30"
-                  fill={TT.solarInk}
-                >
-                  {test}
-                </text>
-              )}
-            </>
           )}
 
           {/* Clock hand — rotates to point at starting segment */}
@@ -255,6 +253,53 @@ export default function ClockDisplay({
             <circle cx={CX} cy={CY} r="5" fill={TT.goldMid} />
             <circle cx={CX} cy={CY} r="1.5" fill={TT.ink} />
           </g>
+          {/* Hour hand (X) — a shorter, thicker hand */}
+          {hourHand !== undefined && (() => {
+            const hourDeg = (hourHand - 1) * 60;
+            const hourLen = R * 0.55;
+            return (
+              <g
+                style={{
+                  transform: `rotate(${hourDeg}deg)`,
+                  transformOrigin: `${CX}px ${CY}px`,
+                }}
+              >
+                <path
+                  d={`M${CX} ${CY - hourLen}
+                      L${CX - 5} ${CY - hourLen + 14}
+                      L${CX - 4} ${CY - hourLen + 14}
+                      L${CX - 4} ${CY + 6}
+                      L${CX + 4} ${CY + 6}
+                      L${CX + 4} ${CY - hourLen + 14}
+                      L${CX + 5} ${CY - hourLen + 14} Z`}
+                  fill={TT.goldDeep} stroke={TT.ink} strokeWidth="0.8" opacity="0.7"
+                />
+              </g>
+            );
+          })()}
+
+          {/* Second hand (X) — thin red hand blocking two opposite segments */}
+          {secondHandPosition !== undefined && (() => {
+            const shDeg = (secondHandPosition - 0.5) * 60;
+            return (
+              <g
+                style={{
+                  transform: `rotate(${shDeg}deg)`,
+                  transformOrigin: `${CX}px ${CY}px`,
+                  transition: "transform .5s cubic-bezier(.34,1.56,.64,1)",
+                }}
+              >
+                {/* Line through center, both directions */}
+                <line
+                  x1={CX} y1={CY - R + 10}
+                  x2={CX} y2={CY + R - 10}
+                  stroke="#C44" strokeWidth="2" opacity="0.7"
+                />
+                <circle cx={CX} cy={CY - R + 10} r="4" fill="#C44" opacity="0.7" />
+                <circle cx={CX} cy={CY + R - 10} r="4" fill="#C44" opacity="0.7" />
+              </g>
+            );
+          })()}
         </svg>
       </div>
 
@@ -266,9 +311,7 @@ export default function ClockDisplay({
           const angle = (seg - 0.5) * 60; // midpoint of segment
           const rad = (angle - 90) * Math.PI / 180;
           // Distance from center as percentage of container
-          // Pull lower-half cards closer to avoid overlapping the hand
-          const sinVal = Math.sin(rad);
-          const dist = sinVal > 0.25 ? 36 : 42; // closer for bottom segments
+          const dist = 37;
           const x = 50 + dist * Math.cos(rad);
           const y = 50 + dist * Math.sin(rad);
 
@@ -282,7 +325,7 @@ export default function ClockDisplay({
               className="tt-card-slot"
               style={{ left: `${x}%`, top: `${y}%` }}
             >
-              <CardSlot cards={cards} angle={angle} revealed={segRevealed} />
+              <CardSlot cards={cards} angle={angle} revealed={segRevealed} playerNames={playerNames} uid={uid} />
               {showSums && segRevealed && cards.length > 0 && (
                 <div className="tt-sum-badge">Σ{sum}</div>
               )}
@@ -290,6 +333,60 @@ export default function ClockDisplay({
           );
         })}
       </div>
+
+      {/* Rule glyph overlays — HTML so CSS tooltips work */}
+      {/* Glyphs are defined by logical segment but rotate with the board */}
+      <div className="tt-slots-overlay">
+        {[1, 2, 3, 4, 5, 6].map((logicalSeg) => {
+          const rules = segmentRules[logicalSeg] || [];
+          if (rules.length === 0) return null;
+          // Map logical segment to physical position accounting for board rotation
+          const physicalSeg = ((logicalSeg - 1 + (boardRotation ?? 0) + 600) % 6) + 1;
+          const angle = (physicalSeg - 0.5) * 60;
+          const rad = (angle - 90) * Math.PI / 180;
+          // Position inside the wedge, between hub and rim
+          const dist = 18;
+          const x = 50 + dist * Math.cos(rad);
+          const y = 50 + dist * Math.sin(rad);
+          return (
+            <div
+              key={`glyph-${logicalSeg}`}
+              className="tt-glyph-slot"
+              style={{ left: `${x}%`, top: `${y}%` }}
+            >
+              {rules.map((r, j) => (
+                <RuleGlyph key={j} rule={r} size={56} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Between-segment rule glyphs — positioned on the rim at divider lines */}
+      {betweenRules && betweenRules.length > 0 && (
+        <div className="tt-slots-overlay">
+          {betweenRules.map((br, i) => {
+            // The divider between logical seg N and N+1 sits at angle N*60°
+            // Account for board rotation
+            const physicalDivider = ((br.segment - 1 + (boardRotation ?? 0) + 600) % 6) + 1;
+            const angle = physicalDivider * 60; // divider is at the end of the segment
+            const rad = (angle - 90) * Math.PI / 180;
+            // Place at the rim edge (between inner glyphs and outer card slots)
+            const dist = 28;
+            const x = 50 + dist * Math.cos(rad);
+            const y = 50 + dist * Math.sin(rad);
+            return (
+              <div
+                key={`between-${i}`}
+                className="tt-glyph-slot"
+                style={{ left: `${x}%`, top: `${y}%` }}
+              >
+                <BetweenRuleGlyph rule={br} size={32} />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );

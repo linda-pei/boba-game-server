@@ -8,6 +8,8 @@ import ReadingPhase from "./ReadingPhase";
 import PlayingPhase from "./PlayingPhase";
 import LevelComplete from "./LevelComplete";
 import GameOver from "./GameOver";
+import GameBanner from "../../components/shared/GameBanner";
+import ResignButton from "../../components/shared/ResignButton";
 
 export default function OrderOverloadGameBoard({ roomCode }: { roomCode: string }) {
   const { uid } = useAuthContext();
@@ -26,34 +28,34 @@ export default function OrderOverloadGameBoard({ roomCode }: { roomCode: string 
   if (loading) return <p>Loading game...</p>;
   if (!game || !room) return <p>Game not found.</p>;
 
-  if (game.status === "reading") {
-    return (
-      <ReadingPhase
-        roomCode={roomCode}
-        game={game}
-        hand={hand}
-        uid={uid!}
-        room={room}
-      />
-    );
-  }
-
-  if (game.status === "level-complete") {
-    return <LevelComplete roomCode={roomCode} game={game} room={room} uid={uid!} />;
-  }
-
   if (game.status === "finished") {
     return <GameOver game={game} room={room} />;
   }
 
-  // playing
+  const subtitle =
+    game.status === "reading"
+      ? "reading orders"
+      : game.status === "level-complete"
+        ? "level complete"
+        : "playing";
+
   return (
-    <PlayingPhase
-      roomCode={roomCode}
-      game={game}
-      hand={hand}
-      uid={uid!}
-      room={room}
-    />
+    <div className="game-screen-wrap">
+      <GameBanner
+        game="oo"
+        subtitle={subtitle}
+        roundLabel={`level ${game.level}`}
+        actions={<ResignButton />}
+      />
+      {game.status === "reading" && (
+        <ReadingPhase roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      )}
+      {game.status === "level-complete" && (
+        <LevelComplete roomCode={roomCode} game={game} room={room} uid={uid!} />
+      )}
+      {game.status === "playing" && (
+        <PlayingPhase roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      )}
+    </div>
   );
 }

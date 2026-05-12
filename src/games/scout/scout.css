@@ -271,55 +271,7 @@
   color: var(--ink-soft);
 }
 
-/* ---- Score Board ---- */
-.scout-screen .score-board {
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
-  background: var(--surface);
-  overflow: hidden;
-  box-shadow: var(--shadow-2);
-  margin: var(--s-5) 0 0;
-  text-align: left;
-}
-
-.scout-screen .score-board h4 {
-  padding: 10px 14px 6px;
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-
-.scout-screen .score-grid {
-  display: flex;
-  flex-direction: column;
-}
-
-.scout-screen .score-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto auto auto;
-  gap: var(--s-3);
-  align-items: center;
-  padding: 10px 14px;
-  border-top: 1px dashed var(--border);
-  font-size: 0.85rem;
-}
-
-.scout-screen .score-row-active {
-  background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
-}
-
-.scout-screen .score-name {
-  font-weight: 600;
-}
-
-.scout-screen .score-you {
-  color: var(--peach-700);
-  font-weight: 500;
-  font-size: 0.85em;
-}
-
+/* ---- Score row tweaks for Scout (multi-column, has S&S token & cumulative) ---- */
 .scout-screen .score-token {
   font-weight: 700;
   font-size: 0.75rem;
@@ -335,6 +287,7 @@
   background: var(--milk-200);
   color: var(--ink-mute);
   font-weight: 500;
+  text-decoration: none;
 }
 
 .scout-screen .score-round {

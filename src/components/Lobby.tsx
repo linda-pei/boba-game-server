@@ -12,6 +12,9 @@ import { startTakeTimeGame } from "../games/take-time/useTakeTimeGame";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
+import GameSticker from "./shared/GameSticker";
+import { GAME_ID_TO_KEY } from "./shared/GameIcon";
+import PlayerCountStatus from "./shared/PlayerCountStatus";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -176,52 +179,28 @@ export default function Lobby() {
         {/* Game type selector */}
         <div className="game-selector">
           <label className="game-selector-label">Game</label>
-          <div className="game-selector-list">
-            {([
-              { id: "things-in-rings", name: "Things in Rings", players: "2+" },
-              { id: "scout", name: "Scout", players: "3–5" },
-              { id: "werewords", name: "Werewords", players: "4–11" },
-              { id: "order-overload", name: "Order Overload", players: "2–6" },
-              { id: "deep-sea", name: "Deep Sea Adventure", players: "2–6" },
-              { id: "take-time", name: "Take Time", players: "2–4" },
-            ] as const).map((g) => (
-              <button
-                key={g.id}
-                className={`game-selector-card${gameType === g.id ? " selected" : ""}`}
-                data-game={g.id}
-                onClick={() => handleSetGameType(g.id)}
+          <div className="game-sticker-grid">
+            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time"] as const).map((id) => (
+              <GameSticker
+                key={id}
+                game={GAME_ID_TO_KEY[id]}
+                selected={gameType === id}
                 disabled={!isHost}
-              >
-                <span className="game-selector-name">{g.name}</span>
-                <span className="game-selector-players">{g.players} players</span>
-              </button>
+                onClick={() => handleSetGameType(id)}
+              />
             ))}
           </div>
         </div>
 
         {/* Deep Sea info */}
         {isDeepSea && (
-          <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-            Deep Sea Adventure requires 2–6 players.{" "}
-            {players.length < 2
-              ? `Need ${2 - players.length} more.`
-              : players.length > 6
-                ? "Too many players!"
-                : `${players.length} players — ready!`}
-          </p>
+          <PlayerCountStatus gameName="Deep Sea Adventure" count={players.length} min={2} max={6} />
         )}
 
         {/* Take Time settings */}
         {isTakeTime && (
           <>
-            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Take Time requires 2–4 players.{" "}
-              {players.length < 2
-                ? `Need ${2 - players.length} more.`
-                : players.length > 4
-                  ? "Too many players!"
-                  : `${players.length} players — ready!`}
-            </p>
+            <PlayerCountStatus gameName="Take Time" count={players.length} min={2} max={4} />
             <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
               Chapter:
               <select
@@ -281,23 +260,13 @@ export default function Lobby() {
 
         {/* Scout info */}
         {isScout && (
-          <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-            Scout requires 3–5 players.{" "}
-            {players.length < 3
-              ? `Need ${3 - players.length} more.`
-              : `${players.length} players — ready!`}
-          </p>
+          <PlayerCountStatus gameName="Scout" count={players.length} min={3} max={5} />
         )}
 
         {/* Werewords info */}
         {isWerewords && (
           <>
-            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Werewords requires 4–11 players.{" "}
-              {players.length < 4
-                ? `Need ${4 - players.length} more.`
-                : `${players.length} players — ready!`}
-            </p>
+            <PlayerCountStatus gameName="Werewords" count={players.length} min={4} max={11} />
             <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
               Mayor:
               <select
@@ -361,14 +330,7 @@ export default function Lobby() {
                 ))}
               </select>
             </label>
-            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-              Order Overload requires 2–6 players.{" "}
-              {players.length < 2
-                ? `Need ${2 - players.length} more.`
-                : players.length > 6
-                  ? "Too many players!"
-                  : `${players.length} players — ready!`}
-            </p>
+            <PlayerCountStatus gameName="Order Overload" count={players.length} min={2} max={6} />
           </>
         )}
 

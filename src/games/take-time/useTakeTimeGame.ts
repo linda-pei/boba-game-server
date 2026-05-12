@@ -116,6 +116,20 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
   const emptySegments: Record<number, TakeTimePlacedCard[]> = {};
   for (let i = 1; i <= 6; i++) emptySegments[i] = [];
 
+  // Keep remaining deck for draw mechanic (VII)
+  const remainingDeck = deck.slice(12);
+
+  // Check if level has draw segments
+  const hasDrawRule = Object.values(levelDef.segmentRules).some(
+    (rules) => rules.some((r) => r.type === "draw")
+  );
+
+  // Track hand sizes for draw mechanic (needed to know when players run out)
+  const handSizes: Record<string, number> = {};
+  for (const uid of turnOrder) {
+    handSizes[uid] = hands[uid].cards.length;
+  }
+
   const gameData: TakeTimeGame = {
     gameType: "take-time",
     status: "discussion",
@@ -133,6 +147,10 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
     revealIndex: 0,
     twoPlayerRevealed: playerCount !== 2,
     lastAction: null,
+    ...(hasDrawRule ? { deck: remainingDeck } : {}),
+    ...(levelDef.secondHand !== undefined ? { secondHandPosition: levelDef.secondHand } : {}),
+    boardRotation: 0,
+    ...(hasDrawRule ? { handSizes } : {}),
   };
 
   const batch = writeBatch(db);
@@ -160,6 +178,66 @@ export async function setClockRotation(roomCode: string, rotation: number): Prom
   await updateDoc(doc(db, "games", roomCode), {
     clockRotation: rotation,
   });
+}
+
+/** Get the logical segment (rule segment) at a physical position, accounting for board rotation */
+function logicalSegment(physicalPos: number, boardRotation: number): number {
+  return ((physicalPos - 1 - boardRotation + 600) % 6) + 1;
+}
+
+/** Get the rules that apply at a physical position, accounting for board rotation */
+function getRulesAtPosition(
+  game: TakeTimeGame,
+  physicalPos: number,
+): TakeTimeSegmentRule[] {
+  const logical = logicalSegment(physicalPos, game.boardRotation ?? 0);
+  return game.levelDef.segmentRules[logical] || [];
+}
+
+/** Check if a physical segment is blocked (by blocked rule or second hand) */
+function isSegmentBlocked(game: TakeTimeGame, physicalPos: number): string | null {
+  const rules = getRulesAtPosition(game, physicalPos);
+  if (rules.some((r) => r.type === "blocked")) {
+    return "This segment is blocked";
+  }
+  // Second hand blocks two opposing segments
+  if (game.secondHandPosition !== undefined) {
+    const sh = game.secondHandPosition;
+    const opposite = ((sh - 1 + 3) % 6) + 1;
+    if (physicalPos === sh || physicalPos === opposite) {
+      return "This segment is blocked by the second hand";
+    }
+  }
+  return null;
+}
+
+/** Validate card selection against clock rule constraints (Chapter IV) */
+function validateCardSelection(
+  game: TakeTimeGame,
+  hand: TakeTimeHand,
+  cardId: string,
+): string | null {
+  const { clockRule } = game.levelDef;
+
+  if (clockRule === "high-to-low") {
+    const maxVal = Math.max(...hand.cards.map((c) => c.value));
+    const card = hand.cards.find((c) => c.id === cardId);
+    if (card && card.value < maxVal) {
+      return "Must play your highest value card";
+    }
+  } else if (clockRule === "low-to-high") {
+    const minVal = Math.min(...hand.cards.map((c) => c.value));
+    const card = hand.cards.find((c) => c.id === cardId);
+    if (card && card.value > minVal) {
+      return "Must play your lowest value card";
+    }
+  } else if (clockRule === "locked-order") {
+    if (hand.cards[0] && hand.cards[0].id !== cardId) {
+      return "Must play the leftmost card in your hand";
+    }
+  }
+
+  return null;
 }
 
 export async function placeCard(
@@ -199,12 +277,22 @@ export async function placeCard(
       }
     }
 
+    // ---- VALIDATION ----
+
+    // Check blocked segments (VIII blocked rule + X second hand)
+    const blockReason = isSegmentBlocked(game, segmentIndex);
+    if (blockReason) throw new Error(blockReason);
+
+    // Check card selection constraints (IV: high-to-low, low-to-high, locked-order)
+    const selectionError = validateCardSelection(game, hand, cardId);
+    if (selectionError) throw new Error(selectionError);
+
     // ---- ALL WRITES BELOW ----
     const cardIdx = hand.cards.findIndex((c) => c.id === cardId);
     if (cardIdx === -1) throw new Error("Card not in hand");
 
     const card = hand.cards[cardIdx];
-    const newCards = hand.cards.filter((_, i) => i !== cardIdx);
+    let newCards = hand.cards.filter((_, i) => i !== cardIdx);
     const turnNumber = game.cardsPlayed + 1;
 
     const placedCard: TakeTimePlacedCard = {
@@ -219,13 +307,90 @@ export async function placeCard(
 
     const newSegmentCards = [...(game.segments[segmentIndex] || []), placedCard];
 
-    // Update hand (may be overwritten below if reveal merges hidden cards)
-    txn.update(handRef, { cards: newCards });
+    // Check if this segment has a draw rule (VII) — draw from deck
+    const segmentRules = getRulesAtPosition(game, segmentIndex);
+    const hasDraw = segmentRules.some((r) => r.type === "draw");
+    let drawnCard: TakeTimeCard | null = null;
+    let newDeck = game.deck ? [...game.deck] : [];
+    if (hasDraw && newDeck.length > 0) {
+      drawnCard = newDeck.shift()!;
+      newCards = [...newCards, drawnCard];
+    }
+
+    // Check for rotation rules (VIII)
+    const hasClockwise = segmentRules.some((r) => r.type === "clockwise");
+    const hasCounterClockwise = segmentRules.some((r) => r.type === "counter-clockwise");
+    let newBoardRotation = game.boardRotation ?? 0;
+    if (hasClockwise) newBoardRotation += 1;
+    if (hasCounterClockwise) newBoardRotation -= 1;
+
+    // Rotate second hand after each turn (X)
+    let newSecondHandPos = game.secondHandPosition;
+    if (newSecondHandPos !== undefined) {
+      newSecondHandPos = ((newSecondHandPos - 1 + 1) % 6) + 1; // advance 1 clockwise
+    }
+
+    // Determine next turn (skip players with empty hands for draw levels)
+    const hasDrawMechanic = game.deck !== undefined;
+    let newHandSize = newCards.length;
+
+    // Update hand sizes tracking
+    const handSizes = game.handSizes ? { ...game.handSizes } : {};
+    handSizes[uid] = newHandSize;
+
+    // For 2-player reveal, update sizes
+    if (needsReveal) {
+      if (hand.hiddenCards && hand.hiddenCards.length > 0) {
+        newHandSize = newCards.length + hand.hiddenCards.length;
+        handSizes[uid] = newHandSize;
+      }
+      if (otherPid && otherHand && otherHand.hiddenCards && otherHand.hiddenCards.length > 0) {
+        handSizes[otherPid] = otherHand.cards.length + otherHand.hiddenCards.length;
+      }
+    }
+
+    // Calculate next turn
+    let nextTurn: number;
+    if (game.cardsPlayed === 0) {
+      const playerIdx = game.turnOrder.indexOf(uid);
+      nextTurn = (playerIdx + 1) % game.turnOrder.length;
+    } else {
+      nextTurn = (game.currentTurn + 1) % game.turnOrder.length;
+    }
+
+    // Check if game is done (all hands empty)
+    let allDone = false;
+    if (hasDrawMechanic) {
+      // With draw mechanic, check handSizes
+      allDone = Object.values(handSizes).every((s) => s === 0);
+      if (!allDone) {
+        // Skip players with no cards
+        let checks = 0;
+        while (handSizes[game.turnOrder[nextTurn]] === 0 && checks < game.turnOrder.length) {
+          nextTurn = (nextTurn + 1) % game.turnOrder.length;
+          checks++;
+        }
+        if (checks >= game.turnOrder.length) allDone = true;
+      }
+    } else {
+      allDone = newCardsPlayed >= 12;
+    }
+
+    // Update hand
+    if (needsReveal && hand.hiddenCards && hand.hiddenCards.length > 0) {
+      txn.update(handRef, {
+        cards: [...newCards, ...hand.hiddenCards],
+        hiddenCards: [],
+      });
+    } else {
+      txn.update(handRef, { cards: newCards });
+    }
 
     // Build game updates
     const gameUpdates: Record<string, unknown> = {
       [`segments.${segmentIndex}`]: newSegmentCards,
       cardsPlayed: newCardsPlayed,
+      currentTurn: nextTurn,
       lastAction: `${card.id} placed on segment ${segmentIndex}`,
     };
 
@@ -235,29 +400,39 @@ export async function placeCard(
 
     if (game.cardsPlayed === 0) {
       gameUpdates.firstPlayer = uid;
-      const playerIdx = game.turnOrder.indexOf(uid);
-      gameUpdates.currentTurn = (playerIdx + 1) % game.turnOrder.length;
-    } else {
-      gameUpdates.currentTurn = (game.currentTurn + 1) % game.turnOrder.length;
     }
 
-    if (newCardsPlayed === 12) {
+    // Board rotation (VIII)
+    if (newBoardRotation !== (game.boardRotation ?? 0)) {
+      gameUpdates.boardRotation = newBoardRotation;
+      // VIII-4: clock hand rotates with board
+      if (game.levelDef.handRotatesWithBoard) {
+        gameUpdates.clockRotation = game.clockRotation + (newBoardRotation - (game.boardRotation ?? 0));
+      }
+    }
+
+    // Second hand rotation (X)
+    if (newSecondHandPos !== game.secondHandPosition) {
+      gameUpdates.secondHandPosition = newSecondHandPos;
+    }
+
+    // Draw mechanic: update deck and hand sizes
+    if (hasDraw && game.deck !== undefined) {
+      gameUpdates.deck = newDeck;
+    }
+    if (game.handSizes !== undefined) {
+      gameUpdates.handSizes = handSizes;
+    }
+
+    if (allDone) {
       gameUpdates.status = "resolution";
       gameUpdates.revealIndex = 0;
     }
 
     txn.update(gameRef, gameUpdates);
 
-    // 2-player hidden card reveal: after 4 cards placed
+    // 2-player hidden card reveal: other player
     if (needsReveal) {
-      // Current player: merge hidden cards into hand (use newCards which already has played card removed)
-      if (hand.hiddenCards && hand.hiddenCards.length > 0) {
-        txn.update(handRef, {
-          cards: [...newCards, ...hand.hiddenCards],
-          hiddenCards: [],
-        });
-      }
-      // Other player: merge hidden cards using pre-read data
       if (otherPid && otherHand && otherHand.hiddenCards && otherHand.hiddenCards.length > 0) {
         txn.update(doc(db, "games", roomCode, "hands", otherPid), {
           cards: [...otherHand.cards, ...otherHand.hiddenCards],
@@ -344,6 +519,25 @@ export async function backToLobby(roomCode: string): Promise<void> {
 
 // ---- Validation ----
 
+/** Compute segment values: sum for normal, |max-min| for difference mode */
+function computeSegmentValues(
+  segments: Record<number, TakeTimePlacedCard[]>,
+  clockRule: string,
+): Record<number, number> {
+  const vals: Record<number, number> = {};
+  for (let s = 1; s <= 6; s++) {
+    const cards = segments[s] || [];
+    if (cards.length === 0) { vals[s] = 0; continue; }
+    if (clockRule === "difference") {
+      const values = cards.map((c) => c.value);
+      vals[s] = Math.max(...values) - Math.min(...values);
+    } else {
+      vals[s] = cards.reduce((acc, c) => acc + c.value, 0);
+    }
+  }
+  return vals;
+}
+
 export function validateTest(game: TakeTimeGame): { passed: boolean; violations: string[] } {
   const violations: string[] = [];
   const { segments, clockRotation, levelDef } = game;
@@ -354,11 +548,8 @@ export function validateTest(game: TakeTimeGame): { passed: boolean; violations:
     orderedSegments.push(((i + clockRotation) % 6) + 1);
   }
 
-  // Compute sums
-  const sums: Record<number, number> = {};
-  for (let s = 1; s <= 6; s++) {
-    sums[s] = (segments[s] || []).reduce((acc, c) => acc + c.value, 0);
-  }
+  // Compute segment values (sum or difference)
+  const sums = computeSegmentValues(segments, levelDef.clockRule);
 
   // Rule 1: at least 1 card per segment
   for (let s = 1; s <= 6; s++) {
@@ -367,17 +558,18 @@ export function validateTest(game: TakeTimeGame): { passed: boolean; violations:
     }
   }
 
-  // Rule 2: ascending sums in clock order
+  // Rule 2: ascending values in clock order
   for (let i = 1; i < orderedSegments.length; i++) {
     const prev = orderedSegments[i - 1];
     const curr = orderedSegments[i];
     if (sums[curr] < sums[prev]) {
-      violations.push(`Segment ${curr} (${sums[curr]}) < segment ${prev} (${sums[prev]})`);
+      const label = levelDef.clockRule === "difference" ? "diff" : "sum";
+      violations.push(`Segment ${curr} (${label} ${sums[curr]}) < segment ${prev} (${label} ${sums[prev]})`);
     }
   }
 
-  // Rule 3: sums <= 24 (unless infinity)
-  if (levelDef.clockRule !== "infinity") {
+  // Rule 3: sums <= 24 (unless infinity or difference mode)
+  if (levelDef.clockRule !== "infinity" && levelDef.clockRule !== "difference") {
     for (let s = 1; s <= 6; s++) {
       if (sums[s] > 24) {
         violations.push(`Segment ${s}: sum ${sums[s]} exceeds 24`);
@@ -385,16 +577,111 @@ export function validateTest(game: TakeTimeGame): { passed: boolean; violations:
     }
   }
 
-  // Rule 4: segment-specific rules
+  // Two-per-segment: exactly 2 cards each (V, VI)
+  if (levelDef.clockRule === "two-per-segment" || levelDef.clockRule === "difference") {
+    for (let s = 1; s <= 6; s++) {
+      const count = (segments[s] || []).length;
+      if (count !== 2) {
+        violations.push(`Segment ${s}: must have exactly 2 cards, has ${count}`);
+      }
+    }
+  }
+
+  // Max-spread: max difference between highest and lowest segment values (IX)
+  if (levelDef.clockRule === "max-spread" && levelDef.maxSpread !== undefined) {
+    const vals = Object.values(sums);
+    const spread = Math.max(...vals) - Math.min(...vals);
+    if (spread > levelDef.maxSpread) {
+      violations.push(`Spread between highest and lowest segment is ${spread}, max allowed is ${levelDef.maxSpread}`);
+    }
+  }
+
+  // Hour hand: first cards placed in each segment must be ascending from hour hand (X)
+  if (levelDef.hourHand !== undefined) {
+    const hourOrder: number[] = [];
+    for (let i = 0; i < 6; i++) {
+      hourOrder.push(((i + levelDef.hourHand - 1) % 6) + 1);
+    }
+    for (let i = 1; i < hourOrder.length; i++) {
+      const prevSeg = hourOrder[i - 1];
+      const currSeg = hourOrder[i];
+      const prevFirst = (segments[prevSeg] || [])[0];
+      const currFirst = (segments[currSeg] || [])[0];
+      if (prevFirst && currFirst && currFirst.value < prevFirst.value) {
+        violations.push(`Hour hand: first card in segment ${currSeg} (${currFirst.value}) < first card in segment ${prevSeg} (${prevFirst.value})`);
+      }
+    }
+  }
+
+  // Between-segment rules (IX) — map logical to physical
+  const boardRot2 = game.boardRotation ?? 0;
+  if (levelDef.betweenRules) {
+    for (const br of levelDef.betweenRules) {
+      const logSeg1 = br.segment;
+      const logSeg2 = (logSeg1 % 6) + 1;
+      const seg1 = ((logSeg1 - 1 + boardRot2 + 600) % 6) + 1;
+      const seg2 = ((logSeg2 - 1 + boardRot2 + 600) % 6) + 1;
+      const v1 = sums[seg1];
+      const v2 = sums[seg2];
+      if (br.type === "min-diff") {
+        const diff = Math.abs(v2 - v1);
+        if (diff < (br.minDiff ?? 0)) {
+          violations.push(`Between segments ${seg1}–${seg2}: difference ${diff} < required ${br.minDiff}`);
+        }
+      } else if (br.type === "equal") {
+        if (v1 !== v2) {
+          violations.push(`Segments ${seg1} and ${seg2} must be equal (${v1} ≠ ${v2})`);
+        }
+      }
+    }
+  }
+
+  // Segment-specific rules
+  // With board rotation (VIII), rules shift: logical segment s → physical position ((s-1+boardRotation) % 6) + 1
+  const boardRot = game.boardRotation ?? 0;
   const allCards = Object.values(segments).flat();
 
+  // Collect physical segments with min/max rules for cross-segment validation
+  const minSegs: number[] = [];
+  const maxSegs: number[] = [];
+
   for (const [segStr, rules] of Object.entries(levelDef.segmentRules)) {
-    const seg = Number(segStr);
-    const segCards = segments[seg] || [];
+    const logicalSeg = Number(segStr);
+    // Map logical segment to physical position (accounting for board rotation)
+    const physicalSeg = ((logicalSeg - 1 + boardRot + 600) % 6) + 1;
+    const segCards = segments[physicalSeg] || [];
 
     for (const rule of rules) {
-      const v = checkSegmentRule(rule, seg, segCards, sums, allCards, segments);
-      if (v) violations.push(`Segment ${seg}: ${v}`);
+      if (rule.type === "min") { minSegs.push(physicalSeg); continue; }
+      if (rule.type === "max") { maxSegs.push(physicalSeg); continue; }
+      // Skip placement-only rules during validation
+      if (rule.type === "draw" || rule.type === "clockwise" || rule.type === "counter-clockwise" || rule.type === "blocked") continue;
+      const v = checkSegmentRule(rule, physicalSeg, segCards, sums, allCards, segments);
+      if (v) violations.push(`Segment ${physicalSeg}: ${v}`);
+    }
+  }
+
+  // Validate min rules
+  if (minSegs.length > 0) {
+    const sortedVals = [...allCards.map((c) => c.value)].sort((a, b) => a - b);
+    const targetMins = sortedVals.slice(0, minSegs.length);
+    const minSegCards = minSegs.flatMap((s) => segments[s] || []);
+    for (const target of targetMins) {
+      if (!minSegCards.some((c) => c.value === target)) {
+        violations.push(`Min segments must collectively contain the ${minSegs.length} lowest values (missing ${target})`);
+      }
+    }
+  }
+
+  // Validate max rules
+  if (maxSegs.length > 0) {
+    const sortedVals = [...allCards.map((c) => c.value)].sort((a, b) => b - a);
+    const targetMaxes = sortedVals.slice(0, maxSegs.length);
+    const maxSegCards = maxSegs.flatMap((s) => segments[s] || []);
+    for (const target of targetMaxes) {
+      if (!maxSegCards.some((c) => c.value === target)) {
+        violations.push(`Max segments must collectively contain the ${maxSegs.length} highest values (missing ${target})`);
+      }
     }
   }
 
@@ -454,19 +741,10 @@ function checkSegmentRule(
         return `sum ${sums[seg]} is not closest to ${target}`;
       return null;
     }
-    case "max": {
-      const maxVal = Math.max(...allCards.map((c) => c.value));
-      if (!segCards.some((c) => c.value === maxVal))
-        return `must contain highest value card (${maxVal})`;
+    case "max":
+    case "min":
+      // Handled at validateTest level for cross-segment logic
       return null;
-    }
-    case "min": {
-      // Find all segments with min rule
-      const minVal = Math.min(...allCards.map((c) => c.value));
-      if (!segCards.some((c) => c.value === minVal))
-        return `must contain lowest value card (${minVal})`;
-      return null;
-    }
     case "color-max": {
       const colorCards = allCards.filter((c) => c.color === rule.color);
       if (colorCards.length === 0) return null;
@@ -489,6 +767,12 @@ function checkSegmentRule(
         return `must contain the last card played`;
       return null;
     }
+    // Placement-only rules — no validation needed
+    case "draw":
+    case "clockwise":
+    case "counter-clockwise":
+    case "blocked":
+      return null;
     default:
       return null;
   }

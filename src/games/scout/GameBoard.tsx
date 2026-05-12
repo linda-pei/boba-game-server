@@ -7,6 +7,8 @@ import HandSetup from "./HandSetup";
 import PlayerTurn from "./PlayerTurn";
 import RoundEnd from "./RoundEnd";
 import GameOver from "./GameOver";
+import GameBanner from "../../components/shared/GameBanner";
+import ResignButton from "../../components/shared/ResignButton";
 import "./scout.css";
 
 export default function ScoutGameBoard({ roomCode }: { roomCode: string }) {
@@ -26,36 +28,35 @@ export default function ScoutGameBoard({ roomCode }: { roomCode: string }) {
   if (loading) return <p>Loading game...</p>;
   if (!game || !room) return <p>Game not found.</p>;
 
-  if (game.status === "setup") {
-    return (
-      <HandSetup
-        roomCode={roomCode}
-        game={game}
-        hand={hand}
-        uid={uid!}
-        room={room}
-      />
-    );
-  }
-
-  if (game.status === "round-end") {
-    return (
-      <RoundEnd roomCode={roomCode} game={game} room={room} />
-    );
-  }
-
   if (game.status === "finished") {
     return <GameOver game={game} room={room} />;
   }
 
-  // in-progress
+  const phaseSubtitle =
+    game.status === "setup"
+      ? "hand setup"
+      : game.status === "round-end"
+        ? "round complete"
+        : "in play";
+  const totalRounds = game.turnOrder.length;
+
   return (
-    <PlayerTurn
-      roomCode={roomCode}
-      game={game}
-      hand={hand}
-      uid={uid!}
-      room={room}
-    />
+    <div className="game-screen-wrap">
+      <GameBanner
+        game="scout"
+        subtitle={phaseSubtitle}
+        roundLabel={`round ${game.roundNumber}/${totalRounds}`}
+        actions={<ResignButton />}
+      />
+      {game.status === "setup" && (
+        <HandSetup roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      )}
+      {game.status === "round-end" && (
+        <RoundEnd roomCode={roomCode} game={game} room={room} />
+      )}
+      {game.status === "in-progress" && (
+        <PlayerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      )}
+    </div>
   );
 }

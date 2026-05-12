@@ -1,0 +1,78 @@
+/* =========================================================
+   PLAYER SCORES — shared table-style player rows
+   Used by every game's in-progress player list.
+   ========================================================= */
+
+.score-board {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+  margin: var(--s-4) 0 0;
+  text-align: left;
+}
+
+.score-board h4 {
+  padding: 10px 14px 6px;
+  margin: 0;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+}
+
+.score-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.score-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 10px 14px;
+  border-top: 1px dashed var(--border);
+  font-size: 0.9rem;
+}
+
+.score-row-active {
+  background: color-mix(in srgb, var(--peach-500) 10%, transparent);
+}
+
+.score-name {
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.score-row-active .score-name {
+  color: var(--peach-700);
+}
+
+.score-you {
+  color: var(--peach-700);
+  font-weight: 500;
+  font-size: 0.8em;
+}
+
+.score-cards,
+.score-detail,
+.score-cumulative,
+.score-token {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+.score-cumulative {
+  font-weight: 700;
+  color: var(--peach-500);
+}
+
+.score-token.used {
+  color: var(--ink-mute);
+  text-decoration: line-through;
+}

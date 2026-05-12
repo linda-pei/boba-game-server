@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { ScoutGame, Room } from "../../types";
 import { finalizeRound, startNextRound, useAllScoutHandInfo } from "./useScoutGame";
 import { useAuthContext } from "../../hooks/AuthContext";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 
 interface RoundEndProps {
   roomCode: string;
@@ -62,33 +63,22 @@ export default function RoundEnd({ roomCode, game, room }: RoundEndProps) {
       <h2>Round {game.roundNumber} Complete</h2>
       <p>{reasonText}</p>
 
-      <div className="score-board">
-        <h4>Round Scores</h4>
-        <div className="score-grid">
-          {playerBreakdowns.map((p) => (
-            <div key={p.pid} className="score-row">
-              <span className="score-name">
-                {p.name}
-                {p.pid === uid && <span className="score-you"> (you)</span>}
-              </span>
-              <span className="score-detail">
-                +{p.captured} captured, +{p.tokens} tokens,{" "}
-                {p.isUncontestedOwner ? (
-                  <span style={{ color: "var(--jade-500)" }}>0 hand (uncontested)</span>
-                ) : (
-                  <span style={{ color: "var(--rose-500)" }}>-{p.handPenalty} hand</span>
-                )}
-              </span>
-              <span className="score-round">
-                = {p.roundScore}
-              </span>
-              <span className="score-cumulative">
-                Total: {p.projectedCumulative}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <PlayerScores title="Round Scores">
+        {playerBreakdowns.map((p) => (
+          <PlayerScoreRow key={p.pid} name={p.name} isYou={p.pid === uid}>
+            <span className="score-detail">
+              +{p.captured} captured, +{p.tokens} tokens,{" "}
+              {p.isUncontestedOwner ? (
+                <span style={{ color: "var(--jade-500)" }}>0 hand (uncontested)</span>
+              ) : (
+                <span style={{ color: "var(--rose-500)" }}>-{p.handPenalty} hand</span>
+              )}
+            </span>
+            <span className="score-round">= {p.roundScore}</span>
+            <span className="score-cumulative">Total: {p.projectedCumulative}</span>
+          </PlayerScoreRow>
+        ))}
+      </PlayerScores>
 
       {isHost && (
         <button className="btn btn--primary" onClick={handleNextRound} disabled={advancing} style={{ marginTop: "1rem" }}>

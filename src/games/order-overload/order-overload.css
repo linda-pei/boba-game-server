@@ -170,50 +170,23 @@
   transition: width 0.3s ease;
 }
 
-/* ---- Score board ---- */
-.oo-screen .score-board {
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
-  background: var(--surface);
-  overflow: hidden;
-  box-shadow: var(--shadow-2);
-  margin: var(--s-4) 0 0;
-  text-align: left;
-}
-
-.oo-screen .score-board h4 {
-  padding: 10px 14px 6px;
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-
-.oo-screen .score-row {
-  display: grid;
-  grid-template-columns: 32px 1fr auto auto;
-  gap: var(--s-3);
-  align-items: center;
-  padding: 10px 14px;
-  border-top: 1px dashed var(--border);
+/* ---- Row tweaks for OO score rows (emoji + revealed cards) ---- */
+.oo-row-eliminated { opacity: 0.5; }
+.oo-row-emoji {
+  min-width: 24px;
+  text-align: center;
   font-size: 0.85rem;
 }
-
-.oo-screen .score-row-active {
-  background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
+.oo-row-action {
+  font-size: 0.8rem;
+  color: var(--peach-500);
+  text-align: right;
+  min-width: 90px;
 }
-
-
-
-.oo-screen .score-name {
-  font-weight: 600;
-}
-
-.oo-screen .score-you {
-  color: var(--peach-700);
-  font-weight: 500;
-  font-size: 0.85em;
+.oo-row-revealed {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: var(--ink-mute);
 }
 
 /* ---- Guess input ---- */

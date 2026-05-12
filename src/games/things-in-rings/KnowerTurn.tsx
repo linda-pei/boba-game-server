@@ -2,6 +2,7 @@ import { useState } from "react";
 import { knowerAutoPlay } from "./useGame";
 import { getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
+import GameCard from "../../components/shared/GameCard";
 import type { Game, Hand } from "../../types";
 
 interface Props {
@@ -51,13 +52,13 @@ export default function KnowerTurn({ roomCode, game, hand, uid }: Props) {
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">
         {hand.cards.map((card) => (
-          <div
+          <GameCard
             key={card}
-            className={`game-card${selectedCard === card ? " selected" : ""}`}
+            selected={selectedCard === card}
             onClick={() => setSelectedCard(selectedCard === card ? null : card)}
           >
             {card}
-          </div>
+          </GameCard>
         ))}
       </div>
     </div>

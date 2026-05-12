@@ -7,11 +7,15 @@ interface Props {
   roomCode: string;
   game: TakeTimeGame;
   room: Room;
+  uid: string;
 }
 
-export default function TestResult({ roomCode, game, room }: Props) {
+export default function TestResult({ roomCode, game, room, uid }: Props) {
   const passed = game.status === "pass";
   const result = validateTest(game);
+  const playerNames = Object.fromEntries(
+    Object.entries(room.players).map(([id, p]) => [id, p.name])
+  );
   const hasNext = getNextLevel(game.chapter, game.test) !== null;
 
   const handleRetry = async () => {
@@ -43,6 +47,12 @@ export default function TestResult({ roomCode, game, room }: Props) {
         specialRules={game.levelDef.specialRules}
         revealedUpTo={6}
         showSums
+        playerNames={playerNames}
+        uid={uid}
+        boardRotation={game.boardRotation}
+        hourHand={game.levelDef.hourHand}
+        betweenRules={game.levelDef.betweenRules}
+        secondHandPosition={game.secondHandPosition}
       />
 
       {!passed && result.violations.length > 0 && (

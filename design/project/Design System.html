@@ -52,6 +52,9 @@
     --oo-cream:  #fff5dc;
     --ds-ocean:  #2a5b88;
     --ds-coral:  #ec7c5a;
+    --tt-solar:  #f0c64a; /* solar gold */
+    --tt-lunar:  #1a1f3d; /* lunar night */
+    --tt-cream:  #f4e8c8; /* parchment / day face */
 
     /* Scout card ramp — 1 → 10, hue-adjacent so neighbors blend */
     --scout-card-1:  #1B3A8C;
@@ -943,6 +946,7 @@
   .game-tile.ww    .accent-bar { background: var(--ww-night); }
   .game-tile.oo    .accent-bar { background: var(--oo-cafe); }
   .game-tile.ds    .accent-bar { background: linear-gradient(180deg, var(--ds-ocean), var(--ds-coral)); }
+  .game-tile.tt    .accent-bar { background: linear-gradient(180deg, var(--tt-cream) 0%, var(--tt-cream) 50%, var(--tt-lunar) 50%, var(--tt-lunar) 100%); }
 
   /* =========================================================
      GAME ICONOGRAPHY — sticker SVGs + selector tile + in-game banner
@@ -1067,6 +1071,7 @@
   .game-sticker.ww    .badge-mini { --badge-bg: var(--ww-moon);   --badge-ink: var(--ww-night); }
   .game-sticker.oo    .badge-mini { --badge-bg: var(--honey-500); --badge-ink: var(--ink); }
   .game-sticker.ds    .badge-mini { --badge-bg: var(--ds-coral);  --badge-ink: var(--pearl); }
+  .game-sticker.tt    .badge-mini { --badge-bg: var(--tt-lunar);  --badge-ink: var(--tt-solar); }
   /* per-game tile tints — light mode */
   .game-sticker.tir   { --tile-bg: #ffe2d4; --tile-bg2: #f7c4b0; }
   .game-sticker.scout { --tile-bg: #d8ecff; --tile-bg2: #b6d6ff; }
@@ -1074,6 +1079,10 @@
   .game-sticker.ww .art { color: var(--pearl); }
   .game-sticker.oo    { --tile-bg: #f7e7c8; --tile-bg2: #ecd1a0; }
   .game-sticker.ds    { --tile-bg: #b8d4e8; --tile-bg2: #6fa2c6; }
+  /* Take Time: split day/night — top half cream, bottom half lunar.
+     The clock SVG straddles the seam so the icon literally embodies the duality. */
+  .game-sticker.tt    { --tile-bg: #f4e8c8; --tile-bg2: #1a1f3d; background: linear-gradient(180deg, var(--tt-cream) 0%, var(--tt-cream) 52%, var(--tt-lunar) 52%, var(--tt-lunar) 100%) !important; }
+  .game-sticker.tt .meta { background: var(--surface); border-top: 2px solid var(--ink); }
 
   /* per-game tile tints — dark mode (deeper / desaturated so the meta
      panel stays legible; ww stays night). Meta panel always uses --surface
@@ -1083,6 +1092,7 @@
   [data-theme="dark"] .game-sticker.ww    { --tile-bg: #3a2d5c; --tile-bg2: #1c1633; }
   [data-theme="dark"] .game-sticker.oo    { --tile-bg: #4a3818; --tile-bg2: #2e2210; }
   [data-theme="dark"] .game-sticker.ds    { --tile-bg: #1c3a52; --tile-bg2: #0e2030; }
+  [data-theme="dark"] .game-sticker.tt    { --tile-bg: #3a2f10; --tile-bg2: #0c1024; background: linear-gradient(180deg, #3a2f10 0%, #3a2f10 52%, #0c1024 52%, #0c1024 100%) !important; }
 
   /* In-game banner — appears at the top of each game */
   .game-banner {
@@ -1153,15 +1163,26 @@
   .game-banner.ww    .round-pill { --pill-bg: var(--ww-moon);   --pill-ink: var(--ww-night); border-color: var(--ww-night); }
   .game-banner.oo    .round-pill { --pill-bg: var(--honey-500); --pill-ink: var(--ink); }
   .game-banner.ds    .round-pill { --pill-bg: var(--ds-coral);  --pill-ink: var(--pearl); }
+  .game-banner.tt    .round-pill { --pill-bg: var(--tt-solar);  --pill-ink: var(--tt-lunar); border-color: var(--tt-lunar); }
   /* per-game banner tints — light mode */
   .game-banner.tir   { --banner-bg: #ffe2d4; background: var(--banner-bg); }
   .game-banner.scout { background: linear-gradient(110deg, #d8ecff 0%, #ffe9d4 50%, #ffd4d4 100%); }
-  .game-banner.ww    { background: radial-gradient(circle at 80% 30%, #4a3a78 0%, var(--ww-night) 70%); --banner-ink: var(--pearl); --banner-sub: #d4c8ff; }
+  .game-banner.ww    { background: radial-gradient(circle at 80% 30%, #a89bd6 0%, #8675c0 70%); --banner-ink: var(--pearl); --banner-sub: #f4ecff; }
   .game-banner.ww .banner-icon { background: var(--ww-moon); }
+  .game-banner.ww .banner-title h2 { color: var(--pearl); }
+  .game-banner.ww .banner-title .sub { color: #f4ecff; }
   .game-banner.ww .round-pill { background: var(--ww-moon); color: var(--ww-night); }
   .game-banner.oo    { --banner-bg: #f7e7c8; background: var(--banner-bg); }
   .game-banner.ds    { background: linear-gradient(180deg, #b8d4e8 0%, #6fa2c6 100%); --banner-ink: var(--pearl); --banner-sub: #f0f8ff; }
   .game-banner.ds .round-pill { background: var(--ds-coral); }
+  /* Take Time banner: a horizon — cream sky over lunar ground, with a thin solar seam. */
+  .game-banner.tt    {
+    background: linear-gradient(180deg, var(--tt-cream) 0%, var(--tt-cream) 70%, var(--tt-solar) 70%, var(--tt-solar) 73%, var(--tt-lunar) 73%, var(--tt-lunar) 100%);
+    --banner-ink: var(--tt-lunar); --banner-sub: var(--tt-lunar);
+  }
+  .game-banner.tt .banner-icon { background: var(--tt-cream); border-color: var(--tt-lunar); }
+  .game-banner.tt .banner-title h2 { color: var(--tt-lunar); }
+  .game-banner.tt .banner-title .sub { color: var(--tt-lunar); opacity: 0.7; }
 
   /* per-game banner tints — dark mode (deeper backgrounds, light ink) */
   [data-theme="dark"] .game-banner.tir   { background: linear-gradient(110deg, #5a2818 0%, #3a1810 100%); --banner-ink: var(--pearl); --banner-sub: #f0c8b4; }
@@ -1169,6 +1190,12 @@
   [data-theme="dark"] .game-banner.ww    { background: radial-gradient(circle at 80% 30%, #3a2d5c 0%, #14102a 70%); --banner-ink: var(--pearl); --banner-sub: #d4c8ff; }
   [data-theme="dark"] .game-banner.oo    { background: linear-gradient(110deg, #4a3818 0%, #2e2210 100%); --banner-ink: var(--pearl); --banner-sub: #f0d4a0; }
   [data-theme="dark"] .game-banner.ds    { background: linear-gradient(180deg, #1c3a52 0%, #0e2030 100%); --banner-ink: var(--pearl); --banner-sub: #b8d4e8; }
+  [data-theme="dark"] .game-banner.tt    {
+    background: linear-gradient(180deg, #3a2f10 0%, #3a2f10 70%, var(--tt-solar) 70%, var(--tt-solar) 73%, #0c1024 73%, #0c1024 100%);
+    --banner-ink: var(--tt-solar); --banner-sub: var(--tt-solar);
+  }
+  [data-theme="dark"] .game-banner.tt .banner-title h2 { color: var(--tt-solar); }
+  [data-theme="dark"] .game-banner.tt .banner-title .sub { color: var(--tt-solar); opacity: 0.75; }
 
   /* gentle banner-icon idle motion */
   @keyframes banner-bob {
@@ -1891,6 +1918,16 @@
           <span style="background: var(--honey-500);"></span>
         </div>
       </div>
+      <div class="game-tile tt">
+        <div class="accent-bar"></div>
+        <h3 style="margin-left: 12px;">Take Time</h3>
+        <div class="sub" style="margin-left: 12px;">Day / night split — cream solar above, lunar night below. Gold seam reads as horizon or clock-rim.</div>
+        <div class="accent-swatches" style="margin-left: 12px;">
+          <span style="background: var(--tt-cream);"></span>
+          <span style="background: var(--tt-solar);"></span>
+          <span style="background: var(--tt-lunar);"></span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1917,10 +1954,10 @@
         <!-- Scout: fanned rainbow cards -->
         <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Scout">
           <g transform="translate(40 44)">
-            <g transform="rotate(-22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-2)"/></g>
-            <g transform="rotate(-7)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-5)"/></g>
-            <g transform="rotate(8)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-7)"/></g>
-            <g transform="rotate(22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-9)"/></g>
+            <g transform="rotate(-22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-2)"/></g>
+            <g transform="rotate(-7)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-5)"/></g>
+            <g transform="rotate(8)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-7)"/></g>
+            <g transform="rotate(22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-9)"/></g>
           </g>
         </svg>
         <span>scout</span>
@@ -1960,6 +1997,27 @@
         </svg>
         <span>deep sea</span>
       </div>
+      <div class="ico-cell">
+        <!-- Take Time: 6-segment clock straddling day/night, hand pointing into a cream wedge -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Take Time">
+          <circle cx="40" cy="40" r="28" fill="var(--tt-cream)"/>
+          <path d="M40 40 L40 12 A28 28 0 0 1 64.25 26 Z" class="nostroke" fill="var(--tt-lunar)"/>
+          <path d="M40 40 L64.25 26 A28 28 0 0 1 64.25 54 Z" class="nostroke" fill="var(--tt-solar)"/>
+          <path d="M40 40 L64.25 54 A28 28 0 0 1 40 68 Z" class="nostroke" fill="var(--tt-lunar)"/>
+          <g stroke="var(--ink)" stroke-width="2" fill="none">
+            <line x1="40" y1="40" x2="40" y2="12"/>
+            <line x1="40" y1="40" x2="64.25" y2="26"/>
+            <line x1="40" y1="40" x2="64.25" y2="54"/>
+            <line x1="40" y1="40" x2="40" y2="68"/>
+            <line x1="40" y1="40" x2="15.75" y2="54"/>
+            <line x1="40" y1="40" x2="15.75" y2="26"/>
+          </g>
+          <circle cx="40" cy="40" r="28" fill="none"/>
+          <line x1="40" y1="40" x2="26" y2="22" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="40" cy="40" r="3" class="nostroke" fill="var(--ink)"/>
+        </svg>
+        <span>take time</span>
+      </div>
     </div>
     <p class="caption">Same SVG scales from 32 → 200px. Used in player rows, in-game banner badge, and the selector tiles below.</p>
 
@@ -1968,13 +2026,13 @@
     <div class="game-selector">
       <button class="game-sticker tir">
         <div class="art">
-          <svg class="gicon" viewBox="0 0 100 100" width="120" height="120">
-            <circle cx="38" cy="42" r="26" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
-            <circle cx="62" cy="42" r="26" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
-            <circle cx="50" cy="66" r="26" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
-            <circle cx="38" cy="42" r="26" fill="none"/>
-            <circle cx="62" cy="42" r="26" fill="none"/>
-            <circle cx="50" cy="66" r="26" fill="none"/>
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <circle cx="30" cy="35" r="20" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
+            <circle cx="50" cy="35" r="20" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
+            <circle cx="40" cy="55" r="20" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
+            <circle cx="30" cy="35" r="20" fill="none"/>
+            <circle cx="50" cy="35" r="20" fill="none"/>
+            <circle cx="40" cy="55" r="20" fill="none"/>
           </svg>
         </div>
         <div class="meta">
@@ -1988,33 +2046,12 @@
       </button>
       <button class="game-sticker scout">
         <div class="art">
-          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
-            <g transform="translate(60 60)">
-              <g transform="rotate(-28)">
-                <rect x="-14" y="-32" width="28" height="58" rx="4" fill="#fffaf0"/>
-                <rect x="-14" y="-32" width="28" height="29" rx="4" class="nostroke" fill="var(--scout-2)"/>
-                <rect x="-14" y="-7" width="28" height="33" class="nostroke" fill="var(--scout-9)" opacity="0.5"/>
-              </g>
-              <g transform="rotate(-14)">
-                <rect x="-14" y="-36" width="28" height="62" rx="4" fill="#fffaf0"/>
-                <rect x="-14" y="-36" width="28" height="31" rx="4" class="nostroke" fill="var(--scout-4)"/>
-                <rect x="-14" y="-9" width="28" height="35" class="nostroke" fill="var(--scout-7)" opacity="0.5"/>
-              </g>
-              <g transform="rotate(0)">
-                <rect x="-14" y="-38" width="28" height="64" rx="4" fill="#fffaf0"/>
-                <rect x="-14" y="-38" width="28" height="32" rx="4" class="nostroke" fill="var(--scout-6)"/>
-                <rect x="-14" y="-10" width="28" height="36" class="nostroke" fill="var(--scout-3)" opacity="0.5"/>
-              </g>
-              <g transform="rotate(14)">
-                <rect x="-14" y="-36" width="28" height="62" rx="4" fill="#fffaf0"/>
-                <rect x="-14" y="-36" width="28" height="31" rx="4" class="nostroke" fill="var(--scout-8)"/>
-                <rect x="-14" y="-9" width="28" height="35" class="nostroke" fill="var(--scout-5)" opacity="0.5"/>
-              </g>
-              <g transform="rotate(28)">
-                <rect x="-14" y="-32" width="28" height="58" rx="4" fill="#fffaf0"/>
-                <rect x="-14" y="-32" width="28" height="29" rx="4" class="nostroke" fill="var(--scout-10)"/>
-                <rect x="-14" y="-7" width="28" height="33" class="nostroke" fill="var(--scout-1)" opacity="0.5"/>
-              </g>
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <g transform="translate(40 44)">
+              <g transform="rotate(-22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-2)"/></g>
+              <g transform="rotate(-7)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-5)"/></g>
+              <g transform="rotate(8)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-7)"/></g>
+              <g transform="rotate(22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-9)"/></g>
             </g>
           </svg>
         </div>
@@ -2029,16 +2066,13 @@
       </button>
       <button class="game-sticker ww">
         <div class="art">
-          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
-            <circle cx="80" cy="32" r="22" fill="var(--ww-moon)"/>
-            <circle cx="72" cy="26" r="4" class="nostroke" fill="rgba(31,20,16,0.18)"/>
-            <circle cx="86" cy="38" r="3" class="nostroke" fill="rgba(31,20,16,0.18)"/>
-            <!-- distant trees -->
-            <path d="M10 84 L18 60 L26 84 Z M22 84 L30 56 L38 84 Z" class="nostroke" fill="#1a1230" opacity="0.7"/>
-            <!-- wolf silhouette -->
-            <path d="M30 96 L36 64 L48 72 L54 56 L62 72 L70 56 L78 72 L90 64 L96 96 Z" fill="var(--ww-night)"/>
-            <circle cx="56" cy="80" r="2.5" class="nostroke" fill="var(--ww-moon)"/>
-            <circle cx="70" cy="80" r="2.5" class="nostroke" fill="var(--ww-moon)"/>
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <circle cx="50" cy="30" r="18" fill="var(--ww-moon)"/>
+            <circle cx="44" cy="26" r="3.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <circle cx="55" cy="34" r="2.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <path d="M16 66 L20 44 L28 50 L32 38 L40 50 L48 38 L52 50 L60 44 L64 66 Z" fill="var(--ww-night)"/>
+            <circle cx="34" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
+            <circle cx="46" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
           </svg>
         </div>
         <div class="meta">
@@ -2052,11 +2086,10 @@
       </button>
       <button class="game-sticker oo">
         <div class="art">
-          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
-            <rect x="20" y="60" width="80" height="28" rx="5" fill="var(--oo-cafe)"/>
-            <rect x="26" y="44" width="68" height="18" rx="4" fill="var(--oo-cream)"/>
-            <rect x="32" y="32" width="56" height="14" rx="3" fill="var(--peach-300)"/>
-            <path d="M60 6 L66 22 L84 24 L70 36 L74 54 L60 44 L46 54 L50 36 L36 24 L54 22 Z" fill="var(--honey-500)"/>
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <rect x="14" y="46" width="52" height="22" rx="4" fill="var(--oo-cafe)"/>
+            <rect x="18" y="34" width="44" height="14" rx="3" fill="var(--oo-cream)"/>
+            <path d="M40 8 L46 24 L62 26 L50 36 L54 52 L40 44 L26 52 L30 36 L18 26 L34 24 Z" fill="var(--honey-500)"/>
           </svg>
         </div>
         <div class="meta">
@@ -2070,23 +2103,14 @@
       </button>
       <button class="game-sticker ds">
         <div class="art">
-          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
-            <!-- bubbles -->
-            <circle cx="30" cy="14" r="5" fill="var(--pearl)"/>
-            <circle cx="20" cy="26" r="3.5" fill="var(--pearl)"/>
-            <circle cx="38" cy="28" r="2.5" fill="var(--pearl)"/>
-            <!-- helmet body -->
-            <rect x="36" y="34" width="48" height="48" rx="24" fill="var(--ds-ocean)"/>
-            <!-- viewport -->
-            <rect x="50" y="46" width="20" height="14" rx="3" fill="var(--ww-moon)"/>
-            <circle cx="60" cy="53" r="2.5" class="nostroke" fill="var(--ds-ocean)"/>
-            <!-- bolts -->
-            <circle cx="44" cy="56" r="2" class="nostroke" fill="var(--pearl)" stroke="var(--ink)" stroke-width="2"/>
-            <circle cx="76" cy="56" r="2" class="nostroke" fill="var(--pearl)" stroke="var(--ink)" stroke-width="2"/>
-            <!-- hose -->
-            <path d="M84 60 Q102 50 100 30" fill="none"/>
-            <!-- treasure -->
-            <rect x="50" y="84" width="20" height="10" rx="2" fill="var(--honey-500)"/>
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <circle cx="22" cy="18" r="4" fill="var(--pearl)"/>
+            <circle cx="14" cy="28" r="3" fill="var(--pearl)"/>
+            <circle cx="28" cy="30" r="2.5" fill="var(--pearl)"/>
+            <rect x="20" y="34" width="40" height="40" rx="20" fill="var(--ds-ocean)"/>
+            <rect x="32" y="42" width="16" height="10" rx="2" fill="var(--ww-moon)"/>
+            <circle cx="40" cy="47" r="2" class="nostroke" fill="var(--ds-ocean)"/>
+            <path d="M40 74 L36 80 M40 74 L44 80" fill="none"/>
           </svg>
         </div>
         <div class="meta">
@@ -2098,6 +2122,35 @@
           </div>
         </div>
       </button>
+      <button class="game-sticker tt">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 80 80" width="140" height="120">
+            <circle cx="40" cy="40" r="28" fill="var(--tt-cream)"/>
+            <path d="M40 40 L40 12 A28 28 0 0 1 64.25 26 Z" class="nostroke" fill="var(--tt-lunar)"/>
+            <path d="M40 40 L64.25 26 A28 28 0 0 1 64.25 54 Z" class="nostroke" fill="var(--tt-solar)"/>
+            <path d="M40 40 L64.25 54 A28 28 0 0 1 40 68 Z" class="nostroke" fill="var(--tt-lunar)"/>
+            <g stroke="var(--ink)" stroke-width="2" fill="none">
+              <line x1="40" y1="40" x2="40" y2="12"/>
+              <line x1="40" y1="40" x2="64.25" y2="26"/>
+              <line x1="40" y1="40" x2="64.25" y2="54"/>
+              <line x1="40" y1="40" x2="40" y2="68"/>
+              <line x1="40" y1="40" x2="15.75" y2="54"/>
+              <line x1="40" y1="40" x2="15.75" y2="26"/>
+            </g>
+            <circle cx="40" cy="40" r="28" fill="none"/>
+            <line x1="40" y1="40" x2="26" y2="22" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="40" cy="40" r="3" class="nostroke" fill="var(--ink)"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Take Time</h3>
+          <p>Co-op of 40 tests. Read the clock. Place the card.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 2–4 players</span>
+            <span class="badge-mini">co-op puzzle</span>
+          </div>
+        </div>
+      </button>
     </div>
 
     <h3>In-game banner</h3>
@@ -2106,13 +2159,13 @@
     <div class="stack" style="gap: var(--s-3);">
       <div class="game-banner tir">
         <div class="banner-icon">
-          <svg class="gicon" viewBox="0 0 80 80" width="42" height="42">
-            <circle cx="30" cy="35" r="18" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
-            <circle cx="50" cy="35" r="18" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
-            <circle cx="40" cy="52" r="18" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
-            <circle cx="30" cy="35" r="18" fill="none"/>
-            <circle cx="50" cy="35" r="18" fill="none"/>
-            <circle cx="40" cy="52" r="18" fill="none"/>
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <circle cx="30" cy="35" r="20" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
+            <circle cx="50" cy="35" r="20" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
+            <circle cx="40" cy="55" r="20" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
+            <circle cx="30" cy="35" r="20" fill="none"/>
+            <circle cx="50" cy="35" r="20" fill="none"/>
+            <circle cx="40" cy="55" r="20" fill="none"/>
           </svg>
         </div>
         <div class="banner-title">
@@ -2127,10 +2180,11 @@
       <div class="game-banner scout">
         <div class="banner-icon">
           <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
-            <g transform="translate(40 46)">
-              <g transform="rotate(-18)"><rect x="-9" y="-22" width="18" height="40" rx="3" fill="var(--scout-3)"/></g>
-              <g transform="rotate(0)"><rect x="-9" y="-24" width="18" height="42" rx="3" fill="var(--scout-6)"/></g>
-              <g transform="rotate(18)"><rect x="-9" y="-22" width="18" height="40" rx="3" fill="var(--scout-9)"/></g>
+            <g transform="translate(40 44)">
+              <g transform="rotate(-22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-2)"/></g>
+              <g transform="rotate(-7)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-5)"/></g>
+              <g transform="rotate(8)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-7)"/></g>
+              <g transform="rotate(22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-9)"/></g>
             </g>
           </svg>
         </div>
@@ -2146,9 +2200,12 @@
       <div class="game-banner ww">
         <div class="banner-icon">
           <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
-            <circle cx="40" cy="40" r="22" fill="var(--ww-night)"/>
-            <circle cx="34" cy="34" r="4" class="nostroke" fill="rgba(255,247,213,0.25)"/>
-            <circle cx="48" cy="46" r="3" class="nostroke" fill="rgba(255,247,213,0.25)"/>
+            <circle cx="50" cy="30" r="18" fill="var(--ww-moon)"/>
+            <circle cx="44" cy="26" r="3.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <circle cx="55" cy="34" r="2.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <path d="M16 66 L20 44 L28 50 L32 38 L40 50 L48 38 L52 50 L60 44 L64 66 Z" fill="var(--ww-night)"/>
+            <circle cx="34" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
+            <circle cx="46" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
           </svg>
         </div>
         <div class="banner-title">
@@ -2163,7 +2220,9 @@
       <div class="game-banner oo">
         <div class="banner-icon">
           <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
-            <path d="M40 12 L46 28 L62 30 L50 40 L54 56 L40 48 L26 56 L30 40 L18 30 L34 28 Z" fill="var(--honey-500)"/>
+            <rect x="14" y="46" width="52" height="22" rx="4" fill="var(--oo-cafe)"/>
+            <rect x="18" y="34" width="44" height="14" rx="3" fill="var(--oo-cream)"/>
+            <path d="M40 8 L46 24 L62 26 L50 36 L54 52 L40 44 L26 52 L30 36 L18 26 L34 24 Z" fill="var(--honey-500)"/>
           </svg>
         </div>
         <div class="banner-title">
@@ -2178,11 +2237,12 @@
       <div class="game-banner ds">
         <div class="banner-icon">
           <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
-            <rect x="22" y="22" width="36" height="36" rx="18" fill="var(--ds-ocean)"/>
-            <rect x="32" y="32" width="16" height="12" rx="3" fill="var(--ww-moon)"/>
-            <circle cx="40" cy="38" r="2.5" class="nostroke" fill="var(--ds-ocean)"/>
-            <circle cx="18" cy="18" r="3" fill="var(--pearl)"/>
-            <circle cx="10" cy="26" r="2" fill="var(--pearl)"/>
+            <circle cx="22" cy="18" r="4" fill="var(--pearl)"/>
+            <circle cx="14" cy="28" r="3" fill="var(--pearl)"/>
+            <circle cx="28" cy="30" r="2.5" fill="var(--pearl)"/>
+            <rect x="20" y="34" width="40" height="40" rx="20" fill="var(--ds-ocean)"/>
+            <rect x="32" y="42" width="16" height="10" rx="2" fill="var(--ww-moon)"/>
+            <circle cx="40" cy="47" r="2" class="nostroke" fill="var(--ds-ocean)"/>
           </svg>
         </div>
         <div class="banner-title">
@@ -2191,6 +2251,35 @@
         </div>
         <div class="banner-actions">
           <span class="round-pill">dive 2</span>
+        </div>
+      </div>
+
+      <div class="game-banner tt">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <circle cx="40" cy="40" r="26" fill="var(--tt-cream)"/>
+            <path d="M40 40 L40 14 A26 26 0 0 1 62.52 27 Z" class="nostroke" fill="var(--tt-lunar)"/>
+            <path d="M40 40 L62.52 53 A26 26 0 0 1 40 66 Z" class="nostroke" fill="var(--tt-lunar)"/>
+            <path d="M40 40 L17.48 27 A26 26 0 0 1 40 14 Z" class="nostroke" fill="var(--tt-lunar)"/>
+            <g stroke="var(--ink)" stroke-width="2" fill="none">
+              <line x1="40" y1="40" x2="40" y2="14"/>
+              <line x1="40" y1="40" x2="62.52" y2="27"/>
+              <line x1="40" y1="40" x2="62.52" y2="53"/>
+              <line x1="40" y1="40" x2="40" y2="66"/>
+              <line x1="40" y1="40" x2="17.48" y2="53"/>
+              <line x1="40" y1="40" x2="17.48" y2="27"/>
+            </g>
+            <circle cx="40" cy="40" r="26" fill="none"/>
+            <line x1="40" y1="40" x2="27" y2="23" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="40" cy="40" r="2.5" class="nostroke" fill="var(--ink)"/>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Take Time</h2>
+          <span class="sub">chapter II · test 3 · placing</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">II·3</span>
         </div>
       </div>
     </div>

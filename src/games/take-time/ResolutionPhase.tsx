@@ -2,15 +2,20 @@ import type { TakeTimeGame, Room } from "../../types";
 import { advanceReveal, finalizeRotation, setClockRotation } from "./useTakeTimeGame";
 import { getLevelLabel } from "./levels";
 import ClockDisplay from "./ClockDisplay";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 
 interface Props {
   roomCode: string;
   game: TakeTimeGame;
   room: Room;
+  uid: string;
 }
 
-export default function ResolutionPhase({ roomCode, game, room }: Props) {
+export default function ResolutionPhase({ roomCode, game, room, uid }: Props) {
   const allRevealed = game.revealIndex >= 6;
+  const playerNames = Object.fromEntries(
+    Object.entries(room.players).map(([id, p]) => [id, p.name])
+  );
   const canAdjustRotation = allRevealed && game.levelDef.handAdjustable;
 
   const handleReveal = async () => {
@@ -47,12 +52,18 @@ export default function ResolutionPhase({ roomCode, game, room }: Props) {
         specialRules={game.levelDef.specialRules}
         revealedUpTo={game.revealIndex}
         showSums={game.revealIndex > 0}
+        playerNames={playerNames}
+        uid={uid}
+        boardRotation={game.boardRotation}
+        hourHand={game.levelDef.hourHand}
+        betweenRules={game.levelDef.betweenRules}
+        secondHandPosition={game.secondHandPosition}
       />
 
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
         {!allRevealed ? (
           <>
-            <p style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+            <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
               Revealing segment {game.revealIndex + 1} of 6
               {currentSegment && ` (Segment ${currentSegment})`}
             </p>
@@ -62,14 +73,14 @@ export default function ResolutionPhase({ roomCode, game, room }: Props) {
           </>
         ) : canAdjustRotation ? (
           <>
-            <p style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+            <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
               All cards revealed. You may adjust the starting segment before finalizing.
             </p>
             <div className="tt-rotation-controls">
               <button className="btn btn--ghost btn--sm" onClick={() => handleRotate(-1)}>
                 ↺ Rotate
               </button>
-              <span style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+              <span className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
                 Starting segment
               </span>
               <button className="btn btn--ghost btn--sm" onClick={() => handleRotate(1)}>
@@ -81,26 +92,19 @@ export default function ResolutionPhase({ roomCode, game, room }: Props) {
             </button>
           </>
         ) : (
-          <p style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.5 }}>
+          <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
             Checking results...
           </p>
         )}
       </div>
 
       {/* Players */}
-      <div className="score-board">
-        <h4>Players</h4>
-        <div className="score-grid">
-          {game.turnOrder.map((pid) => {
-            const name = room.players[pid]?.name ?? pid;
-            return (
-              <div key={pid} className="score-row">
-                <span className="score-name">{name}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PlayerScores>
+        {game.turnOrder.map((pid) => {
+          const name = room.players[pid]?.name ?? pid;
+          return <PlayerScoreRow key={pid} name={name} />;
+        })}
+      </PlayerScores>
     </div>
   );
 }

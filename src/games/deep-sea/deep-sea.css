@@ -319,6 +319,8 @@
 [data-theme="dark"] .ds-shape-chip.ds-level-3 { color: #c084fc; }
 [data-theme="dark"] .ds-shape-chip.ds-level-4 { color: #f87171; }
 
+.ds-diver-returned { opacity: 0.5; }
+
 /* Carried shapes row inside score-row */
 .ds-carried-shapes {
   display: flex;
@@ -359,65 +361,6 @@
   align-items: center;
   gap: 0.4rem;
   flex-wrap: wrap;
-}
-
-/* ---- Score board ---- */
-.deep-sea-screen .score-board {
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
-  background: var(--surface);
-  overflow: hidden;
-  box-shadow: var(--shadow-2);
-  margin: var(--s-4) 0 0;
-  text-align: left;
-}
-
-.deep-sea-screen .score-board h4 {
-  padding: 10px 14px 6px;
-  margin: 0;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-
-.deep-sea-screen .score-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: var(--s-3);
-  align-items: center;
-  padding: 10px 14px;
-  border-top: 1px dashed var(--border);
-  font-size: 0.85rem;
-}
-
-.deep-sea-screen .score-row-active {
-  background: linear-gradient(90deg, var(--peach-100) 0%, transparent 60%);
-}
-
-.deep-sea-screen .score-name {
-  font-weight: 600;
-}
-
-.deep-sea-screen .score-you {
-  color: var(--peach-700);
-  font-weight: 500;
-  font-size: 0.85em;
-}
-
-.deep-sea-screen .score-cards {
-  color: var(--ink-soft);
-  font-size: 0.8rem;
-  text-align: right;
-}
-
-.deep-sea-screen .score-cumulative {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--peach-700);
-  min-width: 40px;
-  text-align: right;
 }
 
 /* ---- Round end ---- */

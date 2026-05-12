@@ -1,10 +1,11 @@
 import { useState } from "react";
-import type { TakeTimeGame, TakeTimeHand, Room } from "../../types";
+import type { TakeTimeGame, TakeTimeHand, TakeTimeSegmentRule, Room } from "../../types";
 import { placeCard, getCardsPlayedByPlayer } from "./useTakeTimeGame";
-import { getLevelLabel } from "./levels";
+import { getLevelLabel, getLevelHints } from "./levels";
 import ClockDisplay from "./ClockDisplay";
 import CardSVG from "./CardSVG";
 import { toSuit } from "./theme";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 
 interface Props {
   roomCode: string;
@@ -12,6 +13,40 @@ interface Props {
   hand: TakeTimeHand;
   uid: string;
   room: Room;
+}
+
+/** Get rules at a physical position accounting for board rotation */
+function getRulesAtPos(game: TakeTimeGame, physPos: number): TakeTimeSegmentRule[] {
+  const logical = ((physPos - 1 - (game.boardRotation ?? 0) + 600) % 6) + 1;
+  return game.levelDef.segmentRules[logical] || [];
+}
+
+/** Check if a physical segment is blocked */
+function isBlocked(game: TakeTimeGame, physPos: number): boolean {
+  const rules = getRulesAtPos(game, physPos);
+  if (rules.some((r) => r.type === "blocked")) return true;
+  if (game.secondHandPosition !== undefined) {
+    const sh = game.secondHandPosition;
+    const opposite = ((sh - 1 + 3) % 6) + 1;
+    if (physPos === sh || physPos === opposite) return true;
+  }
+  return false;
+}
+
+/** Which cards can the player select given clock rule constraints? */
+function getPlayableCardIds(game: TakeTimeGame, hand: TakeTimeHand): Set<string> {
+  const { clockRule } = game.levelDef;
+  const all = new Set(hand.cards.map((c) => c.id));
+  if (clockRule === "high-to-low") {
+    const maxVal = Math.max(...hand.cards.map((c) => c.value));
+    return new Set(hand.cards.filter((c) => c.value === maxVal).map((c) => c.id));
+  } else if (clockRule === "low-to-high") {
+    const minVal = Math.min(...hand.cards.map((c) => c.value));
+    return new Set(hand.cards.filter((c) => c.value === minVal).map((c) => c.id));
+  } else if (clockRule === "locked-order") {
+    return hand.cards.length > 0 ? new Set([hand.cards[0].id]) : all;
+  }
+  return all;
 }
 
 export default function PlacementPhase({ roomCode, game, hand, uid, room }: Props) {
@@ -26,9 +61,17 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
     : room.players[game.turnOrder[game.currentTurn]]?.name ?? "???";
 
   const canPlayFaceUp = game.faceUpRemaining > 0;
+  const playableCards = getPlayableCardIds(game, hand);
+
+  // Segments that are blocked (can't click)
+  const blockedSegments = new Set<number>();
+  for (let s = 1; s <= 6; s++) {
+    if (isBlocked(game, s)) blockedSegments.add(s);
+  }
 
   const handleSegmentClick = async (segIndex: number) => {
     if (!selectedCard || !isMyTurn || placing) return;
+    if (blockedSegments.has(segIndex)) return;
     setPlacing(true);
     try {
       await placeCard(roomCode, game, uid, selectedCard, segIndex, faceUp);
@@ -49,6 +92,10 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
   const hiddenCards = hand.hiddenCards ?? [];
   const N = visibleCards.length;
 
+  const playerNames = Object.fromEntries(
+    Object.entries(room.players).map(([id, p]) => [id, p.name])
+  );
+
   return (
     <div>
       <div className={`turn-status${isMyTurn ? " turn-status--mine" : ""}`}>
@@ -62,9 +109,16 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
       </div>
 
       {isFirstCard && isMyTurn && (
-        <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+        <p className="tt-muted-text" style={{ textAlign: "center", fontSize: "0.85rem" }}>
           Any player may play the first card.
         </p>
+      )}
+      {getLevelHints(game.levelDef).length > 0 && (
+        <div className="tt-hints tt-hints--compact">
+          {getLevelHints(game.levelDef).map((h, i) => (
+            <p key={i} className="tt-hint">{h}</p>
+          ))}
+        </div>
       )}
 
       <ClockDisplay
@@ -78,11 +132,22 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
         highlightSegment={selectedCard && isMyTurn ? -1 : null}
         interactive={!!selectedCard && isMyTurn && !placing}
         onSegmentClick={handleSegmentClick}
+        playerNames={playerNames}
+        uid={uid}
+        blockedSegments={blockedSegments}
+        boardRotation={game.boardRotation}
+        secondHandPosition={game.secondHandPosition}
+        hourHand={game.levelDef.hourHand}
+        betweenRules={game.levelDef.betweenRules}
       />
 
-      <p style={{ textAlign: "center", fontSize: "0.8rem", color: "#3A2B16", opacity: 0.5 }}>
-        Cards placed: {game.cardsPlayed}/12
-      </p>
+      <div className="tt-status-bar">
+        <span className="tt-muted-text">Cards placed: {game.cardsPlayed}{game.deck === undefined ? "/12" : ""}</span>
+        <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+        {game.deck !== undefined && (
+          <span className="tt-muted-text">Deck: {game.deck.length}</span>
+        )}
+      </div>
 
       {showRevealMessage && (
         <div className="turn-status" style={{ marginBottom: "0.5rem" }}>
@@ -99,6 +164,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
           const dy = Math.abs(offset) * 6;
           const isSelected = selectedCard === card.id;
           const liftExtra = isSelected ? 28 : 0;
+          const canPlay = playableCards.has(card.id);
           return (
             <div
               key={card.id}
@@ -107,9 +173,11 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
                 transform: `translateY(${dy - liftExtra}px) rotate(${tilt}deg)`,
                 transformOrigin: "50% 100%",
                 zIndex: isSelected ? 20 : i,
+                opacity: isMyTurn && !canPlay ? 0.4 : 1,
+                cursor: isMyTurn && canPlay ? "pointer" : "default",
               }}
               onClick={() => {
-                if (!isMyTurn) return;
+                if (!isMyTurn || !canPlay) return;
                 setSelectedCard(selectedCard === card.id ? null : card.id);
               }}
             >
@@ -132,8 +200,10 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
                 key={`hidden-${i}`}
                 style={{
                   position: i === 0 ? "relative" : "absolute",
-                  top: i * 4,
-                  left: i * 3,
+                  top: 0,
+                  left: i * 30,
+                  transform: `rotate(${(i - 0.5) * 10}deg)`,
+                  transformOrigin: "50% 100%",
                 }}
               >
                 <CardSVG suit={toSuit(card.color)} faceUp={false} w={78} h={109} />
@@ -156,36 +226,34 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
             />
             Play face-up
           </label>
-          <span style={{ fontSize: "0.75rem", color: "#3A2B16", opacity: 0.5 }}>
+          <span className="tt-muted-text" style={{ fontSize: "0.75rem" }}>
             ({game.faceUpRemaining} remaining)
           </span>
         </div>
       )}
 
       {/* Players */}
-      <div className="score-board">
-        <h4>Players</h4>
-        <div className="score-grid">
-          {game.turnOrder.map((pid) => {
-            const name = room.players[pid]?.name ?? pid;
-            const isActive = isFirstCard || game.turnOrder[game.currentTurn] === pid;
-            const cardsPerPlayer = Math.floor(12 / game.turnOrder.length);
-            const played = getCardsPlayedByPlayer(game);
-            const remaining = cardsPerPlayer - (played[pid] ?? 0);
-            return (
-              <div key={pid} className={`score-row${isActive ? " score-row-active" : ""}`}>
-                <span className="score-name" style={{ flex: 1 }}>
-                  {name}
-                  {pid === uid && <span className="score-you"> (you)</span>}
-                </span>
-                <span className="score-cards">
-                  {remaining} card{remaining !== 1 ? "s" : ""}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <PlayerScores>
+        {game.turnOrder.map((pid) => {
+          const name = room.players[pid]?.name ?? pid;
+          const isActive = isFirstCard || game.turnOrder[game.currentTurn] === pid;
+          const remaining = game.handSizes
+            ? game.handSizes[pid] ?? 0
+            : Math.floor(12 / game.turnOrder.length) - (getCardsPlayedByPlayer(game)[pid] ?? 0);
+          return (
+            <PlayerScoreRow
+              key={pid}
+              name={name}
+              isYou={pid === uid}
+              isActive={isActive}
+            >
+              <span className="score-cards">
+                {remaining} card{remaining !== 1 ? "s" : ""}
+              </span>
+            </PlayerScoreRow>
+          );
+        })}
+      </PlayerScores>
     </div>
   );
 }

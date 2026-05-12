@@ -2,6 +2,7 @@ import { useState } from "react";
 import { playCard } from "./useGame";
 import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
+import GameCard from "../../components/shared/GameCard";
 import type { Game, Hand, Room } from "../../types";
 
 interface Props {
@@ -83,9 +84,9 @@ export default function PlayerTurn({
         <h4>Your Hand</h4>
         <div className="hand">
           {hand.cards.map((card) => (
-            <div key={card} className="game-card disabled">
+            <GameCard key={card} disabled>
               {card}
-            </div>
+            </GameCard>
           ))}
         </div>
       </div>
@@ -112,13 +113,13 @@ export default function PlayerTurn({
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">
         {hand.cards.map((card) => (
-          <div
+          <GameCard
             key={card}
-            className={`game-card${selectedCard === card ? " selected" : ""}`}
+            selected={selectedCard === card}
             onClick={() => setSelectedCard(selectedCard === card ? null : card)}
           >
             {card}
-          </div>
+          </GameCard>
         ))}
       </div>
     </div>

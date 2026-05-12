@@ -8,6 +8,8 @@ import {
   useAllOrderOverloadHandCounts,
   getLevelStars,
 } from "./useOrderOverloadGame";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
+import GameCard from "../../components/shared/GameCard";
 
 interface Props {
   roomCode: string;
@@ -204,13 +206,13 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                       </p>
                       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "center" }}>
                         {hand.cards.map((card, i) => (
-                          <div
+                          <GameCard
                             key={i}
-                            className={`game-card${selectedCardIndex === i ? " selected" : ""}`}
+                            selected={selectedCardIndex === i}
                             onClick={() => setSelectedCardIndex(selectedCardIndex === i ? null : i)}
                           >
                             {card}
-                          </div>
+                          </GameCard>
                         ))}
                       </div>
                       <div style={{ width: "100%", marginTop: "0.5rem" }}>
@@ -367,50 +369,41 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
       </div>
 
       {/* Player board (at bottom) */}
-      <div className="score-board">
-        <h4>Players</h4>
-        <div className="score-grid">
-          {game.turnOrder.map((pid) => {
-            const name = room.players[pid]?.name ?? "Unknown";
-            const isEliminated = game.eliminatedPlayers.includes(pid);
-            const isEmptied = game.emptiedPlayers.includes(pid);
-            const isCurrent = game.turnOrder[game.currentTurn] === pid;
-            const isGuessing = (isResponding && game.guessingPlayer === pid) || (isCurrent && !isResponding);
-            const isJudging = isResponding && currentResponder === pid;
-            const cardCount = handCounts[pid] ?? 0;
-            const isMe = pid === uid;
-            const revealed = game.revealedCards?.[pid] ?? [];
+      <PlayerScores>
+        {game.turnOrder.map((pid) => {
+          const name = room.players[pid]?.name ?? "Unknown";
+          const isEliminated = game.eliminatedPlayers.includes(pid);
+          const isEmptied = game.emptiedPlayers.includes(pid);
+          const isCurrent = game.turnOrder[game.currentTurn] === pid;
+          const isGuessing = (isResponding && game.guessingPlayer === pid) || (isCurrent && !isResponding);
+          const isJudging = isResponding && currentResponder === pid;
+          const cardCount = handCounts[pid] ?? 0;
+          const isMe = pid === uid;
+          const revealed = game.revealedCards?.[pid] ?? [];
 
-            return (
-              <div
-                key={pid}
-                className={`score-row${isCurrent && !isResponding ? " score-row-active" : ""}`}
-                style={{ opacity: isEliminated ? 0.5 : 1, flexWrap: "wrap" }}
-              >
-                <span style={{ minWidth: "24px", textAlign: "center" }}>
-                  {isEliminated ? "x_x" : ":)"}
-                </span>
-                <span className="score-name" style={{ flex: 1 }}>
-                  {name}
-                  {isMe && <span className="score-you"> (you)</span>}
-                </span>
-                <span className="score-cards" style={{ minWidth: "65px" }}>
-                  {isEmptied ? "✓ done" : `${cardCount} cards`}
-                </span>
-                <span style={{ minWidth: "90px", textAlign: "right", paddingLeft: "0.75rem", fontSize: "0.8rem", color: "var(--peach-500)" }}>
-                  {isGuessing && "Guessing..."}
-                  {isJudging && "Judging..."}
-                </span>
-                {revealed.length > 0 && (
-                  <div style={{ gridColumn: "1 / -1", fontSize: "0.75rem", color: "var(--ink-mute)", paddingLeft: "calc(32px + 1rem)" }}>
-                    Revealed: {revealed.join(", ")}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+          return (
+            <PlayerScoreRow
+              key={pid}
+              name={name}
+              isYou={isMe}
+              isActive={isCurrent && !isResponding}
+              className={isEliminated ? "oo-row-eliminated" : undefined}
+            >
+              <span className="oo-row-emoji">{isEliminated ? "x_x" : ":)"}</span>
+              <span className="score-cards">
+                {isEmptied ? "✓ done" : `${cardCount} cards`}
+              </span>
+              <span className="oo-row-action">
+                {isGuessing && "Guessing..."}
+                {isJudging && "Judging..."}
+              </span>
+              {revealed.length > 0 && (
+                <span className="oo-row-revealed">Revealed: {revealed.join(", ")}</span>
+              )}
+            </PlayerScoreRow>
+          );
+        })}
+      </PlayerScores>
     </div>
   );
 }

@@ -113,7 +113,7 @@ export async function leaveRoom(
 
 export async function updateRoomSettings(
   roomCode: string,
-  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string }
+  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string; chapter?: number; testNumber?: number }
 ): Promise<void> {
   const roomRef = doc(db, "rooms", roomCode);
   const updates: Record<string, unknown> = {};
@@ -144,6 +144,12 @@ export async function updateRoomSettings(
   }
   if (settings.mayor !== undefined) {
     updates["settings.mayor"] = settings.mayor;
+  }
+  if (settings.chapter !== undefined) {
+    updates["settings.chapter"] = settings.chapter;
+  }
+  if (settings.testNumber !== undefined) {
+    updates["settings.testNumber"] = settings.testNumber;
   }
 
   await updateDoc(roomRef, updates);

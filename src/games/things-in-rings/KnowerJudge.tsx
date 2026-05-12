@@ -2,6 +2,7 @@ import { useState } from "react";
 import { judgeCorrect, judgeIncorrect } from "./useGame";
 import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
+import GameCard from "../../components/shared/GameCard";
 import type { Game, Hand, Room } from "../../types";
 
 interface Props {
@@ -41,7 +42,7 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
             <h4>Your Hand ({hand.cards.length} cards)</h4>
             <div className="hand">
               {hand.cards.map((card) => (
-                <div key={card} className="game-card disabled">{card}</div>
+                <GameCard key={card} disabled>{card}</GameCard>
               ))}
             </div>
           </>
@@ -120,7 +121,7 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
           <h4>Your Hand ({hand.cards.length} cards)</h4>
           <div className="hand">
             {hand.cards.map((card) => (
-              <div key={card} className="game-card disabled">{card}</div>
+              <GameCard key={card} disabled>{card}</GameCard>
             ))}
           </div>
         </>

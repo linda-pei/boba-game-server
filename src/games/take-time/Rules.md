@@ -103,7 +103,7 @@ Accordingly for WMin (white, lowest value), BMax, BMin.
 
 ### III-1
 1. Max
-3. 20
+3. |20|
 
 ### III-2
 1. Min
@@ -225,3 +225,40 @@ X - Players are not allowed to place a card next to this sgement. In order to ha
 5. 2c
 ### VIII-4
 Clock hand: Starts at 1 and roates with the board
+1. Clockwise
+2. Clockwise
+5. Counter-Clockwise
+6. Counter-Clockwise
+## IX - Unity
+Segment Rules (these show up in between two segments)
+<-6min-> Rules applies to the 2 segments adjacent to the symbol. The difference between the values of the segments adjacent to the this symbol must be >= the depicted number.
+<-=-> The values of the segments adjacent to this symbol Must be equal
+Clock Rules:
+4 Max - The difference between the highest and the lower segment values cannot be greater than 4.
+### IX-1
+1.5.(ie between 1 and 2) <-6min-> 
+2. Max
+### IX-2
+Between every two segments <-2min->
+### IX-3
+1. Min
+1.5. <-=->
+4. Min
+4.5 <-=->
+### IX-4
+Clock Rule: 4 Max
+## X - Cohesiveness
+There's a second hand (called an Hour Hand)- Rule = Starting from the segment this hand is pointing to and proceeding clockwise, the values of the first cards placed next to each of the 6 segments must be in ascending order.
+There's a separate movable hand (called a Second Hand), it points to two opposing segments. Players are not allowed to place cards next to either of the segments pointed to by the Second Hand. After each player's turn, rotate the second hand one segment clockwise.
+### X-1
+Hour hand pointed towards 6, Clock hand pointed towards 1. Clock is not adjustable.
+No other rules
+### X-2
+Hour hand pointed towards 5, Clock hands pointed towards 1.
+2. 2c
+### X-3
+Hour hand pointed towards 4, Clock hand pointed towards 1.
+2. T1
+5. TLast
+### X-4
+Hour hand pointed towards 2, Clock hand pointed towards 1. Second Hand pointed towards 6 and 3 to start.

@@ -3,6 +3,7 @@ import type { DeepSeaGame, DeepSeaHand, Room, PathSpace } from "../../types";
 import BoardPath from "./BoardPath";
 import AirGauge from "./AirGauge";
 import DiceRoll, { DICE_ANIM_MS } from "./DiceRoll";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
 import {
   breatheAndAdvance,
@@ -232,56 +233,50 @@ export default function PlayerTurn({
       </div>
 
       {/* Player table */}
-      <div className="score-board">
-        <h4>Divers</h4>
-        <div className="score-grid">
-          {game.turnOrder.map((pid) => {
-            const diver = game.divers[pid];
-            const isMe = pid === uid;
-            const isActive = pid === activeUid;
-            return (
-              <div
-                key={pid}
-                className={`score-row${isActive ? " score-row-active" : ""}`}
-                style={{ opacity: diver.returned ? 0.5 : 1, flexWrap: "wrap" }}
-              >
-                <span className="score-name">
-                  {room.players[pid]?.name}
-                  {isMe && <span className="score-you"> (you)</span>}
+      <PlayerScores title="Divers">
+        {game.turnOrder.map((pid) => {
+          const diver = game.divers[pid];
+          const isMe = pid === uid;
+          const isActive = pid === activeUid;
+          return (
+            <PlayerScoreRow
+              key={pid}
+              name={room.players[pid]?.name ?? pid}
+              isYou={isMe}
+              isActive={isActive}
+              className={diver.returned ? "ds-diver-returned" : undefined}
+            >
+              <span className="score-cards">
+                {diver.returned
+                  ? "✓ returned"
+                  : diver.direction === "up"
+                    ? "↑ returning"
+                    : "↓ diving"}
+              </span>
+              {game.round > 1 && (
+                <span className="score-cumulative" title="Points scored so far">
+                  {game.scores[pid] ?? 0} pts
                 </span>
-                <span className="score-cards">
-                  {diver.returned
-                    ? "✓ returned"
-                    : diver.direction === "up"
-                      ? "↑ returning"
-                      : "↓ diving"}
-                </span>
-                {game.round > 1 && (
-                  <span className="score-cumulative" title="Points scored so far">
-                    {game.scores[pid] ?? 0} pts
-                  </span>
-                )}
-                {/* Show carried treasure shapes */}
-                {!diver.returned && diver.carriedCount > 0 && (
-                  <div className="ds-carried-shapes">
-                    {(diver.carriedLevels ?? []).map((group, gi) =>
-                      group.levels.length > 1 ? (
-                        <span key={gi} className="ds-carried-group">
-                          {group.levels.map((level, i) => (
-                            <TreasureShapeChip key={i} level={level} />
-                          ))}
-                        </span>
-                      ) : (
-                        <TreasureShapeChip key={gi} level={group.levels[0]} />
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              )}
+              {!diver.returned && diver.carriedCount > 0 && (
+                <div className="ds-carried-shapes">
+                  {(diver.carriedLevels ?? []).map((group, gi) =>
+                    group.levels.length > 1 ? (
+                      <span key={gi} className="ds-carried-group">
+                        {group.levels.map((level, i) => (
+                          <TreasureShapeChip key={i} level={level} />
+                        ))}
+                      </span>
+                    ) : (
+                      <TreasureShapeChip key={gi} level={group.levels[0]} />
+                    )
+                  )}
+                </div>
+              )}
+            </PlayerScoreRow>
+          );
+        })}
+      </PlayerScores>
     </div>
   );
 }

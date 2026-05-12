@@ -257,7 +257,11 @@ export type TakeTimeSegmentRuleType =
   | "min"
   | "color-max"
   | "color-min"
-  | "last-play";
+  | "last-play"
+  | "draw"
+  | "clockwise"
+  | "counter-clockwise"
+  | "blocked";
 
 export interface TakeTimeSegmentRule {
   type: TakeTimeSegmentRuleType;
@@ -271,14 +275,32 @@ export interface TakeTimeSegmentRule {
   color?: "black" | "white";
 }
 
+/** Rule that applies between two adjacent segments */
+export interface TakeTimeBetweenRule {
+  type: "min-diff" | "equal";
+  /** Segment index of the first segment (rule applies between seg and seg+1, wrapping 6→1) */
+  segment: number;
+  /** For min-diff: the minimum difference required */
+  minDiff?: number;
+}
+
 export interface TakeTimeLevelDef {
   chapter: number;
   test: number;
-  clockRule: "normal" | "infinity";
+  clockRule: "normal" | "infinity" | "high-to-low" | "low-to-high" | "locked-order" | "two-per-segment" | "difference" | "max-spread";
   handAdjustable: boolean;
   startSegment: number;
   segmentRules: Record<number, TakeTimeSegmentRule[]>;
   specialRules?: string[];
+  betweenRules?: TakeTimeBetweenRule[];
+  /** For max-spread: max allowed difference between highest and lowest segment values */
+  maxSpread?: number;
+  /** For chapter X: hour hand starting segment */
+  hourHand?: number;
+  /** For chapter X: second hand starting segment (blocks this seg and seg+3) */
+  secondHand?: number;
+  /** Whether the clock hand rotates with board rotations (VIII-4) */
+  handRotatesWithBoard?: boolean;
 }
 
 export interface TakeTimePlacedCard {
@@ -310,6 +332,14 @@ export interface TakeTimeGame {
   revealIndex: number;
   twoPlayerRevealed: boolean;
   lastAction: string | null;
+  /** Remaining deck for draw mechanic (VII) */
+  deck?: TakeTimeCard[];
+  /** Board rotation offset for clock rotation mechanic (VIII) */
+  boardRotation?: number;
+  /** Current second hand position for chapter X */
+  secondHandPosition?: number;
+  /** Track hand sizes for draw mechanic turn skipping */
+  handSizes?: Record<string, number>;
 }
 
 export interface TakeTimeCard {

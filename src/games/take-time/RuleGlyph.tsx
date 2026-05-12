@@ -1,5 +1,5 @@
 import { TT } from "./theme";
-import type { TakeTimeSegmentRule } from "../../types";
+import type { TakeTimeSegmentRule, TakeTimeBetweenRule } from "../../types";
 
 function describeRuleLong(rule: TakeTimeSegmentRule): string {
   switch (rule.type) {
@@ -31,6 +31,14 @@ function describeRuleLong(rule: TakeTimeSegmentRule): string {
       return `Must contain the lowest ${rule.color === "black" ? "lunar" : "solar"} card`;
     case "last-play":
       return `Must contain the last card played`;
+    case "draw":
+      return `Draw a card from the deck when placing here`;
+    case "clockwise":
+      return `Rotate the clock clockwise when placing here`;
+    case "counter-clockwise":
+      return `Rotate the clock counter-clockwise when placing here`;
+    case "blocked":
+      return `Cannot place cards here directly`;
     default:
       return rule.type;
   }
@@ -114,33 +122,30 @@ const Glyphs: Record<string, React.FC<{ rule: GlyphRule; size: number }>> = {
           return (
             <MiniCard
               key={i} suit={c === "w" ? "white" : "black"}
-              x={off} y={-1} w={11} h={15} rot={(i - (N - 1) / 2) * -4}
+              x={off} y={2} w={11} h={15} rot={(i - (N - 1) / 2) * -4}
             />
           );
         })}
-        <text
-          x="0" y="14" textAnchor="middle" fontFamily="Inter,sans-serif"
-          fontWeight="700" fontSize="7" fill={TT.ink}
-        >
-          {white ? `${white}w` : ""}{white && black ? " · " : ""}{black ? `${black}b` : ""}
-        </text>
       </GlyphFrame>
     );
   },
 
-  count: ({ rule, size }) => (
-    <GlyphFrame size={size}>
-      <MiniCard suit="neutral" x={-7} y={-2} w={11} h={15} rot={-10} />
-      <MiniCard suit="neutral" x={0} y={-3} w={11} h={15} rot={0} />
-      <MiniCard suit="neutral" x={7} y={-2} w={11} h={15} rot={10} />
-      <text
-        x="0" y="16" textAnchor="middle" fontFamily="'Cormorant Garamond',serif"
-        fontWeight="700" fontSize="11" fill={TT.ink}
-      >
-        {rule.n}c
-      </text>
-    </GlyphFrame>
-  ),
+  count: ({ rule, size }) => {
+    const N = rule.n ?? 3;
+    return (
+      <GlyphFrame size={size}>
+        {Array.from({ length: N }).map((_, i) => {
+          const off = (i - (N - 1) / 2) * 9;
+          return (
+            <MiniCard
+              key={i} suit="neutral"
+              x={off} y={2} w={11} h={15} rot={(i - (N - 1) / 2) * -6}
+            />
+          );
+        })}
+      </GlyphFrame>
+    );
+  },
 
   "sum-range": ({ rule, size }) => (
     <GlyphFrame size={size}>
@@ -309,6 +314,49 @@ const Glyphs: Record<string, React.FC<{ rule: GlyphRule; size: number }>> = {
       />
     </GlyphFrame>
   ),
+
+  draw: ({ size }) => (
+    <GlyphFrame size={size}>
+      {/* Stack of cards (deck) */}
+      <MiniCard suit="neutral" x={-3} y={-1} w={11} h={15} rot={-3} />
+      <MiniCard suit="neutral" x={0} y={-2} w={11} h={15} />
+      {/* Arrow coming from deck */}
+      <path
+        d="M 6 4 L 14 4 L 14 0 L 19 6 L 14 12 L 14 8 L 6 8 Z"
+        fill={TT.goldMid} stroke={TT.ink} strokeWidth="0.6"
+      />
+    </GlyphFrame>
+  ),
+
+  clockwise: ({ size }) => (
+    <GlyphFrame size={size}>
+      {/* Circular arrow clockwise */}
+      <path
+        d="M 0 -14 A 14 14 0 1 1 -10 10"
+        fill="none" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round"
+      />
+      <polygon points="-14,6 -6,10 -10,14" fill={TT.goldMid} />
+    </GlyphFrame>
+  ),
+
+  "counter-clockwise": ({ size }) => (
+    <GlyphFrame size={size}>
+      {/* Circular arrow counter-clockwise */}
+      <path
+        d="M 0 -14 A 14 14 0 1 0 10 10"
+        fill="none" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round"
+      />
+      <polygon points="14,6 6,10 10,14" fill={TT.goldMid} />
+    </GlyphFrame>
+  ),
+
+  blocked: ({ size }) => (
+    <GlyphFrame size={size}>
+      {/* X mark */}
+      <line x1="-10" y1="-10" x2="10" y2="10" stroke={TT.red} strokeWidth="3.5" strokeLinecap="round" />
+      <line x1="10" y1="-10" x2="-10" y2="10" stroke={TT.red} strokeWidth="3.5" strokeLinecap="round" />
+    </GlyphFrame>
+  ),
 };
 
 // ---- Center glyphs (clock-wide rules) ----
@@ -346,6 +394,76 @@ const CenterGlyphs: Record<string, React.FC<{ size: number }>> = {
         x1="-20" y1="20" x2="20" y2="-20"
         stroke={TT.red} strokeWidth="3.2" strokeLinecap="round"
       />
+    </svg>
+  ),
+
+  "high-to-low": ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      {/* Descending arrow: + to - */}
+      <text x="-10" y="-6" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>+</text>
+      <path d="M 0 -4 L 0 12" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round" />
+      <polygon points="-5,8 0,15 5,8" fill={TT.goldMid} />
+      <text x="10" y="12" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>−</text>
+    </svg>
+  ),
+
+  "low-to-high": ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      {/* Ascending arrow: - to + */}
+      <text x="-10" y="-6" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>−</text>
+      <path d="M 0 12 L 0 -4" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round" />
+      <polygon points="-5,-1 0,-8 5,-1" fill={TT.goldMid} />
+      <text x="10" y="12" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>+</text>
+    </svg>
+  ),
+
+  "locked-order": ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      {/* Lock icon */}
+      <rect x="-10" y="-2" width="20" height="14" rx="2" fill={TT.goldMid} stroke={TT.ink} strokeWidth="1" />
+      <path d="M -6 -2 L -6 -8 A 6 6 0 0 1 6 -8 L 6 -2" fill="none" stroke={TT.ink} strokeWidth="2" strokeLinecap="round" />
+      {/* Arrow */}
+      <path d="M 12 5 L 20 5" stroke={TT.ink} strokeWidth="1.5" strokeLinecap="round" />
+      <polygon points="18,2 22,5 18,8" fill={TT.ink} />
+    </svg>
+  ),
+
+  "two-per-segment": ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      <MiniCard suit="neutral" x={-7} y={0} w={12} h={17} rot={-4} />
+      <MiniCard suit="neutral" x={7} y={0} w={12} h={17} rot={4} />
+    </svg>
+  ),
+
+  difference: ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      <MiniCard suit="neutral" x={-9} y={0} w={11} h={15} />
+      <text x="0" y="4" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>−</text>
+      <MiniCard suit="neutral" x={9} y={0} w={11} h={15} />
+    </svg>
+  ),
+
+  "max-spread": ({ size }) => (
+    <svg viewBox="-30 -30 60 60" width={size} height={size}>
+      <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
+      <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
+      {/* Double-headed arrow with number */}
+      <path d="M -16 0 L 16 0" stroke={TT.goldMid} strokeWidth="2" strokeLinecap="round" />
+      <polygon points="-16,-4 -22,0 -16,4" fill={TT.goldMid} />
+      <polygon points="16,-4 22,0 16,4" fill={TT.goldMid} />
+      <text x="0" y="-8" textAnchor="middle" fontFamily="'Cormorant Garamond',serif" fontWeight="700" fontSize="12" fill={TT.ink}>
+        ≤4
+      </text>
     </svg>
   ),
 };
@@ -396,6 +514,14 @@ export function mapRuleToGlyph(rule: TakeTimeSegmentRule): GlyphRule {
       return { type: "suit-max", suit: rule.color };
     case "color-min":
       return { type: "suit-min", suit: rule.color };
+    case "draw":
+      return { type: "draw" };
+    case "clockwise":
+      return { type: "clockwise" };
+    case "counter-clockwise":
+      return { type: "counter-clockwise" };
+    case "blocked":
+      return { type: "blocked" };
     default:
       return { type: rule.type };
   }
@@ -434,14 +560,76 @@ export function RuleGlyph({
   );
 }
 
+export type CenterGlyphType =
+  | "no-24-cap"
+  | "no-faceup"
+  | "high-to-low"
+  | "low-to-high"
+  | "locked-order"
+  | "two-per-segment"
+  | "difference"
+  | "max-spread";
+
 export function CenterGlyph({
   type,
   size = 80,
 }: {
-  type: "no-24-cap" | "no-faceup";
+  type: CenterGlyphType;
   size?: number;
 }) {
   const G = CenterGlyphs[type];
   if (!G) return null;
   return <G size={size} />;
+}
+
+// ---- Between-segment rule glyph ----
+
+function describeBetweenRule(rule: TakeTimeBetweenRule): string {
+  const seg2 = (rule.segment % 6) + 1;
+  if (rule.type === "min-diff") {
+    return `Difference between segments ${rule.segment} and ${seg2} must be ≥ ${rule.minDiff}`;
+  }
+  return `Segments ${rule.segment} and ${seg2} must be equal`;
+}
+
+export function BetweenRuleGlyph({
+  rule,
+  size = 32,
+}: {
+  rule: TakeTimeBetweenRule;
+  size?: number;
+}) {
+  const tooltip = describeBetweenRule(rule);
+  return (
+    <div className="tt-glyph-tip" data-tip={tooltip}>
+      <svg viewBox="-18 -18 36 36" width={size} height={size} style={{ display: "block" }}>
+        <circle r="15" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.2" />
+        <circle r="13.5" fill="none" stroke={TT.goldDeep} strokeWidth="0.5" />
+        {rule.type === "min-diff" ? (
+          <>
+            {/* Double-headed arrow with min diff number */}
+            <path
+              d="M -9 2 L 9 2"
+              stroke={TT.goldMid} strokeWidth="1.8" strokeLinecap="round"
+            />
+            <polygon points="-9,-1 -13,2 -9,5" fill={TT.goldMid} />
+            <polygon points="9,-1 13,2 9,5" fill={TT.goldMid} />
+            <text
+              x="0" y="-3" textAnchor="middle"
+              fontFamily="'Cormorant Garamond',serif"
+              fontWeight="700" fontSize="10" fill={TT.ink}
+            >
+              ≥{rule.minDiff}
+            </text>
+          </>
+        ) : (
+          <>
+            {/* Equals sign */}
+            <line x1="-7" y1="-3" x2="7" y2="-3" stroke={TT.ink} strokeWidth="2.2" strokeLinecap="round" />
+            <line x1="-7" y1="3" x2="7" y2="3" stroke={TT.ink} strokeWidth="2.2" strokeLinecap="round" />
+          </>
+        )}
+      </svg>
+    </div>
+  );
 }

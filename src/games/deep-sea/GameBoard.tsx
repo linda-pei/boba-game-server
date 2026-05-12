@@ -7,6 +7,8 @@ import { useDeepSeaGame, useDeepSeaHand } from "./useDeepSeaGame";
 import PlayerTurn from "./PlayerTurn";
 import RoundEnd from "./RoundEnd";
 import GameOver from "./GameOver";
+import GameBanner from "../../components/shared/GameBanner";
+import ResignButton from "../../components/shared/ResignButton";
 
 export default function DeepSeaGameBoard({
   roomCode,
@@ -33,26 +35,28 @@ export default function DeepSeaGameBoard({
     return <GameOver roomCode={roomCode} game={game} room={room} />;
   }
 
-  if (game.status === "round-end") {
-    return (
-      <RoundEnd
-        roomCode={roomCode}
-        game={game}
-        hand={hand}
-        uid={uid!}
-        room={room}
-      />
-    );
-  }
+  const subtitle: Record<typeof game.status, string> = {
+    "round-start": "round start",
+    declaring: "declaring",
+    rolling: "rolling",
+    "treasure-action": "treasure",
+    "round-end": "round end",
+    finished: "finished",
+  };
 
-  // round-start, declaring, rolling, treasure-action
   return (
-    <PlayerTurn
-      roomCode={roomCode}
-      game={game}
-      hand={hand}
-      uid={uid!}
-      room={room}
-    />
+    <div className="game-screen-wrap">
+      <GameBanner
+        game="ds"
+        subtitle={subtitle[game.status]}
+        roundLabel={`dive ${game.round}/3`}
+        actions={<ResignButton />}
+      />
+      {game.status === "round-end" ? (
+        <RoundEnd roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      ) : (
+        <PlayerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} room={room} />
+      )}
+    </div>
   );
 }

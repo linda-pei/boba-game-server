@@ -1,6 +1,6 @@
 import type { TakeTimeGame, TakeTimeHand, Room } from "../../types";
 import { markReady, startPlacement, setClockRotation } from "./useTakeTimeGame";
-import { getLevelLabel } from "./levels";
+import { getLevelLabel, getLevelHints } from "./levels";
 import ClockDisplay from "./ClockDisplay";
 import CardSVG from "./CardSVG";
 import { toSuit } from "./theme";
@@ -32,6 +32,7 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
 
   const hiddenCards = hand.hiddenCards ?? [];
   const N = hand.cards.length;
+  const hints = getLevelHints(game.levelDef);
 
   return (
     <div>
@@ -39,11 +40,19 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         <span className="tt-level-label">{getLevelLabel(game.chapter, game.test)}</span>
         {" — "}Discussion Phase
       </div>
-      <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+      <p className="tt-muted-text" style={{ textAlign: "center", fontSize: "0.85rem" }}>
         Discuss strategy with your team before looking at your cards.
-        {game.levelDef.clockRule === "infinity" && " Segment sums may exceed 24."}
-        {game.levelDef.specialRules?.includes("no-faceup") && " No cards may be played face-up."}
       </p>
+      {hints.length > 0 && (
+        <div className="tt-hints">
+          {hints.map((h, i) => (
+            <p key={i} className="tt-hint">{h}</p>
+          ))}
+        </div>
+      )}
+      <div className="tt-status-bar">
+        <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+      </div>
 
       <ClockDisplay
         segments={game.segments}
@@ -53,6 +62,9 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         chapter={game.chapter}
         test={game.test}
         specialRules={game.levelDef.specialRules}
+        hourHand={game.levelDef.hourHand}
+        betweenRules={game.levelDef.betweenRules}
+        secondHandPosition={game.secondHandPosition}
       />
 
       {game.levelDef.handAdjustable && (
@@ -60,7 +72,7 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
           <button className="btn btn--ghost btn--sm" onClick={() => handleRotate(-1)}>
             ↺ Rotate
           </button>
-          <span style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.7 }}>
+          <span className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
             Starting segment
           </span>
           <button className="btn btn--ghost btn--sm" onClick={() => handleRotate(1)}>
@@ -100,8 +112,10 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
                 key={card.id}
                 style={{
                   position: i === 0 ? "relative" : "absolute",
-                  top: i * 4,
-                  left: i * 3,
+                  top: 0,
+                  left: i * 30,
+                  transform: `rotate(${(i - 0.5) * 10}deg)`,
+                  transformOrigin: "50% 100%",
                 }}
               >
                 <CardSVG suit={toSuit(card.color)} faceUp={false} w={78} h={109} />
@@ -135,7 +149,7 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
             Start Placement
           </button>
         ) : (
-          <p style={{ fontSize: "0.85rem", color: "#3A2B16", opacity: 0.5 }}>
+          <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
             Waiting for all players to be ready...
           </p>
         )}

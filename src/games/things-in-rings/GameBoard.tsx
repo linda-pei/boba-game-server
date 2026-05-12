@@ -7,6 +7,9 @@ import KnowerJudge from "./KnowerJudge";
 import KnowerTurn from "./KnowerTurn";
 import PlayerTurn from "./PlayerTurn";
 import GameOver from "./GameOver";
+import GameBanner from "../../components/shared/GameBanner";
+import ResignButton from "../../components/shared/ResignButton";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 
 interface Props {
   roomCode: string;
@@ -35,13 +38,19 @@ export default function GameBoard({ roomCode }: Props) {
   if (game.status === "knower-setup") {
     if (isKnower && hand) {
       return (
-        <KnowerSetup roomCode={roomCode} game={game} hand={hand} uid={uid!} />
+        <div className="game-screen-wrap">
+          <GameBanner game="tir" subtitle="knower setup" actions={<ResignButton />} />
+          <KnowerSetup roomCode={roomCode} game={game} hand={hand} uid={uid!} />
+        </div>
       );
     }
     const knowerName = room?.players[game.knower]?.name ?? "the Knower";
     return (
-      <div className="screen">
-        <h2>Waiting for the Knower ({knowerName}) to set up the rings...</h2>
+      <div className="game-screen-wrap">
+        <GameBanner game="tir" subtitle="knower setup" actions={<ResignButton />} />
+        <div className="screen">
+          <p>Waiting for the Knower ({knowerName}) to set up the rings...</p>
+        </div>
       </div>
     );
   }
@@ -58,8 +67,9 @@ export default function GameBoard({ roomCode }: Props) {
     : [game.knower, ...game.turnOrder];
 
   return (
-    <div className="game-board screen">
-      <h2>Things in Rings</h2>
+    <div className="game-screen-wrap">
+      <GameBanner game="tir" subtitle={game.mode === "coop" ? "co-op" : "competitive"} actions={<ResignButton />} />
+      <div className="game-board screen">
 
       {isCoopKnowerTurn && hand ? (
         <KnowerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} />
@@ -78,32 +88,31 @@ export default function GameBoard({ roomCode }: Props) {
         <p>Loading your hand...</p>
       )}
 
-      <div className="score-board">
-        <h4>Players</h4>
-        <div className="score-grid">
-          {allPlayers.map((pid) => {
-            const name = room?.players[pid]?.name ?? pid;
-            const count = handCounts[pid] ?? 0;
-            const isKnowerPlayer = pid === game.knower;
-            const isActive = pid === currentTurnUid && !game.pendingPlay;
-            const isJudging = isKnowerPlayer && !!game.pendingPlay;
-            return (
-              <div key={pid} className={`score-row${isActive ? " score-row-active" : ""}`}>
-                <span className="score-name" style={{ flex: 1 }}>
-                  {name}
-                  {uid === pid && <span className="score-you"> (you)</span>}
-                </span>
-                <span className="score-cards">
-                  {isKnowerPlayer ? "Knower" : `${count} cards`}
-                </span>
-                <span className="score-detail">
-                  {isActive && "Playing..."}
-                  {isJudging && "Judging..."}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+      <PlayerScores>
+        {allPlayers.map((pid) => {
+          const name = room?.players[pid]?.name ?? pid;
+          const count = handCounts[pid] ?? 0;
+          const isKnowerPlayer = pid === game.knower;
+          const isActive = pid === currentTurnUid && !game.pendingPlay;
+          const isJudging = isKnowerPlayer && !!game.pendingPlay;
+          return (
+            <PlayerScoreRow
+              key={pid}
+              name={name}
+              isYou={uid === pid}
+              isActive={isActive}
+            >
+              <span className="score-cards">
+                {isKnowerPlayer ? "Knower" : `${count} cards`}
+              </span>
+              <span className="score-detail">
+                {isActive && "Playing..."}
+                {isJudging && "Judging..."}
+              </span>
+            </PlayerScoreRow>
+          );
+        })}
+      </PlayerScores>
       </div>
     </div>
   );

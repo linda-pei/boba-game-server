@@ -4,6 +4,7 @@ import { getZones, findZone } from "./zones";
 import { RING_COLORS, RING_CATEGORIES } from "./vennPaths";
 import { CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES } from "./deck";
 import RingDisplay from "./RingDisplay";
+import GameCard from "../../components/shared/GameCard";
 import type { Game, Hand } from "../../types";
 
 const CLUE_POOLS = [CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES];
@@ -140,18 +141,18 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
 
           return (
             <div key={card} style={{ textAlign: "center" }}>
-              <div
-                className={`game-card${isSelected ? " selected" : ""}`}
+              <GameCard
+                selected={isSelected}
+                disabled={isAssigned}
                 onClick={() => {
-                  if (isAssigned) return;
                   if (!allAssigned) {
                     setSelectedCard(isSelected ? null : card);
                   }
                 }}
-                style={isAssigned ? { opacity: 0.5, cursor: "default" } : undefined}
+                style={isAssigned ? { opacity: 0.5 } : undefined}
               >
                 {card}
-              </div>
+              </GameCard>
               {isAssigned && (
                 <div style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>
                   <span style={{ color: "var(--ink-mute)" }}>{zone?.label}</span>

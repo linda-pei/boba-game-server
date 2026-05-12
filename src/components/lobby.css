@@ -4,7 +4,7 @@
 
 .lobby.screen {
   font-family: var(--font-body);
-  max-width: 700px;
+  max-width: 820px;
 }
 
 .lobby h2,
@@ -63,10 +63,10 @@
   font-weight: 700;
 }
 
-/* ---- Game selector — sticker tiles ---- */
+/* ---- Game selector — sticker tile grid (tiles themselves in game-chrome.css) ---- */
 .lobby .game-selector {
   margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
+  padding-bottom: 1.25rem;
   border-bottom: 2px dashed var(--border);
 }
 
@@ -77,92 +77,7 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ink-soft);
-  margin-bottom: 0.5rem;
-}
-
-.lobby .game-selector-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.lobby .game-selector-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.7rem 0.85rem 0.7rem 1rem;
-  border-radius: var(--r-3);
-  border: 2px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: var(--shadow-1);
-  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s, border-color 0.15s;
-  font-family: inherit;
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-}
-
-.lobby .game-selector-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: var(--border);
-  transition: background 0.15s;
-}
-
-/* Accent bars per game */
-.lobby .game-selector-card[data-game="things-in-rings"]::before {
-  background: linear-gradient(180deg, var(--tir-red) 0%, var(--tir-red) 33%, var(--tir-blue) 33%, var(--tir-blue) 66%, var(--tir-green) 66%);
-}
-.lobby .game-selector-card[data-game="scout"]::before {
-  background: linear-gradient(180deg, var(--scout-1), var(--scout-2), var(--scout-3), var(--scout-4));
-}
-.lobby .game-selector-card[data-game="werewords"]::before {
-  background: var(--ww-night);
-}
-.lobby .game-selector-card[data-game="order-overload"]::before {
-  background: var(--oo-cafe);
-}
-.lobby .game-selector-card[data-game="deep-sea"]::before {
-  background: linear-gradient(180deg, var(--ds-ocean), var(--ds-coral));
-}
-
-.lobby .game-selector-card:hover:not(:disabled) {
-  transform: translateY(-2px) rotate(-0.5deg);
-  box-shadow: var(--shadow-sticker);
-}
-
-.lobby .game-selector-card.selected {
-  border-color: var(--peach-500);
-  background: color-mix(in srgb, var(--peach-500) 8%, var(--surface));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--peach-500) 25%, transparent), var(--shadow-sticker);
-}
-
-.lobby .game-selector-card:disabled {
-  cursor: default;
-  opacity: 0.6;
-  transform: none;
-}
-
-.lobby .game-selector-card:disabled.selected {
-  opacity: 1;
-}
-
-.lobby .game-selector-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  font-family: var(--font-display);
-}
-
-.lobby .game-selector-players {
-  font-size: 0.8rem;
-  color: var(--ink-soft);
+  margin-bottom: 0.75rem;
 }
 
 /* ---- Mode toggle — pill switch ---- */

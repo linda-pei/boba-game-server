@@ -7,6 +7,9 @@ import DiscussionPhase from "./DiscussionPhase";
 import PlacementPhase from "./PlacementPhase";
 import ResolutionPhase from "./ResolutionPhase";
 import TestResult from "./TestResult";
+import GameBanner from "../../components/shared/GameBanner";
+import ResignButton from "../../components/shared/ResignButton";
+import { toRoman } from "./levels";
 import "./take-time.css";
 
 interface Props {
@@ -32,9 +35,23 @@ export default function TakeTimeGameBoard({ roomCode }: Props) {
   if (!room) return <p>Loading room...</p>;
   if (!uid) return <p>Not signed in.</p>;
 
+  const phaseSubtitle: Record<typeof game.status, string> = {
+    discussion: "discussion",
+    placement: "placement",
+    resolution: "resolution",
+    pass: "test passed",
+    fail: "test failed",
+  };
+
   return (
-    <div className="screen tt-screen">
-      <h2>Take Time</h2>
+    <div className="game-screen-wrap">
+      <GameBanner
+        game="tt"
+        subtitle={phaseSubtitle[game.status]}
+        roundLabel={`${toRoman(game.chapter)}·${game.test}`}
+        actions={<ResignButton />}
+      />
+      <div className="screen tt-screen">
 
       {game.status === "discussion" && hand && (
         <DiscussionPhase roomCode={roomCode} game={game} hand={hand} uid={uid} room={room} />
@@ -45,12 +62,13 @@ export default function TakeTimeGameBoard({ roomCode }: Props) {
       )}
 
       {game.status === "resolution" && (
-        <ResolutionPhase roomCode={roomCode} game={game} room={room} />
+        <ResolutionPhase roomCode={roomCode} game={game} room={room} uid={uid} />
       )}
 
       {(game.status === "pass" || game.status === "fail") && (
-        <TestResult roomCode={roomCode} game={game} room={room} />
+        <TestResult roomCode={roomCode} game={game} room={room} uid={uid} />
       )}
+      </div>
     </div>
   );
 }

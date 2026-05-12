@@ -43,6 +43,9 @@
   --oo-cream:  #fff5dc;
   --ds-ocean:  #2a5b88;
   --ds-coral:  #ec7c5a;
+  --tt-solar:  #f0c64a;
+  --tt-lunar:  #1a1f3d;
+  --tt-cream:  #f4e8c8;
 
   /* Scout card color ramp (1-10) */
   --scout-card-1:  #1B3A8C;
@@ -311,11 +314,6 @@ button:focus-visible {
   cursor: not-allowed;
   transform: none !important;
   box-shadow: var(--shadow-sticker) !important;
-}
-
-/* ---- Active-row name highlight ---- */
-.score-row-active .score-name {
-  color: var(--peach-700);
 }
 
 input, select {
