@@ -32,19 +32,21 @@ export default function KnowerTurn({ roomCode, game, hand, uid }: Props) {
 
   return (
     <div className="knower-turn">
+      <div className="paper">
+        <RingDisplay
+          ringLabels={game.rings.map((r) => r.label)}
+          showClues
+          playedCards={playedCards}
+          interactive={!!selectedCard && !placing}
+          onZoneClick={handlePlace}
+        />
+      </div>
+
       <div className="turn-status turn-status--mine">
         {selectedCard
           ? `Click a zone to place "${selectedCard}" as a hint`
           : "Select a card from your hand to place as a hint"}
       </div>
-
-      <RingDisplay
-        ringLabels={game.rings.map((r) => r.label)}
-        showClues
-        playedCards={playedCards}
-        interactive={!!selectedCard && !placing}
-        onZoneClick={handlePlace}
-      />
 
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">

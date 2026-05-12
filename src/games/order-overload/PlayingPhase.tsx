@@ -394,7 +394,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                   {name}
                   {isMe && <span className="score-you"> (you)</span>}
                 </span>
-                <span className="score-cards" style={{ minWidth: "65px", textAlign: "right" }}>
+                <span className="score-cards" style={{ minWidth: "65px" }}>
                   {isEmptied ? "✓ done" : `${cardCount} cards`}
                 </span>
                 <span style={{ minWidth: "90px", textAlign: "right", paddingLeft: "0.75rem", fontSize: "0.8rem", color: "var(--peach-500)" }}>

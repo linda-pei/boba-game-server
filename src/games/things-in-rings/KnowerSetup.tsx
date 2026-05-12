@@ -122,13 +122,15 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
         </div>
       )}
 
-      <RingDisplay
-        ringLabels={ringLabels}
-        showClues
-        playedCards={diagramCards}
-        interactive={!!selectedCard}
-        onZoneClick={handleZoneClick}
-      />
+      <div className="paper">
+        <RingDisplay
+          ringLabels={ringLabels}
+          showClues
+          playedCards={diagramCards}
+          interactive={!!selectedCard}
+          onZoneClick={handleZoneClick}
+        />
+      </div>
 
       <div className="hand">
         {cards.map((card) => {

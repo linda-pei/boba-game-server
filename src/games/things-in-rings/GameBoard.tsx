@@ -52,27 +52,14 @@ export default function GameBoard({ roomCode }: Props) {
   // In-progress — diagram is rendered by PlayerTurn or KnowerJudge/KnowerTurn
   const currentTurnUid = game.turnOrder[game.currentTurn];
 
+  // Build full player list: knower first, then turn order (knower may already be in turnOrder for coop)
+  const allPlayers = game.turnOrder.includes(game.knower)
+    ? game.turnOrder
+    : [game.knower, ...game.turnOrder];
+
   return (
     <div className="game-board screen">
       <h2>Things in Rings</h2>
-
-      <div className="tir-players">
-        {game.turnOrder.map((pid) => {
-          const player = room?.players[pid];
-          const name = player?.name ?? pid;
-          const count = handCounts[pid] ?? 0;
-          const isActive = pid === currentTurnUid && !game.pendingPlay;
-          const isKnowerPlayer = pid === game.knower;
-          return (
-            <span key={pid} className={`tir-player-chip${isActive ? " active" : ""}`}>
-              {name}
-              {isKnowerPlayer && <span className="tir-knower-badge">K</span>}
-              {pid === uid && <span className="tir-you"> (you)</span>}
-              <span className="tir-card-count">{count} cards</span>
-            </span>
-          );
-        })}
-      </div>
 
       {isCoopKnowerTurn && hand ? (
         <KnowerTurn roomCode={roomCode} game={game} hand={hand} uid={uid!} />
@@ -90,6 +77,34 @@ export default function GameBoard({ roomCode }: Props) {
       ) : (
         <p>Loading your hand...</p>
       )}
+
+      <div className="score-board">
+        <h4>Players</h4>
+        <div className="score-grid">
+          {allPlayers.map((pid) => {
+            const name = room?.players[pid]?.name ?? pid;
+            const count = handCounts[pid] ?? 0;
+            const isKnowerPlayer = pid === game.knower;
+            const isActive = pid === currentTurnUid && !game.pendingPlay;
+            const isJudging = isKnowerPlayer && !!game.pendingPlay;
+            return (
+              <div key={pid} className={`score-row${isActive ? " score-row-active" : ""}`}>
+                <span className="score-name" style={{ flex: 1 }}>
+                  {name}
+                  {uid === pid && <span className="score-you"> (you)</span>}
+                </span>
+                <span className="score-cards">
+                  {isKnowerPlayer ? "Knower" : `${count} cards`}
+                </span>
+                <span className="score-detail">
+                  {isActive && "Playing..."}
+                  {isJudging && "Judging..."}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

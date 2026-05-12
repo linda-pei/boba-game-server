@@ -172,19 +172,22 @@ export default function RingDisplay({
                   gap: "3px",
                 }}
               >
-                {allCards.map((cardId, i) => (
-                  <span
-                    key={`${cardId}-${i}`}
-                    className="card-chip"
-                    style={
-                      isPending && i === allCards.length - 1
-                        ? { borderColor: "var(--peach-500)", fontStyle: "italic" }
-                        : undefined
-                    }
-                  >
-                    {cardId}
-                  </span>
-                ))}
+                {allCards.map((cardId, i) => {
+                  const isNewCard = isPending && i === allCards.length - 1;
+                  return (
+                    <span
+                      key={`${cardId}-${i}`}
+                      className={`card-chip${isNewCard ? " card-chip-pop" : ""}`}
+                      style={
+                        isNewCard
+                          ? { borderColor: "var(--peach-500)", fontStyle: "italic" }
+                          : undefined
+                      }
+                    >
+                      {cardId}
+                    </span>
+                  );
+                })}
               </div>
             </foreignObject>
           );

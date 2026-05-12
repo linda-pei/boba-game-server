@@ -45,6 +45,14 @@ export default function PlayerTurn({
     const placedZone = findZone(zones, game.pendingPlay.rings);
     return (
       <div className="player-turn">
+        <div className="paper">
+          <RingDisplay
+            ringLabels={game.rings.map((r) => r.label)}
+            playedCards={playedCards}
+            pendingPlay={game.pendingPlay}
+          />
+        </div>
+
         <div className="turn-status">
           Waiting for the Knower to judge...
         </div>
@@ -52,11 +60,6 @@ export default function PlayerTurn({
           <strong>{game.pendingPlay.cardId}</strong> was placed in{" "}
           <strong>{placedZone?.label ?? "a zone"}</strong>
         </p>
-        <RingDisplay
-          ringLabels={game.rings.map((r) => r.label)}
-          playedCards={playedCards}
-          pendingPlay={game.pendingPlay}
-        />
       </div>
     );
   }
@@ -67,13 +70,16 @@ export default function PlayerTurn({
       room?.players[currentPlayerUid]?.name ?? "another player";
     return (
       <div className="player-turn">
+        <div className="paper">
+          <RingDisplay
+            ringLabels={game.rings.map((r) => r.label)}
+            playedCards={playedCards}
+          />
+        </div>
+
         <div className="turn-status">
           Waiting for <strong>{currentPlayerName}</strong> to play...
         </div>
-        <RingDisplay
-          ringLabels={game.rings.map((r) => r.label)}
-          playedCards={playedCards}
-        />
         <h4>Your Hand</h4>
         <div className="hand">
           {hand.cards.map((card) => (
@@ -88,18 +94,20 @@ export default function PlayerTurn({
 
   return (
     <div className="player-turn">
+      <div className="paper">
+        <RingDisplay
+          ringLabels={game.rings.map((r) => r.label)}
+          playedCards={playedCards}
+          interactive={!!selectedCard && !placing}
+          onZoneClick={handlePlace}
+        />
+      </div>
+
       <div className="turn-status turn-status--mine">
         {selectedCard
           ? `Click a zone on the diagram to place "${selectedCard}"`
           : "Select a card from your hand, then place it in a zone"}
       </div>
-
-      <RingDisplay
-        ringLabels={game.rings.map((r) => r.label)}
-        playedCards={playedCards}
-        interactive={!!selectedCard && !placing}
-        onZoneClick={handlePlace}
-      />
 
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">

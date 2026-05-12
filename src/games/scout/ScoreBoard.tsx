@@ -24,16 +24,16 @@ export default function ScoreBoard({ game, room, handInfo, currentUid }: ScoreBo
                 {name}
                 {uid === currentUid && <span className="score-you"> (you)</span>}
               </span>
-              <span className="score-cards" style={{ minWidth: "55px", textAlign: "right" }}>
+              <span className="score-cards">
                 {hi ? `${hi.cardCount} cards` : "..."}
               </span>
               <span className={`score-token${hi && !hi.hasUsedScoutPlay ? "" : " used"}`}>
                 {hi && !hi.hasUsedScoutPlay ? "S&S" : "---"}
               </span>
-              <span className="score-detail" style={{ minWidth: "120px", textAlign: "right" }}>
+              <span className="score-detail" style={{ minWidth: "120px" }}>
                 {s?.capturedCount ?? 0} captured / {s?.dollarTokens ?? 0} scouted
               </span>
-              <span className="score-cumulative" style={{ minWidth: "30px", textAlign: "right" }}>
+              <span className="score-cumulative">
                 {game.cumulativeScores[uid] ?? 0}
               </span>
             </div>

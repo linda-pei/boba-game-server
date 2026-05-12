@@ -25,14 +25,17 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
       room?.players[currentPlayerUid]?.name ?? "a player";
     return (
       <div className="knower-judge">
+        <div className="paper">
+          <RingDisplay
+            ringLabels={game.rings.map((r) => r.label)}
+            showClues
+            playedCards={playedCards}
+          />
+        </div>
+
         <div className="turn-status">
           Waiting for <strong>{currentPlayerName}</strong> to place a card...
         </div>
-        <RingDisplay
-          ringLabels={game.rings.map((r) => r.label)}
-          showClues
-          playedCards={playedCards}
-        />
         {hand && hand.cards.length > 0 && (
           <>
             <h4>Your Hand ({hand.cards.length} cards)</h4>
@@ -74,6 +77,18 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
 
   return (
     <div className="knower-judge">
+      <div className="paper">
+        <RingDisplay
+          ringLabels={game.rings.map((r) => r.label)}
+          showClues
+          playedCards={playedCards}
+          pendingPlay={pending}
+          interactive={correctingZone}
+          onZoneClick={handleIncorrect}
+        />
+      </div>
+
+
       <h3>Judge This Play</h3>
       <div className="turn-status turn-status--mine">
         <strong>{pending.cardId}</strong> was placed in{" "}
@@ -100,15 +115,6 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
       {correctingZone && (
         <p style={{ marginBottom: 0 }}>Click the correct zone on the diagram:</p>
       )}
-
-      <RingDisplay
-        ringLabels={game.rings.map((r) => r.label)}
-        showClues
-        playedCards={playedCards}
-        pendingPlay={pending}
-        interactive={correctingZone}
-        onZoneClick={handleIncorrect}
-      />
       {hand && hand.cards.length > 0 && (
         <>
           <h4>Your Hand ({hand.cards.length} cards)</h4>
