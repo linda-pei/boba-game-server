@@ -667,7 +667,6 @@
     box-shadow: var(--shadow-1);
   }
   .player-name { font-weight: 600; }
-  .player-row.is-active .player-name { color: var(--peach-700); }
   .player-name .you { color: var(--peach-700); font-weight: 500; font-size: 0.85em; }
   .player-meta { font-size: 0.85rem; color: var(--ink-soft); }
   .player-score {
@@ -946,6 +945,257 @@
   .game-tile.ds    .accent-bar { background: linear-gradient(180deg, var(--ds-ocean), var(--ds-coral)); }
 
   /* =========================================================
+     GAME ICONOGRAPHY — sticker SVGs + selector tile + in-game banner
+     ========================================================= */
+  .gicon { display: block; }
+  .gicon * {
+    stroke: var(--ink);
+    stroke-width: 3.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    paint-order: stroke fill;
+    vector-effect: non-scaling-stroke;
+  }
+  .gicon .nostroke { stroke: none; }
+  /* Scout fan: cards are tiny and overlapping — the default 3.5px stroke
+     collapses 5 cards into a black blob. Thin stroke + slight ink lift so
+     the rainbow ramp reads as cards, not a dark fan. */
+  .game-sticker.scout .gicon *,
+  .game-banner.scout .gicon * {
+    stroke-width: 1.2;
+    stroke: #2a1a12;
+  }
+
+  /* Game selector — big sticker tiles with embedded illustrations */
+  .game-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--s-5);
+  }
+  .game-sticker {
+    position: relative;
+    border: 0;
+    border-radius: var(--r-4);
+    box-shadow: 5px 5px 0 var(--ink);
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+    background: var(--surface);
+    padding: 0;
+    font-family: inherit;
+    color: inherit;
+    transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-spring);
+    --tile-bg: var(--peach-100);
+    --tile-bg2: var(--peach-200);
+  }
+  .game-sticker:hover {
+    transform: translate(-3px, -3px) rotate(-1deg);
+    box-shadow: 8px 8px 0 var(--ink);
+  }
+  .game-sticker:active {
+    transform: translate(2px, 2px) rotate(0deg);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .game-sticker .art {
+    height: 170px;
+    background:
+      radial-gradient(circle at 30% 30%, var(--tile-bg) 0%, var(--tile-bg2) 70%);
+    border-bottom: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .game-sticker .art .gicon {
+    transition: transform 0.4s var(--ease-spring);
+    filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.12));
+  }
+  .game-sticker:hover .art .gicon {
+    transform: scale(1.08) rotate(-2deg);
+  }
+  /* speckled paper texture in the art panel */
+  .game-sticker .art::after {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(rgba(31,20,16,0.08) 1px, transparent 1.2px),
+      radial-gradient(rgba(31,20,16,0.05) 1px, transparent 1.2px);
+    background-size: 22px 22px, 18px 18px;
+    background-position: 0 0, 9px 11px;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  .game-sticker .meta {
+    padding: var(--s-4) var(--s-4) var(--s-4);
+  }
+  .game-sticker .meta h3 {
+    font-family: var(--font-display);
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+  }
+  .game-sticker .meta p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .game-sticker .meta-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
+  }
+  .game-sticker .player-count {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-mute);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .game-sticker .badge-mini {
+    display: inline-block;
+    background: var(--badge-bg, var(--peach-700));
+    color: var(--badge-ink, var(--pearl));
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+  }
+  /* per-game badge colors — saturated, on-brand, high-contrast */
+  .game-sticker.tir   .badge-mini { --badge-bg: var(--tir-red);   --badge-ink: var(--pearl); }
+  .game-sticker.scout .badge-mini { --badge-bg: var(--scout-2);   --badge-ink: var(--pearl); }
+  .game-sticker.ww    .badge-mini { --badge-bg: var(--ww-moon);   --badge-ink: var(--ww-night); }
+  .game-sticker.oo    .badge-mini { --badge-bg: var(--honey-500); --badge-ink: var(--ink); }
+  .game-sticker.ds    .badge-mini { --badge-bg: var(--ds-coral);  --badge-ink: var(--pearl); }
+  /* per-game tile tints — light mode */
+  .game-sticker.tir   { --tile-bg: #ffe2d4; --tile-bg2: #f7c4b0; }
+  .game-sticker.scout { --tile-bg: #d8ecff; --tile-bg2: #b6d6ff; }
+  .game-sticker.ww    { --tile-bg: #2e2547; --tile-bg2: #1c1633; }
+  .game-sticker.ww .art { color: var(--pearl); }
+  .game-sticker.oo    { --tile-bg: #f7e7c8; --tile-bg2: #ecd1a0; }
+  .game-sticker.ds    { --tile-bg: #b8d4e8; --tile-bg2: #6fa2c6; }
+
+  /* per-game tile tints — dark mode (deeper / desaturated so the meta
+     panel stays legible; ww stays night). Meta panel always uses --surface
+     so its text is automatic. */
+  [data-theme="dark"] .game-sticker.tir   { --tile-bg: #5a2818; --tile-bg2: #3a1810; }
+  [data-theme="dark"] .game-sticker.scout { --tile-bg: #1e3a5c; --tile-bg2: #14283f; }
+  [data-theme="dark"] .game-sticker.ww    { --tile-bg: #3a2d5c; --tile-bg2: #1c1633; }
+  [data-theme="dark"] .game-sticker.oo    { --tile-bg: #4a3818; --tile-bg2: #2e2210; }
+  [data-theme="dark"] .game-sticker.ds    { --tile-bg: #1c3a52; --tile-bg2: #0e2030; }
+
+  /* In-game banner — appears at the top of each game */
+  .game-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-5);
+    border: 0;
+    border-radius: var(--r-4);
+    box-shadow: 4px 4px 0 var(--ink);
+    background: var(--banner-bg, var(--peach-100));
+    overflow: hidden;
+    min-height: 90px;
+  }
+  .game-banner::before {
+    /* repeating wavy pattern as backdrop */
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(rgba(31,20,16,0.06) 1.2px, transparent 1.4px);
+    background-size: 16px 16px;
+    pointer-events: none;
+  }
+  .game-banner .banner-icon {
+    position: relative;
+    flex: none;
+    width: 64px; height: 64px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface);
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .game-banner .banner-title {
+    position: relative;
+    flex: 1;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .game-banner .banner-title h2 {
+    font-family: var(--font-display);
+    margin: 0; font-size: 1.5rem; line-height: 1.1;
+    color: var(--banner-ink, var(--ink));
+  }
+  .game-banner .banner-title .sub {
+    font-size: 0.8rem;
+    color: var(--banner-sub, var(--ink-soft));
+    font-family: ui-monospace, monospace;
+  }
+  .game-banner .banner-actions {
+    position: relative;
+    display: flex; gap: var(--s-2); align-items: center;
+  }
+  .game-banner .round-pill {
+    background: var(--pill-bg, var(--peach-700));
+    color: var(--pill-ink, var(--pearl));
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1.5px solid var(--ink);
+  }
+  /* per-game round pill colors */
+  .game-banner.tir   .round-pill { --pill-bg: var(--tir-red);   --pill-ink: var(--pearl); }
+  .game-banner.scout .round-pill { --pill-bg: var(--scout-2);   --pill-ink: var(--pearl); border-color: #1a1410; }
+  .game-banner.ww    .round-pill { --pill-bg: var(--ww-moon);   --pill-ink: var(--ww-night); border-color: var(--ww-night); }
+  .game-banner.oo    .round-pill { --pill-bg: var(--honey-500); --pill-ink: var(--ink); }
+  .game-banner.ds    .round-pill { --pill-bg: var(--ds-coral);  --pill-ink: var(--pearl); }
+  /* per-game banner tints — light mode */
+  .game-banner.tir   { --banner-bg: #ffe2d4; background: var(--banner-bg); }
+  .game-banner.scout { background: linear-gradient(110deg, #d8ecff 0%, #ffe9d4 50%, #ffd4d4 100%); }
+  .game-banner.ww    { background: radial-gradient(circle at 80% 30%, #4a3a78 0%, var(--ww-night) 70%); --banner-ink: var(--pearl); --banner-sub: #d4c8ff; }
+  .game-banner.ww .banner-icon { background: var(--ww-moon); }
+  .game-banner.ww .round-pill { background: var(--ww-moon); color: var(--ww-night); }
+  .game-banner.oo    { --banner-bg: #f7e7c8; background: var(--banner-bg); }
+  .game-banner.ds    { background: linear-gradient(180deg, #b8d4e8 0%, #6fa2c6 100%); --banner-ink: var(--pearl); --banner-sub: #f0f8ff; }
+  .game-banner.ds .round-pill { background: var(--ds-coral); }
+
+  /* per-game banner tints — dark mode (deeper backgrounds, light ink) */
+  [data-theme="dark"] .game-banner.tir   { background: linear-gradient(110deg, #5a2818 0%, #3a1810 100%); --banner-ink: var(--pearl); --banner-sub: #f0c8b4; }
+  [data-theme="dark"] .game-banner.scout { background: linear-gradient(110deg, #1e3a5c 0%, #4a2818 50%, #5a1f24 100%); --banner-ink: var(--pearl); --banner-sub: #e8d4c0; }
+  [data-theme="dark"] .game-banner.ww    { background: radial-gradient(circle at 80% 30%, #3a2d5c 0%, #14102a 70%); --banner-ink: var(--pearl); --banner-sub: #d4c8ff; }
+  [data-theme="dark"] .game-banner.oo    { background: linear-gradient(110deg, #4a3818 0%, #2e2210 100%); --banner-ink: var(--pearl); --banner-sub: #f0d4a0; }
+  [data-theme="dark"] .game-banner.ds    { background: linear-gradient(180deg, #1c3a52 0%, #0e2030 100%); --banner-ink: var(--pearl); --banner-sub: #b8d4e8; }
+
+  /* gentle banner-icon idle motion */
+  @keyframes banner-bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-3px) rotate(2deg); }
+  }
+  .game-banner .banner-icon .gicon {
+    animation: banner-bob 3.4s ease-in-out infinite;
+  }
+
+  /* Icon family display strip (small inline icons) */
+  .icon-strip {
+    display: flex;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    align-items: center;
+    padding: var(--s-4);
+    background: var(--milk-100);
+    border-radius: var(--r-3);
+    border: 2px solid var(--border);
+  }
+  .icon-strip .ico-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    font-family: ui-monospace, monospace; font-size: 0.7rem; color: var(--ink-mute);
+  }
+
+  /* =========================================================
      REACTION DEMO
      ========================================================= */
   .reactions {
@@ -1094,17 +1344,21 @@
 
   .scout-hand {
     display: flex;
-    padding: var(--s-3);
+    padding: var(--s-4) var(--s-3);
     margin: 0 -8px;
   }
-  .scout-hand .scout-card { margin: 0 -10px; }
+  .scout-hand .scout-card {
+    margin: 0 -8px;
+    box-shadow: 2px 2px 0 var(--scout-card-ink);
+  }
   .scout-hand .scout-card:nth-child(odd) { --deck-rot: -2deg; }
   .scout-hand .scout-card:nth-child(even) { --deck-rot: 2deg; --deck-y: 3px; }
   .scout-hand .scout-card:hover:not(.is-flipping) {
     --deck-rot: 0deg;
-    --deck-y: -8px;
-    --deck-scale: 1.05;
+    --deck-y: -10px;
+    --deck-scale: 1.06;
     z-index: 2;
+    box-shadow: 4px 5px 0 var(--scout-card-ink);
   }
 
   /* Dedicated flip demo */
@@ -1199,6 +1453,7 @@
       <a href="#motion">Motion</a>
       <a href="#icons">Icons</a>
       <a href="#games">Per-game</a>
+      <a href="#game-icons">Iconography</a>
       <a href="#scout-cards">Scout cards</a>
     </nav>
     <button class="theme-toggle" onclick="toggleTheme()">☀ / ☾</button>
@@ -1637,6 +1892,309 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- GAME ICONOGRAPHY -->
+  <section id="game-icons" class="spec">
+    <h2>Game iconography</h2>
+    <p class="lede">Each game gets a sticker-style SVG icon — chunky black outlines, flat fills from the palette, just enough character to read at 32px and 200px alike. Used three ways: small inline (player rows, breadcrumbs), in a circular badge for the in-game banner, and as a hero illustration on the game selector.</p>
+
+    <h3>The five icons</h3>
+    <div class="icon-strip">
+      <div class="ico-cell">
+        <!-- Things in Rings: three overlapping rings -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Things in Rings">
+          <circle cx="30" cy="35" r="20" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
+          <circle cx="50" cy="35" r="20" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
+          <circle cx="40" cy="55" r="20" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
+          <circle cx="30" cy="35" r="20" fill="none"/>
+          <circle cx="50" cy="35" r="20" fill="none"/>
+          <circle cx="40" cy="55" r="20" fill="none"/>
+        </svg>
+        <span>rings</span>
+      </div>
+      <div class="ico-cell">
+        <!-- Scout: fanned rainbow cards -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Scout">
+          <g transform="translate(40 44)">
+            <g transform="rotate(-22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-2)"/></g>
+            <g transform="rotate(-7)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-5)"/></g>
+            <g transform="rotate(8)"><rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-7)"/></g>
+            <g transform="rotate(22)"><rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-9)"/></g>
+          </g>
+        </svg>
+        <span>scout</span>
+      </div>
+      <div class="ico-cell">
+        <!-- Werewords: moon + wolf ears -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Werewords">
+          <circle cx="50" cy="30" r="18" fill="var(--ww-moon)"/>
+          <circle cx="44" cy="26" r="3.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+          <circle cx="55" cy="34" r="2.5" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+          <!-- wolf silhouette in foreground -->
+          <path d="M16 66 L20 44 L28 50 L32 38 L40 50 L48 38 L52 50 L60 44 L64 66 Z" fill="var(--ww-night)"/>
+          <circle cx="34" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
+          <circle cx="46" cy="56" r="2" class="nostroke" fill="var(--ww-moon)"/>
+        </svg>
+        <span>werewords</span>
+      </div>
+      <div class="ico-cell">
+        <!-- Order Overload: stacked stars / chips -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Order Overload">
+          <rect x="14" y="46" width="52" height="22" rx="4" fill="var(--oo-cafe)"/>
+          <rect x="18" y="34" width="44" height="14" rx="3" fill="var(--oo-cream)"/>
+          <path d="M40 8 L46 24 L62 26 L50 36 L54 52 L40 44 L26 52 L30 36 L18 26 L34 24 Z" fill="var(--honey-500)"/>
+        </svg>
+        <span>order</span>
+      </div>
+      <div class="ico-cell">
+        <!-- Deep Sea: diver helmet + bubbles -->
+        <svg class="gicon" viewBox="0 0 80 80" width="64" height="64" aria-label="Deep Sea Adventure">
+          <circle cx="22" cy="18" r="4" fill="var(--pearl)"/>
+          <circle cx="14" cy="28" r="3" fill="var(--pearl)"/>
+          <circle cx="28" cy="30" r="2.5" fill="var(--pearl)"/>
+          <rect x="20" y="34" width="40" height="40" rx="20" fill="var(--ds-ocean)"/>
+          <rect x="32" y="42" width="16" height="10" rx="2" fill="var(--ww-moon)"/>
+          <circle cx="40" cy="47" r="2" class="nostroke" fill="var(--ds-ocean)"/>
+          <path d="M40 74 L36 80 M40 74 L44 80" fill="none"/>
+        </svg>
+        <span>deep sea</span>
+      </div>
+    </div>
+    <p class="caption">Same SVG scales from 32 → 200px. Used in player rows, in-game banner badge, and the selector tiles below.</p>
+
+    <h3>Game selector</h3>
+    <p class="lede">Lobby/home renders these as a grid. Hover lifts and tilts; click to open. The art panel sits above the metadata — same shape per tile, different illustration + palette per game.</p>
+    <div class="game-selector">
+      <button class="game-sticker tir">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 100 100" width="120" height="120">
+            <circle cx="38" cy="42" r="26" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
+            <circle cx="62" cy="42" r="26" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
+            <circle cx="50" cy="66" r="26" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
+            <circle cx="38" cy="42" r="26" fill="none"/>
+            <circle cx="62" cy="42" r="26" fill="none"/>
+            <circle cx="50" cy="66" r="26" fill="none"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Things in Rings</h3>
+          <p>Deduce the secret categories.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 3–7 players</span>
+            <span class="badge-mini">deduction</span>
+          </div>
+        </div>
+      </button>
+      <button class="game-sticker scout">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
+            <g transform="translate(60 60)">
+              <g transform="rotate(-28)">
+                <rect x="-14" y="-32" width="28" height="58" rx="4" fill="#fffaf0"/>
+                <rect x="-14" y="-32" width="28" height="29" rx="4" class="nostroke" fill="var(--scout-2)"/>
+                <rect x="-14" y="-7" width="28" height="33" class="nostroke" fill="var(--scout-9)" opacity="0.5"/>
+              </g>
+              <g transform="rotate(-14)">
+                <rect x="-14" y="-36" width="28" height="62" rx="4" fill="#fffaf0"/>
+                <rect x="-14" y="-36" width="28" height="31" rx="4" class="nostroke" fill="var(--scout-4)"/>
+                <rect x="-14" y="-9" width="28" height="35" class="nostroke" fill="var(--scout-7)" opacity="0.5"/>
+              </g>
+              <g transform="rotate(0)">
+                <rect x="-14" y="-38" width="28" height="64" rx="4" fill="#fffaf0"/>
+                <rect x="-14" y="-38" width="28" height="32" rx="4" class="nostroke" fill="var(--scout-6)"/>
+                <rect x="-14" y="-10" width="28" height="36" class="nostroke" fill="var(--scout-3)" opacity="0.5"/>
+              </g>
+              <g transform="rotate(14)">
+                <rect x="-14" y="-36" width="28" height="62" rx="4" fill="#fffaf0"/>
+                <rect x="-14" y="-36" width="28" height="31" rx="4" class="nostroke" fill="var(--scout-8)"/>
+                <rect x="-14" y="-9" width="28" height="35" class="nostroke" fill="var(--scout-5)" opacity="0.5"/>
+              </g>
+              <g transform="rotate(28)">
+                <rect x="-14" y="-32" width="28" height="58" rx="4" fill="#fffaf0"/>
+                <rect x="-14" y="-32" width="28" height="29" rx="4" class="nostroke" fill="var(--scout-10)"/>
+                <rect x="-14" y="-7" width="28" height="33" class="nostroke" fill="var(--scout-1)" opacity="0.5"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Scout</h3>
+          <p>Play sets to dump your hand fast.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 2–5 players</span>
+            <span class="badge-mini">tactical</span>
+          </div>
+        </div>
+      </button>
+      <button class="game-sticker ww">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
+            <circle cx="80" cy="32" r="22" fill="var(--ww-moon)"/>
+            <circle cx="72" cy="26" r="4" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <circle cx="86" cy="38" r="3" class="nostroke" fill="rgba(31,20,16,0.18)"/>
+            <!-- distant trees -->
+            <path d="M10 84 L18 60 L26 84 Z M22 84 L30 56 L38 84 Z" class="nostroke" fill="#1a1230" opacity="0.7"/>
+            <!-- wolf silhouette -->
+            <path d="M30 96 L36 64 L48 72 L54 56 L62 72 L70 56 L78 72 L90 64 L96 96 Z" fill="var(--ww-night)"/>
+            <circle cx="56" cy="80" r="2.5" class="nostroke" fill="var(--ww-moon)"/>
+            <circle cx="70" cy="80" r="2.5" class="nostroke" fill="var(--ww-moon)"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Werewords</h3>
+          <p>Guess the secret word. Spot the wolf.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 3–10 players</span>
+            <span class="badge-mini">social</span>
+          </div>
+        </div>
+      </button>
+      <button class="game-sticker oo">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
+            <rect x="20" y="60" width="80" height="28" rx="5" fill="var(--oo-cafe)"/>
+            <rect x="26" y="44" width="68" height="18" rx="4" fill="var(--oo-cream)"/>
+            <rect x="32" y="32" width="56" height="14" rx="3" fill="var(--peach-300)"/>
+            <path d="M60 6 L66 22 L84 24 L70 36 L74 54 L60 44 L46 54 L50 36 L36 24 L54 22 Z" fill="var(--honey-500)"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Order Overload</h3>
+          <p>Race the clock. Sort the orders.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 1–6 players</span>
+            <span class="badge-mini">co-op</span>
+          </div>
+        </div>
+      </button>
+      <button class="game-sticker ds">
+        <div class="art">
+          <svg class="gicon" viewBox="0 0 120 100" width="140" height="120">
+            <!-- bubbles -->
+            <circle cx="30" cy="14" r="5" fill="var(--pearl)"/>
+            <circle cx="20" cy="26" r="3.5" fill="var(--pearl)"/>
+            <circle cx="38" cy="28" r="2.5" fill="var(--pearl)"/>
+            <!-- helmet body -->
+            <rect x="36" y="34" width="48" height="48" rx="24" fill="var(--ds-ocean)"/>
+            <!-- viewport -->
+            <rect x="50" y="46" width="20" height="14" rx="3" fill="var(--ww-moon)"/>
+            <circle cx="60" cy="53" r="2.5" class="nostroke" fill="var(--ds-ocean)"/>
+            <!-- bolts -->
+            <circle cx="44" cy="56" r="2" class="nostroke" fill="var(--pearl)" stroke="var(--ink)" stroke-width="2"/>
+            <circle cx="76" cy="56" r="2" class="nostroke" fill="var(--pearl)" stroke="var(--ink)" stroke-width="2"/>
+            <!-- hose -->
+            <path d="M84 60 Q102 50 100 30" fill="none"/>
+            <!-- treasure -->
+            <rect x="50" y="84" width="20" height="10" rx="2" fill="var(--honey-500)"/>
+          </svg>
+        </div>
+        <div class="meta">
+          <h3>Deep Sea Adventure</h3>
+          <p>Push your luck. Don't lose the air.</p>
+          <div class="meta-row">
+            <span class="player-count">◆ 2–6 players</span>
+            <span class="badge-mini">push-your-luck</span>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <h3>In-game banner</h3>
+    <p class="lede">Sits at the top of every game screen. Circular icon badge (gentle bob), title + round indicator, optional actions on the right. Background tints to the game's palette so players always know "where" they are.</p>
+
+    <div class="stack" style="gap: var(--s-3);">
+      <div class="game-banner tir">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="42" height="42">
+            <circle cx="30" cy="35" r="18" class="nostroke" fill="var(--tir-red)" opacity="0.85"/>
+            <circle cx="50" cy="35" r="18" class="nostroke" fill="var(--tir-blue)" opacity="0.85"/>
+            <circle cx="40" cy="52" r="18" class="nostroke" fill="var(--tir-green)" opacity="0.85"/>
+            <circle cx="30" cy="35" r="18" fill="none"/>
+            <circle cx="50" cy="35" r="18" fill="none"/>
+            <circle cx="40" cy="52" r="18" fill="none"/>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Things in Rings</h2>
+          <span class="sub">round 2 · ana is the knower</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">round 2/4</span>
+        </div>
+      </div>
+
+      <div class="game-banner scout">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <g transform="translate(40 46)">
+              <g transform="rotate(-18)"><rect x="-9" y="-22" width="18" height="40" rx="3" fill="var(--scout-3)"/></g>
+              <g transform="rotate(0)"><rect x="-9" y="-24" width="18" height="42" rx="3" fill="var(--scout-6)"/></g>
+              <g transform="rotate(18)"><rect x="-9" y="-22" width="18" height="40" rx="3" fill="var(--scout-9)"/></g>
+            </g>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Scout</h2>
+          <span class="sub">koji's turn · pile: 7-7-7</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">round 1/3</span>
+        </div>
+      </div>
+
+      <div class="game-banner ww">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <circle cx="40" cy="40" r="22" fill="var(--ww-night)"/>
+            <circle cx="34" cy="34" r="4" class="nostroke" fill="rgba(255,247,213,0.25)"/>
+            <circle cx="48" cy="46" r="3" class="nostroke" fill="rgba(255,247,213,0.25)"/>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Werewords</h2>
+          <span class="sub">discussion phase · 3:42 left</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">night 1</span>
+        </div>
+      </div>
+
+      <div class="game-banner oo">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <path d="M40 12 L46 28 L62 30 L50 40 L54 56 L40 48 L26 56 L30 40 L18 30 L34 28 Z" fill="var(--honey-500)"/>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Order Overload</h2>
+          <span class="sub">level 3 · serving table 4</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">★ ★ ★</span>
+        </div>
+      </div>
+
+      <div class="game-banner ds">
+        <div class="banner-icon">
+          <svg class="gicon" viewBox="0 0 80 80" width="44" height="44">
+            <rect x="22" y="22" width="36" height="36" rx="18" fill="var(--ds-ocean)"/>
+            <rect x="32" y="32" width="16" height="12" rx="3" fill="var(--ww-moon)"/>
+            <circle cx="40" cy="38" r="2.5" class="nostroke" fill="var(--ds-ocean)"/>
+            <circle cx="18" cy="18" r="3" fill="var(--pearl)"/>
+            <circle cx="10" cy="26" r="2" fill="var(--pearl)"/>
+          </svg>
+        </div>
+        <div class="banner-title">
+          <h2>Deep Sea Adventure</h2>
+          <span class="sub">descent · 14m / 21 air</span>
+        </div>
+        <div class="banner-actions">
+          <span class="round-pill">dive 2</span>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The banner is a layout primitive — same shape on every game, palette-tinted. Replace the .sub line per phase ("knower judging", "scout & show used", "werewolf guess", etc.) and the round pill reflects current round/level/dive.</p>
   </section>
 
   <!-- SCOUT CARDS -->

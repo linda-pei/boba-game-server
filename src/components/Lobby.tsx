@@ -8,6 +8,8 @@ import { startScoutGame } from "../games/scout/useScoutGame";
 import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
 import { startDeepSeaGame } from "../games/deep-sea/useDeepSeaGame";
+import { startTakeTimeGame } from "../games/take-time/useTakeTimeGame";
+import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
 
@@ -52,6 +54,7 @@ export default function Lobby() {
   const isWerewords = gameType === "werewords";
   const isOrderOverload = gameType === "order-overload";
   const isDeepSea = gameType === "deep-sea";
+  const isTakeTime = gameType === "take-time";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -72,7 +75,12 @@ export default function Lobby() {
   // Deep Sea-specific
   const canStartDeepSea = players.length >= 2 && players.length <= 6;
 
-  const canStart = isDeepSea
+  // Take Time-specific
+  const canStartTakeTime = players.length >= 2 && players.length <= 4;
+
+  const canStart = isTakeTime
+    ? canStartTakeTime
+    : isDeepSea
     ? canStartDeepSea
     : isScout
     ? canStartScout
@@ -112,7 +120,9 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isDeepSea) {
+      if (isTakeTime) {
+        await startTakeTimeGame(roomCode, room);
+      } else if (isDeepSea) {
         await startDeepSeaGame(roomCode, room);
       } else if (isScout) {
         await startScoutGame(roomCode, room);
@@ -145,10 +155,10 @@ export default function Lobby() {
             <div key={id} className="player-chip">
               {player.name}
               {id === room.host && <span className="badge badge-host">Host</span>}
-              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && id === knower && (
+              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && id === knower && (
                 <span className="badge badge-knower">Knower</span>
               )}
-              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && isHost && id !== knower && (
+              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn btn--secondary btn--sm"
@@ -173,6 +183,7 @@ export default function Lobby() {
               { id: "werewords", name: "Werewords", players: "4–11" },
               { id: "order-overload", name: "Order Overload", players: "2–6" },
               { id: "deep-sea", name: "Deep Sea Adventure", players: "2–6" },
+              { id: "take-time", name: "Take Time", players: "2–4" },
             ] as const).map((g) => (
               <button
                 key={g.id}
@@ -200,8 +211,51 @@ export default function Lobby() {
           </p>
         )}
 
+        {/* Take Time settings */}
+        {isTakeTime && (
+          <>
+            <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Take Time requires 2–4 players.{" "}
+              {players.length < 2
+                ? `Need ${2 - players.length} more.`
+                : players.length > 4
+                  ? "Too many players!"
+                  : `${players.length} players — ready!`}
+            </p>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Chapter:
+              <select
+                value={room.settings.chapter ?? 1}
+                onChange={(e) => updateRoomSettings(roomCode!, { chapter: Number(e.target.value) })}
+                disabled={!isHost}
+              >
+                {Array.from({ length: DEFINED_CHAPTERS }, (_, i) => i + 1).map((ch) => (
+                  <option key={ch} value={ch}>{toRoman(ch)}</option>
+                ))}
+              </select>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Test:
+              <select
+                value={room.settings.testNumber ?? 1}
+                onChange={(e) => updateRoomSettings(roomCode!, { testNumber: Number(e.target.value) })}
+                disabled={!isHost}
+              >
+                {Array.from({ length: TESTS_PER_CHAPTER }, (_, i) => i + 1).map((t) => {
+                  const level = getLevel(room.settings.chapter ?? 1, t);
+                  return (
+                    <option key={t} value={t} disabled={!level}>
+                      {t}{!level ? " (not available)" : ""}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          </>
+        )}
+
         {/* TIR settings */}
-        {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && (
+        {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && (
           <>
             <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
               3 rings: Context (red), Attribute (blue), Word (green)
@@ -325,7 +379,11 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isDeepSea
+                {isTakeTime
+                  ? players.length < 2
+                    ? "Need at least 2 players for Take Time"
+                    : "Too many players (max 4 for Take Time)"
+                  : isDeepSea
                   ? players.length < 2
                     ? "Need at least 2 players for Deep Sea Adventure"
                     : "Too many players (max 6 for Deep Sea Adventure)"

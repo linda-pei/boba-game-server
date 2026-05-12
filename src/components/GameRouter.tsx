@@ -6,6 +6,7 @@ import ScoutGameBoard from "../games/scout/GameBoard";
 import WerewordsGameBoard from "../games/werewords/GameBoard";
 import OrderOverloadGameBoard from "../games/order-overload/GameBoard";
 import DeepSeaGameBoard from "../games/deep-sea/GameBoard";
+import TakeTimeGameBoard from "../games/take-time/GameBoard";
 import EmoteBar from "./shared/EmoteBar";
 import EmoteOverlay from "./shared/EmoteOverlay";
 import "./shared/emotes.css";
@@ -28,6 +29,8 @@ export default function GameRouter() {
     gameBoard = <OrderOverloadGameBoard roomCode={roomCode} />;
   } else if (room?.gameType === "deep-sea") {
     gameBoard = <DeepSeaGameBoard roomCode={roomCode} />;
+  } else if (room?.gameType === "take-time") {
+    gameBoard = <TakeTimeGameBoard roomCode={roomCode} />;
   } else {
     gameBoard = <GameBoard roomCode={roomCode} />;
   }

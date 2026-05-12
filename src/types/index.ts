@@ -8,6 +8,8 @@ export interface RoomSettings {
   knower?: string;
   mode?: "competitive" | "coop";
   limitedTokens?: boolean;
+  chapter?: number;
+  testNumber?: number;
   deckId?: string;
   difficulty?: "easy" | "medium" | "hard" | "impossible";
   timerMinutes?: number;
@@ -240,4 +242,83 @@ export interface DeepSeaGame {
 export interface DeepSeaHand {
   carried: TreasureChip[];
   scored: TreasureChip[];
+}
+
+// ---- Take Time types ----
+
+export type TakeTimeSegmentRuleType =
+  | "color-count"
+  | "card-count"
+  | "value-range"
+  | "no-values"
+  | "turn-order"
+  | "closest-to"
+  | "max"
+  | "min"
+  | "color-max"
+  | "color-min"
+  | "last-play";
+
+export interface TakeTimeSegmentRule {
+  type: TakeTimeSegmentRuleType;
+  whiteCount?: number;
+  blackCount?: number;
+  cardCount?: number;
+  range?: [number, number];
+  excludedValues?: number[];
+  turnNumber?: number;
+  targetValue?: number;
+  color?: "black" | "white";
+}
+
+export interface TakeTimeLevelDef {
+  chapter: number;
+  test: number;
+  clockRule: "normal" | "infinity";
+  handAdjustable: boolean;
+  startSegment: number;
+  segmentRules: Record<number, TakeTimeSegmentRule[]>;
+  specialRules?: string[];
+}
+
+export interface TakeTimePlacedCard {
+  cardId: string;
+  color: "black" | "white";
+  value: number;
+  faceUp: boolean;
+  playedBy: string;
+  turnNumber: number;
+  revealed: boolean;
+}
+
+export type TakeTimeStatus = "discussion" | "placement" | "resolution" | "pass" | "fail";
+
+export interface TakeTimeGame {
+  gameType: "take-time";
+  status: TakeTimeStatus;
+  chapter: number;
+  test: number;
+  levelDef: TakeTimeLevelDef;
+  clockRotation: number;
+  turnOrder: string[];
+  currentTurn: number;
+  firstPlayer: string | null;
+  cardsPlayed: number;
+  segments: Record<number, TakeTimePlacedCard[]>;
+  faceUpRemaining: number;
+  readyPlayers: Record<string, boolean>;
+  revealIndex: number;
+  twoPlayerRevealed: boolean;
+  lastAction: string | null;
+}
+
+export interface TakeTimeCard {
+  id: string;
+  color: "black" | "white";
+  value: number;
+}
+
+export interface TakeTimeHand {
+  cards: TakeTimeCard[];
+  hiddenCards?: TakeTimeCard[];
 }
