@@ -310,6 +310,43 @@ const stsEntries: [string, number][] = [
   ["Wraith Form", 1],
 ];
 
+const cheeseEntries: [string, number][] = [
+  ["Cheese", 5],
+  ["Goat Cheese", 5],
+  ["Blue Cheese", 5],
+  ["Swiss Cheese", 5],
+  ["American Cheese", 5],
+  ["String Cheese", 3],
+  ["Cream Cheese", 3],
+  ["Cottage Cheese", 3],
+  ["Cheddar", 2],
+  ["Smoked Cheddar", 2],
+  ["Monterey Jack", 2],
+  ["Colby Jack", 2],
+  ["Pepper Jack", 2],
+  ["Mozzarella", 2],
+  ["Provolone", 2],
+  ["Gouda", 1],
+  ["Parmesan", 1],
+  ["Feta", 1],
+  ["Brie", 1],
+  ["Gruyère", 1],
+  ["Ricotta", 1],
+  ["Mascarpone", 1],
+  ["Burrata", 1],
+  ["Halloumi", 1],
+  ["Manchego", 1],
+  ["Camembert", 1],
+  ["Cheetos", 1],
+  ["Mac and Cheese", 1],
+  ["Cheese Quesadilla", 1],
+  ["Cheese Soufflé", 1],
+  ["Fondue", 1],
+  ["Cheese Platter", 1],
+  ["Cheese Omelette", 1],
+  ["Cheese Spread", 1],
+];
+
 
 /** Registry of available decks. */
 export const DECKS: Record<string, { label: string; entries: [string, number][] }> = {
@@ -319,6 +356,7 @@ export const DECKS: Record<string, { label: string; entries: [string, number][] 
   pokemon: { label: "Pokémon", entries: pokemonEntries, },
   bobaCafe: { label: "Boba Cafe", entries: bobaCafeEntries, },
   slayTheSpire: { label: "Slay the Spire", entries: stsEntries, },
+  cheese: { label: "Cheese", entries: cheeseEntries, },
 };
 
 function flatten(entries: [string, number][]): string[] {
