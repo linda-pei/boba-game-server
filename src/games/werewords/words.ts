@@ -1,4 +1,4 @@
-export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smashCharacters";
+export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney";
 
 export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
@@ -198,7 +198,7 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "Well-Laid Plans", "Wheel Kick", "Whirlwind", "White Noise", "Wild Strike", "Wish", "Worship", "Wraith Form", "Writhe",
     "Zap",
   ],
-  smashCharacters: [
+  smash: [
     "Banjo & Kazooie", "Bayonetta", "Bowser", "Bowser Jr.", "Byleth",
     "Captain Falcon", "Chrom", "Cloud", "Corrin",
     "Daisy", "Dark Pit", "Dark Samus", "Diddy Kong", "Donkey Kong", "Dr. Mario", "Duck Hunt",
@@ -223,6 +223,32 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "Young Link",
     "Zelda", "Zero Suit Samus" 
   ],
+  disney: [
+    "Aladdin", "Alice", "Anna", "Ariel",
+    "Baloo", "Bambi", "Baymax", "Beast", "Belle", "Bing Bong", "Bolt", "Boo", "Buzz Lightyear",
+    "Captain Hook", "Cinderella", "Cogsworth", "Cruella de Vil",
+    "Donald Duck", "Dopey", "Dory", "Dumbo",
+    "Eeyore", "Elsa", "Emperor Kuzco", "Esmeralda",
+    "Fairy Godmother", "Figaro", "Flik", "Flounder", "Flynn Rider",
+    "Genie", "Geppetto", "Goofy", "Gus Gus",
+    "Hades", "Hercules", "Hiro Hamada",
+    "Jack Skellington", "Jafar", "Jasmine", "Jiminy Cricket", "Joy",
+    "Kristoff",
+    "Lady", "Lilo", "Lightning McQueen", "Li Shang", "Louie",
+    "Maleficent", "Marlin", "Mary Poppins", "Megara", "Merida", "Mickey Mouse", "Mike Wazowski", "Minnie Mouse", "Mowgli", "Mulan",
+    "Nala", "Nemo",
+    "Olaf", "Oogie Boogie",
+    "Peter Pan", "Phil", "Pinocchio", "Pluto", "Pocahontas", "Pumbaa",
+    "Quasimodo",
+    "Rafiki", "Rapunzel", "Remy", "Robin Hood", "Russell",
+    "Scar", "Scrooge McDuck", "Sebastian", "Simba", "Snow White", "Sully",
+    "Tarzan", "Tiana", "Tigger", "Timon", "Tinker Bell", "Tramp",
+    "Ursula",
+    "Vanellope", "Violet Parr",
+    "WALL‑E", "Wendy Darling", "Winnie the Pooh", "Woody",
+    "Yzma",
+    "Zazu", "Zurg"
+  ],
 };
 
 export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
@@ -232,5 +258,6 @@ export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "impossible", label: "Impossible" },
   { value: "pokemonGen1", label: "Pokemon Gen 1"},
   { value: "slayTheSpire1", label: "Slay the Spire 1"},
-  { value: "smashCharacters", label: "Smash Characters"},
+  { value: "smash", label: "Smash Characters"},
+  { value: "disney", label: "Disney Characters"},
 ];
