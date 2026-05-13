@@ -1,5 +1,5 @@
 export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney" | "myth"
-| "borrowed";
+| "borrowed" | "food";
 
 export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
@@ -303,7 +303,44 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "veto", "vinaigrette", "vodka", "volcano",
     "wasabi", "wok",
     "yoga", "yogurt",
-    "zebra", "zeitgeist", "zucchini"
+    "zeitgeist", "zucchini"
+  ],
+  food: [
+    "almond", "anchovy", "apple", "apricot", "artichoke", "arugula", "asparagus", "avocado",
+    "bacon", "bagel", "baked beans", "baklava", "banana", "barley", "basil", "beans", "beef", "beet", "bell pepper", 
+    "berries", "biscuit", "blackberries", "blueberries", "bok choy", "bread", "broccoli", "brownie", "brussels sprouts", 
+    "burrito", "butter",
+    "cabbage", "cake", "calamari", "cantaloupe", "caramel", "carrot", "cashews", "cauliflower", "celery", "cheddar", "cheese", 
+    "cheesecake", "cherries", "cherry tomato", "chicken", "chickpeas", "chili", "chives", "chocolate", "chowder", "cinnamon", "clam", 
+    "coconut", "cod", "coffee", "coleslaw", "cookie", "corn", "cornbread", "cranberries", "cream", "cucumber", "cupcake", "curry",
+    "dates", "dill", "donut", "dumplings",
+    "edamame", "egg", "eggplant", "enchilada",
+    "falafel", "fennel", "fig", "fish", "flan", "flour", "focaccia", "fondue", "fries", "frittata", "frosting", "fruit salad",
+    "garlic", "ginger", "gnocchi", "goat cheese", "grapes", "grapefruit", "green beans", "green onion", "guacamole",
+    "ham", "hamburger", "hazelnut", "herbs", "honey", "hot dog", "hummus",
+    "ice cream",
+    "jalapeño", "jam", "jelly", "jerky", "juice",
+    "kale", "ketchup", "kiwi", "kohlrabi",
+    "lamb", "lasagna", "leek", "lemon", "lentils", "lettuce", "lime", "lobster", "lo mein",
+    "macaroni", "macarons", "mango", "maple syrup", "marshmallow", "mashed potatoes", "mayonnaise", "meatballs", "melon", "milk", 
+    "milkshake", "mint", "miso", "mochi", "muffin", "mushroom", "mustard",
+    "nachos", "nectarine", "noodles", "nutmeg", "nuts",
+    "oatmeal", "oats", "octopus", "olive", "omelette", "onion", "orange", "oregano", "oyster",
+    "pancake", "papaya", "parsley", "parsnip", "pasta", "pastrami", "pastry", "peach", "peanut", "pear", "peas", "pecan", "peppers", 
+    "pepperoni", "pickle", "pie", "pineapple", "pistachio", "pizza", "plum", "pomegranate", "popcorn", "pork", "potato", "pretzel", 
+    "prosciutto", "pumpkin",
+    "quiche", "quinoa",
+    "radish", "raisin", "ramen", "raspberries", "ravioli", "red cabbage", "red onion", "rice", "ricotta", "roast beef", "rosemary", "rye",
+    "saffron", "sage", "salad", "salami", "salmon", "salsa", "salt", "sandwich", "sausage", "scallops", "sesame", "shallot", "shrimp",
+    "smoothie", "soba", "sorbet", "soup", "soy sauce", "spaghetti", "spinach", "squash", "steak", "strawberries", "string cheese", 
+    "sugar", "sushi", "sweet potato",
+    "taco", "tahini", "tangerine", "tapioca", "tea", "tempura", "thyme", "tilapia", "toast", "tofu", "tomato", "tortilla", "trout", 
+    "tuna", "turkey", "turnip",
+    "udon",
+    "vanilla", "veal", "veggies", "venison", "vinegar",
+    "walnut", "wasabi", "watermelon", "whipped cream", "wings", "wonton",
+    "yam", "yeast", "yogurt",
+    "ziti", "zucchini"
   ],
 };
 
@@ -318,4 +355,5 @@ export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "disney", label: "Disney Characters"},
   { value: "myth", label: "Mythological Characters"},
   { value: "borrowed", label: "Borrowed Words Into English"},
+  { value: "food", label: "Food"},
 ];
