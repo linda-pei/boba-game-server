@@ -14,6 +14,8 @@ export interface RoomSettings {
   difficulty?: "easy" | "medium" | "hard" | "impossible";
   timerMinutes?: number;
   mayor?: string;
+  /** Startups: enable the optional 4-round variant. */
+  roundsEnabled?: boolean;
 }
 
 export interface Room {
@@ -355,4 +357,175 @@ export interface TakeTimeCard {
 export interface TakeTimeHand {
   cards: TakeTimeCard[];
   hiddenCards?: TakeTimeCard[];
+}
+
+// ---- Fruit Boss types ----
+
+export type FruitSuit =
+  | "plum"
+  | "apple"
+  | "orange"
+  | "tomato"
+  | "watermelon"
+  | "lemon"
+  | "pear";
+
+export type FruitCardKind = "fruit" | "star" | "cat";
+
+export interface FruitCard {
+  id: string;
+  kind: FruitCardKind;
+  /** Suit for fruit cards; stars and cats omit this until placed. */
+  suit?: FruitSuit;
+  /** Value 1-5 for fruits; 0 for star + cat. */
+  value: number;
+}
+
+export interface FruitStack {
+  id: string;
+  cards: FruitCard[];
+  /** Dominant suit of this stack. Null = star-only (pending assignment). */
+  suit: FruitSuit | null;
+}
+
+export interface FruitScoreBreakdown {
+  positive: { stackId: string; suit: FruitSuit; cardCount: number; topValue: number; points: number }[];
+  negative: { stackId: string; suit: FruitSuit; cardCount: number; topValue: number; points: number }[];
+  handPenalty: number;
+  catEatenValue: number;
+  total: number;
+}
+
+export interface FruitBossGame {
+  gameType: "fruit-boss";
+  status: "playing" | "fire-sale" | "round-end" | "finished";
+  turnOrder: string[];
+  currentTurn: number;
+  /** Actions remaining on the current player's turn (0..2). Resets to 2 on turn start. */
+  actionsLeft: 0 | 1 | 2;
+  /** 5 stalls, indexed left to right. null = empty stall. */
+  market: (FruitStack | null)[];
+  /** Each player's private collection of stacks, sorted by score-value descending. */
+  collections: Record<string, FruitStack[]>;
+  /** Per-player pending star fruit cards awaiting assignment (when portfolio was empty on collect). */
+  pendingStars: Record<string, FruitCard[]>;
+  /** Remaining draw deck. Stored publicly for parity with Take Time. */
+  deck: FruitCard[];
+  /** Discard pile (toppled cards, eaten cards, etc). */
+  discard: FruitCard[];
+  fireSale: boolean;
+  /** When set, this player triggered the round end by emptying their hand during fire sale; others get one more turn. */
+  fireSaleEnder: string | null;
+  /** Players who have taken their "one more turn" after fireSaleEnder. */
+  fireSaleFinalTurnTaken: Record<string, boolean>;
+  scores: Record<string, number> | null;
+  scoringBreakdowns: Record<string, FruitScoreBreakdown> | null;
+  winner: string | null;
+  lastAction: string | null;
+}
+
+export interface FruitBossHand {
+  cards: FruitCard[];
+}
+
+// ---- Startups types ----
+
+export type StartupsCompany =
+  | "giraffe"
+  | "bowwow"
+  | "flamingo"
+  | "octo"
+  | "hippo"
+  | "emt";
+
+export interface StartupsCard {
+  id: string;            // e.g., "octo-3"
+  company: StartupsCompany;
+  number: number;        // 1..N — flavour for the "3/8 Octo Coffee" feel
+}
+
+export interface StartupsMarketStall {
+  id: string;
+  card: StartupsCard;
+  /** Number of silver capital chips sitting on this card. */
+  chips: number;
+}
+
+export interface StartupsRoundResult {
+  /** Player UIDs sorted by final score, highest first. */
+  ranking: string[];
+  /** Per-player round chips earned this round: +2 (first), +1 (second), -1 (last). */
+  awarded: Record<string, { plus2: number; plus1: number; minus1: number }>;
+  /** Per-player final round score (silver + 3×gold). */
+  scores: Record<string, number>;
+}
+
+export interface StartupsScoreBreakdown {
+  /** Silver chips at end of game (before payout settlement). */
+  startingSilver: number;
+  perCompany: Partial<Record<
+    StartupsCompany,
+    {
+      shares: number;
+      isMajority: boolean;
+      majorityHolder: string | null;
+      /** Gold received from non-majority shareholders (only nonzero for majority holder). */
+      goldReceived: number;
+      /** Gold owed to majority holder (only nonzero for non-majority shareholders). */
+      goldOwed: number;
+    }
+  >>;
+  /** Silver chips remaining after settlement (may be 0 if all flipped to gold). */
+  finalSilver: number;
+  /** Gold chips after settlement. */
+  finalGold: number;
+  /** Total points (silver + 3×gold). */
+  totalPoints: number;
+}
+
+export interface StartupsGame {
+  gameType: "startups";
+  status: "playing" | "round-end" | "finished";
+  /** Whether the 4-round variant is enabled. */
+  roundsEnabled: boolean;
+  /** Current round (1-indexed). When roundsEnabled=false, always 1. */
+  currentRound: number;
+  /** Total rounds (4 if rounds variant, 1 otherwise). */
+  totalRounds: number;
+  turnOrder: string[];
+  currentTurn: number;
+  /** "take" first half of turn, "place" second half. */
+  actionPhase: "take" | "place";
+  /** If non-null, current player took from market this turn and can't return this company to market. */
+  tookFromMarketCompany: StartupsCompany | null;
+  market: StartupsMarketStall[];
+  /** Deck stored on the game doc (private game state). */
+  deck: StartupsCard[];
+  /** 5 cards removed at setup (hidden, revealed at game end if you want; we keep them hidden). */
+  removedCount: number;
+  /** Public portfolios: cards each player has placed in front of them. */
+  portfolios: Record<string, StartupsCard[]>;
+  /** Public silver chip counts. */
+  silver: Record<string, number>;
+  /** Public gold chip counts. Only nonzero during/after payout. */
+  gold: Record<string, number>;
+  /** Public hand sizes. */
+  handSizes: Record<string, number>;
+  /** Current AM chip holder per company (null = no shares of this company played yet). */
+  antiMonopoly: Record<StartupsCompany, string | null>;
+  /** Round chips accumulated per player across rounds (only used when roundsEnabled). */
+  roundChips: Record<string, { plus2: number; plus1: number; minus1: number }>;
+  /** Per-round results history. */
+  roundHistory: StartupsRoundResult[];
+  /** Per-player scoring breakdown for the most recent round (rendered on the round-end / finished screen). */
+  scoreBreakdowns: Record<string, StartupsScoreBreakdown> | null;
+  /** Players who have acknowledged the round-end screen (continues to next round / game-over). */
+  roundEndReady: Record<string, boolean>;
+  /** Final winner UID. */
+  winner: string | null;
+  lastAction: string | null;
+}
+
+export interface StartupsHand {
+  cards: StartupsCard[];
 }

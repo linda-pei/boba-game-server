@@ -47,6 +47,32 @@
   --tt-lunar:  #1a1f3d;
   --tt-cream:  #f4e8c8;
 
+  /* Startups — 6 fictional company colours + chip palette */
+  --su-giraffe:    #e8c547;  /* beer yellow */
+  --su-bowwow:     #c97a3a;  /* warm canine tan */
+  --su-flamingo:   #e07a9b;  /* soft pink */
+  --su-octo:       #5a3a78;  /* deep coffee purple */
+  --su-hippo:      #2e5e9e;  /* power blue */
+  --su-emt:        #c43838;  /* mars red */
+  --su-silver:     #c8c8d0;
+  --su-silver-top: #e0e0e6;
+  --su-gold:       #e4b440;
+  --su-gold-top:   #f5d671;
+  --su-arrow:      #4ea584;
+  --su-am-chip:    #2a1d12;  /* dark "monopoly" badge */
+
+  /* Fruit Boss — 7 fruit suits + wild/cat accents */
+  --fb-plum:       #6f3f8e;
+  --fb-apple:      #c92e2e;
+  --fb-orange:     #e8932e;
+  --fb-tomato:     #d44a4a;
+  --fb-watermelon: #e0537d;
+  --fb-lemon:      #ecc83a;
+  --fb-pear:       #8fb549;
+  --fb-star:       #f5d491;  /* warm pale gold */
+  --fb-cat-bell:   #e8932e;
+  --fb-basket:     #a87749;
+
   /* Scout card color ramp (1-10) */
   --scout-card-1:  #1B3A8C;
   --scout-card-2:  #2E6BC6;
@@ -137,6 +163,11 @@
   --scout-numeral-stroke: #000;
   --scout-card-body: #251a10;
   --scout-card-ink: #faecd0;
+
+  /* Startups dark adjustments */
+  --su-silver:     #8a8a92;
+  --su-silver-top: #b0b0b8;
+  --su-am-chip:    #faecd0;
 
   --shadow-1: 0 1px 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
   --shadow-2: 0 1px 0 rgba(0,0,0,0.4), 0 6px 16px -4px rgba(0,0,0,0.4);

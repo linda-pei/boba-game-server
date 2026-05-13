@@ -1,0 +1,771 @@
+/* =========================================================
+   Fruit Boss — marketplace theme
+   ========================================================= */
+
+.fb-screen {
+  max-width: 820px;
+}
+
+.fb-play {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.fb-section {
+  text-align: left;
+}
+
+.fb-section-title {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.fb-section-hint {
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+  font-weight: 500;
+}
+
+.fb-coming-soon {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+  text-align: center;
+  margin: 0.5rem 0 0;
+  font-style: italic;
+}
+
+.fb-last-action {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+  text-align: center;
+  margin: 0;
+}
+
+/* ---- Active-player opponent section ---- */
+.fb-opp-section.is-active-turn {
+  border: 2px solid var(--peach-500);
+  border-radius: var(--r-3);
+  background: color-mix(in srgb, var(--peach-500) 8%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 14%, transparent);
+  padding: var(--s-3);
+}
+
+.fb-opp-section.is-active-turn .fb-section-title {
+  color: var(--peach-700);
+}
+
+.fb-active-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--peach-500);
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--peach-500) 60%, transparent);
+  animation: fb-active-pulse 1.6s ease-out infinite;
+}
+
+@keyframes fb-active-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--peach-500) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--peach-500) 0%, transparent);
+  }
+}
+
+.fb-firesale-banner {
+  background: linear-gradient(110deg, #ffe1cf 0%, #ffb795 100%);
+  border: 2px solid var(--fb-apple);
+  border-radius: var(--r-3);
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  text-align: center;
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+[data-theme="dark"] .fb-firesale-banner {
+  background: linear-gradient(110deg, #5a2818 0%, #3a1810 100%);
+  color: var(--ink);
+}
+
+.fb-firesale-ender {
+  margin-top: 4px;
+  font-size: 0.82rem;
+}
+
+/* =========================================================
+   GAME OVER
+   ========================================================= */
+
+.fb-gameover {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.fb-gameover-title {
+  text-align: center;
+  font-family: var(--font-display);
+  margin: 0;
+}
+
+.fb-gameover-collections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.fb-gameover-player {
+  border: 2px solid var(--border);
+  border-radius: var(--r-3);
+  padding: var(--s-3);
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.fb-gameover-player h4 {
+  margin: 0 0 var(--s-2);
+}
+
+.fb-winner-tag {
+  color: var(--peach-700);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.fb-cat-eaten {
+  color: var(--ink-mute);
+  font-size: 0.8em;
+}
+
+.fb-hand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-2);
+}
+
+/* ---- Action mode picker ---- */
+.fb-action-bar {
+  display: flex;
+  gap: var(--s-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fb-mode-btn {
+  padding: 6px 14px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: var(--shadow-sticker);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.15s;
+}
+.fb-mode-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--border-strong);
+}
+.fb-mode-btn.is-active {
+  background: var(--peach-500);
+  color: white;
+  border-color: var(--peach-700);
+  box-shadow: 3px 3px 0 var(--peach-700);
+}
+.fb-mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: var(--shadow-sticker);
+}
+
+/* ---- Card-button wrapper (Cat mode) ---- */
+.fb-stack-card-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-spring);
+}
+.fb-stack-card-btn:hover {
+  transform: translateY(-3px);
+}
+.fb-stack-card-btn.is-highlight .fb-mini {
+  box-shadow: 0 0 0 2px var(--peach-500), 1px 1px 0 var(--ink);
+}
+
+.fb-action-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-top: 0.25rem;
+}
+
+.fb-error {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--rose-500);
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.fb-turn-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+/* ---- Choice modal (collect / topple decision) ---- */
+.fb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 20, 16, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: var(--s-4);
+}
+
+.fb-modal {
+  max-width: 420px;
+  width: 100%;
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-4);
+  box-shadow: 5px 5px 0 var(--ink);
+  padding: var(--s-5);
+  text-align: center;
+}
+
+.fb-modal-title {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.fb-modal-body {
+  margin: 0 0 var(--s-4);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.fb-modal-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-2);
+}
+
+/* =========================================================
+   MINI CARD — a single fruit card render
+   ========================================================= */
+.fb-mini {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  border: 1.5px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #fff;
+  user-select: none;
+  flex: none;
+}
+
+/* Value sits at the top-left like a playing-card index — stays visible in the
+   hand fan (cards overlap from the right) and in the vertical market cascade
+   (cards overlap from below). */
+.fb-mini-value {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.fb-mini--plum       { background: var(--fb-plum); }
+.fb-mini--apple      { background: var(--fb-apple); }
+.fb-mini--orange     { background: var(--fb-orange); color: var(--ink); }
+.fb-mini--tomato     { background: var(--fb-tomato); }
+.fb-mini--watermelon { background: var(--fb-watermelon); }
+.fb-mini--lemon      { background: var(--fb-lemon); color: var(--ink); }
+.fb-mini--pear       { background: var(--fb-pear); color: var(--ink); }
+.fb-mini--star       { background: var(--fb-star); color: var(--ink); }
+.fb-mini--cat        { background: #fff; color: var(--ink); }
+
+/* =========================================================
+   STACK — full (header + cards) and compact (chip + popover)
+   ========================================================= */
+
+.fb-stack-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.fb-stack-meta {
+  font-size: 0.85em;
+}
+
+.fb-stack-total {
+  font-weight: 700;
+  color: var(--peach-700);
+}
+
+.fb-stack-total.is-negative {
+  color: var(--rose-500);
+}
+
+.fb-stack-cards {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+/* In the market we want a physical stack — cards cascade vertically with
+   each card's top-corner value peeking out from below the next. */
+.fb-stack-cards--cards {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.fb-stack-cards--cards .fb-mini {
+  margin-top: -42px;
+  box-shadow: 1px 1px 0 var(--ink), 0 -1px 2px rgba(0, 0, 0, 0.18);
+}
+.fb-stack-cards--cards .fb-mini:first-child {
+  margin-top: 0;
+}
+
+/* ---- Full mode ---- */
+.fb-stack--full {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.fb-stack--full.is-negative {
+  border-color: var(--rose-500);
+  background: color-mix(in srgb, var(--rose-500) 8%, var(--surface));
+}
+
+/* ---- Compact mode ---- */
+.fb-stack--compact {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  cursor: help;
+  font-family: inherit;
+}
+
+.fb-stack--compact.is-negative {
+  border-color: var(--rose-500);
+  background: color-mix(in srgb, var(--rose-500) 10%, var(--surface));
+}
+
+.fb-stack--compact:focus-visible {
+  outline: 2px solid var(--peach-500);
+  outline-offset: 2px;
+}
+
+/* Popover positioned above the chip — same trick as the Take Time glyph tooltip */
+.fb-stack-popover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pearl);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-2);
+  padding: 6px 8px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s, transform 0.12s;
+  z-index: 30;
+  white-space: nowrap;
+}
+
+.fb-stack--compact:hover .fb-stack-popover,
+.fb-stack--compact:focus-within .fb-stack-popover {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* =========================================================
+   COLLECTION — wrap row of stacks (your own = full, opponents = compact)
+   ========================================================= */
+
+.fb-collection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.fb-collection--compact {
+  gap: 6px;
+  align-items: center;
+}
+
+.fb-collection-empty {
+  color: var(--ink-mute);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.fb-pending-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--fb-star);
+  border-radius: var(--r-pill);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  background: color-mix(in srgb, var(--fb-star) 12%, transparent);
+}
+
+/* =========================================================
+   OPPONENT BAR — name + compact collection
+   ========================================================= */
+
+.fb-opponents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.fb-opponent {
+  border: 2px solid var(--border);
+  border-radius: var(--r-3);
+  padding: 8px 12px;
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.fb-opponent.is-current {
+  border-color: var(--peach-500);
+  background: color-mix(in srgb, var(--peach-500) 8%, var(--surface));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--peach-500) 18%, transparent);
+}
+
+.fb-opponent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: 6px;
+}
+
+.fb-opponent-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.fb-opponent-meta {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+}
+
+/* =========================================================
+   MARKETPLACE — 5 stalls in a row
+   ========================================================= */
+
+.fb-marketplace {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  padding: var(--s-3);
+  background: linear-gradient(180deg, #fff5dc 0%, #f0d9a8 100%);
+  box-shadow: var(--shadow-2);
+}
+
+[data-theme="dark"] .fb-marketplace {
+  background: linear-gradient(180deg, #3a2818 0%, #2a1810 100%);
+}
+
+.fb-stalls {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-2);
+}
+
+.fb-stall {
+  position: relative;
+  min-height: 96px;
+  border: 2px dashed var(--syrup-300);
+  border-radius: var(--r-2);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .fb-stall {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.fb-stall.is-empty {
+  border-style: dashed;
+}
+
+.fb-stall.is-selected {
+  border-color: var(--peach-500);
+  background: color-mix(in srgb, var(--peach-500) 15%, transparent);
+}
+
+/* Stall where cards were just placed (pending collect/topple choice). The
+   border is sticker-style accent so it reads as "this is where the action
+   happened" — distinct from the green is-valid target color. */
+.fb-stall.is-just-placed {
+  border-style: solid;
+  border-color: var(--peach-700);
+  background: color-mix(in srgb, var(--peach-500) 14%, rgba(255, 255, 255, 0.4));
+  box-shadow: 3px 3px 0 var(--peach-700);
+}
+[data-theme="dark"] .fb-stall.is-just-placed {
+  background: color-mix(in srgb, var(--peach-500) 24%, rgba(0, 0, 0, 0.2));
+}
+
+.fb-stall.is-valid {
+  cursor: pointer;
+  border-color: var(--jade-500);
+  border-style: solid;
+  background: color-mix(in srgb, var(--jade-500) 12%, rgba(255, 255, 255, 0.4));
+}
+.fb-stall.is-valid:hover {
+  background: color-mix(in srgb, var(--jade-500) 22%, rgba(255, 255, 255, 0.5));
+  transform: translateY(-1px);
+}
+.fb-stall.is-blocked {
+  opacity: 0.55;
+}
+
+.fb-stall-label {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  letter-spacing: 0.06em;
+}
+
+.fb-stall-empty {
+  color: var(--ink-mute);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.fb-market-meta {
+  margin-top: var(--s-4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--s-5);
+  font-family: var(--font-display);
+}
+
+.fb-deck-pile,
+.fb-discard-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+}
+
+.fb-discard-pile {
+  position: relative;
+  cursor: help;
+}
+
+.fb-discard-pile:focus { outline: none; }
+.fb-discard-pile:focus-visible { outline: 2px solid var(--peach-500); outline-offset: 4px; border-radius: 4px; }
+
+.fb-discard-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--pearl);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: var(--r-3);
+  padding: 8px 10px;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  min-width: 200px;
+  max-width: 320px;
+  width: max-content;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+.fb-discard-pile:hover .fb-discard-popover,
+.fb-discard-pile:focus-within .fb-discard-popover {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fb-discard-popover-title {
+  color: var(--honey-500);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.fb-discard-popover-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.fb-deck-back {
+  width: 32px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  border: 1.5px solid var(--ink);
+  box-shadow: 1px 1px 0 var(--ink), 3px 3px 0 var(--ink);
+  background:
+    linear-gradient(135deg, var(--syrup-300) 0%, var(--syrup-500) 100%);
+  position: relative;
+}
+.fb-deck-back::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+
+.fb-discard-cards {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 48px;
+  position: relative;
+}
+.fb-discard-card {
+  display: inline-block;
+  margin-right: -18px;
+}
+.fb-discard-card:last-child {
+  margin-right: 0;
+}
+
+.fb-discard-empty {
+  width: 32px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-mute);
+  font-size: 0.7rem;
+  font-style: italic;
+}
+
+.fb-pile-count {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   HAND — fanned cards
+   ========================================================= */
+
+.fb-hand {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 100px;
+  padding: 4px 0 12px;
+}
+
+.fb-hand-empty {
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+.fb-hand-card {
+  background: none;
+  border: 0;
+  padding: 0;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.fb-hand-card:not(:first-child) {
+  margin-left: -20px;
+}
+
+.fb-hand-card:hover:not(:disabled) {
+  transform: translateY(-6px) !important;
+}
+
+.fb-hand-card.is-selected .fb-mini {
+  box-shadow: 2px 2px 0 var(--peach-700);
+  border-color: var(--peach-700);
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+@media (max-width: 560px) {
+  .fb-stall {
+    min-height: 72px;
+  }
+  .fb-mini { width: 22px; }
+  .fb-hand-card:not(:first-child) { margin-left: -14px; }
+}

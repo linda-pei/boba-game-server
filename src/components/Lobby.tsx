@@ -9,6 +9,8 @@ import { startWerewordsGame } from "../games/werewords/useWerewordsGame";
 import { startOrderOverloadGame } from "../games/order-overload/useOrderOverloadGame";
 import { startDeepSeaGame } from "../games/deep-sea/useDeepSeaGame";
 import { startTakeTimeGame } from "../games/take-time/useTakeTimeGame";
+import { startFruitBossGame } from "../games/fruit-boss/useFruitBossGame";
+import { startStartupsGame } from "../games/startups/useStartupsGame";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
@@ -55,11 +57,14 @@ export default function Lobby() {
   const isHost = room.host === uid;
   const players = Object.entries(room.players);
   const gameType = room.gameType || "things-in-rings";
+  const isTIR = gameType === "things-in-rings";
   const isScout = gameType === "scout";
   const isWerewords = gameType === "werewords";
   const isOrderOverload = gameType === "order-overload";
   const isDeepSea = gameType === "deep-sea";
   const isTakeTime = gameType === "take-time";
+  const isFruitBoss = gameType === "fruit-boss";
+  const isStartups = gameType === "startups";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -83,7 +88,17 @@ export default function Lobby() {
   // Take Time-specific
   const canStartTakeTime = players.length >= 2 && players.length <= 4;
 
-  const canStart = isTakeTime
+  // Fruit Boss-specific
+  const canStartFruitBoss = players.length >= 2 && players.length <= 4;
+
+  // Startups-specific
+  const canStartStartups = players.length >= 3 && players.length <= 6;
+
+  const canStart = isStartups
+    ? canStartStartups
+    : isFruitBoss
+    ? canStartFruitBoss
+    : isTakeTime
     ? canStartTakeTime
     : isDeepSea
     ? canStartDeepSea
@@ -125,7 +140,11 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isTakeTime) {
+      if (isStartups) {
+        await startStartupsGame(roomCode, room);
+      } else if (isFruitBoss) {
+        await startFruitBossGame(roomCode, room);
+      } else if (isTakeTime) {
         await startTakeTimeGame(roomCode, room);
       } else if (isDeepSea) {
         await startDeepSeaGame(roomCode, room);
@@ -160,10 +179,10 @@ export default function Lobby() {
             <PlayerChip key={id}>
               {player.name}
               {id === room.host && <Badge variant="host">Host</Badge>}
-              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && id === knower && (
+              {isTIR && id === knower && (
                 <Badge variant="knower">Knower</Badge>
               )}
-              {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && isHost && id !== knower && (
+              {isTIR && isHost && id !== knower && (
                 <button
                   onClick={() => handleSetKnower(id)}
                   className="btn btn--secondary btn--sm"
@@ -182,7 +201,7 @@ export default function Lobby() {
         <div className="game-selector">
           <label className="game-selector-label">Game</label>
           <div className="game-sticker-grid">
-            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time"] as const).map((id) => (
+            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups"] as const).map((id) => (
               <GameSticker
                 key={id}
                 game={GAME_ID_TO_KEY[id]}
@@ -197,6 +216,27 @@ export default function Lobby() {
         {/* Deep Sea info */}
         {isDeepSea && (
           <PlayerCountStatus gameName="Deep Sea Adventure" count={players.length} min={2} max={6} />
+        )}
+
+        {/* Fruit Boss info */}
+        {isFruitBoss && (
+          <PlayerCountStatus gameName="Fruit Boss" count={players.length} min={2} max={4} />
+        )}
+
+        {/* Startups settings */}
+        {isStartups && (
+          <>
+            <PlayerCountStatus gameName="Startups" count={players.length} min={3} max={6} />
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              <input
+                type="checkbox"
+                checked={room.settings.roundsEnabled === true}
+                onChange={(e) => updateRoomSettings(roomCode!, { roundsEnabled: e.target.checked })}
+                disabled={!isHost}
+              />
+              4-round mode (+2/+1/-1 per round)
+            </label>
+          </>
         )}
 
         {/* Take Time settings */}
@@ -236,7 +276,7 @@ export default function Lobby() {
         )}
 
         {/* TIR settings */}
-        {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && (
+        {isTIR && (
           <>
             <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
               3 rings: Context (red), Attribute (blue), Word (green)
@@ -343,7 +383,15 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isTakeTime
+                {isStartups
+                  ? players.length < 3
+                    ? "Need at least 3 players for Startups"
+                    : "Too many players (max 6 for Startups)"
+                  : isFruitBoss
+                  ? players.length < 2
+                    ? "Need at least 2 players for Fruit Boss"
+                    : "Too many players (max 4 for Fruit Boss)"
+                  : isTakeTime
                   ? players.length < 2
                     ? "Need at least 2 players for Take Time"
                     : "Too many players (max 4 for Take Time)"

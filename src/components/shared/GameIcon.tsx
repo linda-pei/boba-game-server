@@ -1,4 +1,4 @@
-export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt";
+export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su";
 
 export const GAME_META: Record<
   GameKey,
@@ -46,6 +46,20 @@ export const GAME_META: Record<
     players: "2–4 players",
     badge: "co-op puzzle",
   },
+  fb: {
+    id: "fruit-boss",
+    name: "Fruit Boss",
+    tagline: "Stack fruits. Topple rivals. Score the market.",
+    players: "2–4 players",
+    badge: "set collection",
+  },
+  su: {
+    id: "startups",
+    name: "Startups",
+    tagline: "Corner the market. Cash in the shares.",
+    players: "3–6 players",
+    badge: "share holding",
+  },
 };
 
 export const GAME_ID_TO_KEY: Record<string, GameKey> = {
@@ -55,6 +69,8 @@ export const GAME_ID_TO_KEY: Record<string, GameKey> = {
   "order-overload": "oo",
   "deep-sea": "ds",
   "take-time": "tt",
+  "fruit-boss": "fb",
+  startups: "su",
 };
 
 interface Props {
@@ -148,6 +164,63 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <circle cx="40" cy="40" r="26" fill="none" />
           <line x1="40" y1="40" x2="27" y2="23" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" />
           <circle cx="40" cy="40" r="2.5" className="nostroke" fill="var(--ink)" />
+        </svg>
+      );
+    case "su":
+      return (
+        <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          {/* Three stacked coin piles of varying heights — like climbing share value */}
+          {/* Left pile (silver) */}
+          <ellipse cx="20" cy="58" rx="11" ry="4" fill="var(--su-silver)" />
+          <ellipse cx="20" cy="52" rx="11" ry="4" fill="var(--su-silver)" />
+          <ellipse cx="20" cy="46" rx="11" ry="4" fill="var(--su-silver-top)" />
+          {/* Middle pile (gold, tallest) */}
+          <ellipse cx="40" cy="62" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="40" cy="56" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="40" cy="50" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="40" cy="44" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="40" cy="38" rx="11" ry="4" fill="var(--su-gold-top)" />
+          {/* Right pile (gold) */}
+          <ellipse cx="60" cy="60" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="60" cy="54" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="60" cy="48" rx="11" ry="4" fill="var(--su-gold)" />
+          <ellipse cx="60" cy="42" rx="11" ry="4" fill="var(--su-gold-top)" />
+          {/* Upward arrow above piles */}
+          <path
+            d="M40 32 L34 20 L37 20 L37 12 L43 12 L43 20 L46 20 Z"
+            fill="var(--su-arrow)"
+          />
+        </svg>
+      );
+    case "fb":
+      return (
+        <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          {/* Three overlapping fruits poking out above a woven market basket */}
+          {/* Plum */}
+          <circle cx="26" cy="32" r="11" className="nostroke" fill="var(--fb-plum)" />
+          <circle cx="26" cy="32" r="11" fill="none" />
+          {/* Apple */}
+          <path
+            d="M52 26 q-7 0 -8 7 q-1 9 8 12 q9 -3 8 -12 q-1 -7 -8 -7 z"
+            fill="var(--fb-apple)"
+          />
+          {/* Tomato (front-center) */}
+          <circle cx="40" cy="40" r="10" className="nostroke" fill="var(--fb-tomato)" />
+          <circle cx="40" cy="40" r="10" fill="none" />
+          <path
+            d="M40 27 L43 32 L48 32 L44 35 L46 40 L40 37 L34 40 L36 35 L32 32 L37 32 Z"
+            className="nostroke"
+            fill="#4a8a3b"
+          />
+          {/* Basket — trapezoid with weave lines */}
+          <path
+            d="M14 48 L66 48 L60 70 L20 70 Z"
+            fill="var(--syrup-300)"
+          />
+          <path d="M22 54 L58 54 M22 60 L58 60 M22 66 L58 66" fill="none" strokeWidth="1.8" />
+          <path d="M30 48 L30 70 M40 48 L40 70 M50 48 L50 70" fill="none" strokeWidth="1.8" />
+          {/* Basket rim */}
+          <path d="M12 48 L68 48 L66 52 L14 52 Z" fill="var(--syrup-500)" />
         </svg>
       );
   }
