@@ -27,29 +27,63 @@
 }
 
 /* ---- Home ---- */
+.home.screen {
+  padding: 2.5rem 2rem;
+}
+
+.home.screen > p {
+  color: var(--ink-soft);
+  font-size: 1rem;
+  margin: 0 0 1.25rem;
+}
+
 .home-actions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  align-items: center;
-  margin-top: 1.5rem;
+  align-items: stretch;
+  margin: 1.75rem auto 0;
+  max-width: 340px;
+}
+
+.home-actions .btn--primary {
+  font-size: 1.1rem;
+  padding: 14px 22px;
 }
 
 .join-section {
   display: flex;
   gap: 0.5rem;
+  align-items: stretch;
 }
 
 .join-section input {
+  flex: 1;
+  min-width: 0; /* Firefox honors input "size" attr as a min-width otherwise */
+  box-sizing: border-box;
   text-transform: uppercase;
-  width: 8ch;
   text-align: center;
-  font-size: 1.2rem;
-  letter-spacing: 0.2em;
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-2);
+  font-size: 1.15rem;
+  letter-spacing: 0.3em;
+  padding: 10px 12px;
+  padding-left: calc(12px + 0.3em); /* visually center despite letter-spacing */
+  line-height: 1.2;
+  border: 2px solid var(--ink);
+  border-radius: var(--r-3);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
+  background: var(--surface);
+  box-shadow: 3px 3px 0 var(--ink);
+  color: var(--ink);
+}
+
+.join-section input:focus-visible {
+  outline: 3px solid var(--peach-500);
+  outline-offset: 2px;
+}
+
+.join-section .btn {
+  flex: none;
 }
 
 /* ---- Divider ---- */
