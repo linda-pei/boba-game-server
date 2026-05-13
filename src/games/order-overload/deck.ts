@@ -257,6 +257,57 @@ const bobaCafeEntries: [string, number][] = [
   ["Brown Sugar Milk Tea with Ube Cream Cheese and Mochi", 1],
 ];
 
+const stsEntries: [string, number][] = [
+  ["Strike", 5],
+  ["Defend", 5],
+  ["Bash", 5],
+  ["Survivor", 5],
+  ["Neutralize", 3],
+  ["Zap", 3],
+  ["Dualcast", 3],
+  ["Bloodletting", 3],
+  ["Dash", 2],
+  ["Ball Lightning", 2],
+  ["Leg Sweep", 2],
+  ["Anger", 2],
+  ["Loop", 2],
+  ["Deadly Poison", 2],
+  ["Armaments", 2],
+  ["Glacier", 2],
+  ["Flame Barrier", 2],
+  ["Sweeping Beam", 2],
+  ["Inflame", 2],
+  ["Shockwave", 1],
+  ["Tactician", 1],
+  ["Cold Snap", 1],
+  ["Jack of All Trades", 1],
+  ["Feed", 1],
+  ["Finesse", 1],
+  ["Overclock", 1],
+  ["Poisoned Stab", 1],
+  ["Shrug It Off", 1],
+  ["True Grit", 1],
+  ["Turbo", 1],
+  ["Slice", 1],
+  ["Skim", 1],
+  ["Skewer", 1],
+  ["All For One", 1],
+  ["Chill", 1],
+  ["Capacitor", 1],
+  ["Bludgeon", 1],
+  ["Blur", 1],
+  ["Body Slam", 1],
+  ["Dark Embrace", 1],
+  ["Flame Barrier", 1],
+  ["Headbutt", 1],
+  ["Havoc", 1],
+  ["Hand of Greed", 1],
+  ["Prepared", 1],
+  ["Rampage", 1],
+  ["Go for the Eyes", 1],
+];
+
+
 /** Registry of available decks. */
 export const DECKS: Record<string, { label: string; entries: [string, number][] }> = {
   cafe: { label: "Cafe", entries: cafeEntries },
@@ -264,6 +315,7 @@ export const DECKS: Record<string, { label: string; entries: [string, number][] 
   mtg: { label: "Magic: The Gathering", entries: mtgEntries },
   pokemon: { label: "Pokémon", entries: pokemonEntries, },
   bobaCafe: { label: "Boba Cafe", entries: bobaCafeEntries, },
+  slayTheSpire: { label: "Slay the Spire", entries: stsEntries, },
 };
 
 function flatten(entries: [string, number][]): string[] {
