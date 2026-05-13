@@ -30,7 +30,7 @@ export default function HandDisplay({ cards, selectedId, onSelect }: Props) {
             onClick={onSelect ? () => onSelect(c.id) : undefined}
             disabled={!onSelect}
           >
-            <MiniCard card={c} width={68} />
+            <MiniCard card={c} width={86} />
           </button>
         );
       })}

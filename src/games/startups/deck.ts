@@ -58,16 +58,6 @@ export const COMPANY_INK: Record<StartupsCompany, string> = {
   emt: "var(--ink)",
 };
 
-/** Emoji glyph stand-ins for each company icon. */
-export const COMPANY_GLYPH: Record<StartupsCompany, string> = {
-  giraffe: "🦒",
-  bowwow: "🐶",
-  flamingo: "🦩",
-  octo: "🐙",
-  hippo: "🦛",
-  emt: "🐘",
-};
-
 /** Cards removed face-down at setup (kept hidden the whole game). */
 export const REMOVED_AT_SETUP = 5;
 

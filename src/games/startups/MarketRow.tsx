@@ -4,7 +4,6 @@ import MiniCard from "./MiniCard";
 interface Props {
   market: StartupsMarketStall[];
   deckSize: number;
-  removedCount: number;
   /** Companies the viewing player holds the anti-monopoly chip for. Disables those stalls. */
   blockedCompanies: Set<StartupsCompany>;
   /** Click handler for a stall. If not provided, stalls are non-interactive. */
@@ -20,7 +19,6 @@ interface Props {
 export default function MarketRow({
   market,
   deckSize,
-  removedCount,
   blockedCompanies,
   onStallClick,
   onDeckClick,
@@ -45,7 +43,6 @@ export default function MarketRow({
             </div>
           )}
         </div>
-        <div className="su-deck-removed">−{removedCount} hidden</div>
       </button>
 
       <div className="su-market-stalls">
@@ -65,7 +62,7 @@ export default function MarketRow({
               disabled={!onStallClick || blocked}
               title={blocked ? "You hold the anti-monopoly chip for this company" : undefined}
             >
-              <MiniCard card={stall.card} width={72} />
+              <MiniCard card={stall.card} width={90} />
               {stall.chips > 0 && (
                 <div className="su-stall-chips">
                   {Array.from({ length: Math.min(stall.chips, 5) }).map((_, i) => (

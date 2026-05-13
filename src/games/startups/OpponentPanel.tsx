@@ -1,5 +1,6 @@
 import type { StartupsCard, StartupsCompany } from "../../types";
 import PortfolioPanel from "./PortfolioPanel";
+import RoundScorePill from "./RoundScorePill";
 
 interface Props {
   name: string;
@@ -9,6 +10,8 @@ interface Props {
   handSize: number;
   amCompanies: Set<StartupsCompany>;
   isCurrent: boolean;
+  /** Cumulative round-chip score (rounds mode only). null = single-game mode. */
+  roundScore: number | null;
 }
 
 export default function OpponentPanel({
@@ -19,11 +22,15 @@ export default function OpponentPanel({
   handSize,
   amCompanies,
   isCurrent,
+  roundScore,
 }: Props) {
   return (
     <div className={`su-opponent${isCurrent ? " is-current" : ""}`}>
       <div className="su-opponent-head">
-        <span className="su-opponent-name">{name}</span>
+        <span className="su-opponent-name">
+          {name}
+          {roundScore !== null && <RoundScorePill score={roundScore} />}
+        </span>
         <div className="su-opponent-stats">
           <span className="su-chip-stat">
             <span className="su-chip su-chip--silver" /> {silver}

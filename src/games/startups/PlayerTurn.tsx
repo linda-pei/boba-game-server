@@ -10,6 +10,7 @@ import MarketRow from "./MarketRow";
 import PortfolioPanel from "./PortfolioPanel";
 import OpponentPanel from "./OpponentPanel";
 import HandDisplay from "./HandDisplay";
+import RoundScorePill from "./RoundScorePill";
 import {
   amChipsHeldBy,
   deckDrawCost,
@@ -37,6 +38,14 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
   const myAMs = new Set<StartupsCompany>(amChipsHeldBy(game.antiMonopoly, uid));
   const drawCost = deckDrawCost(game.market, game.antiMonopoly, uid);
   const canAffordDeck = (game.silver[uid] ?? 0) >= drawCost && game.deck.length > 0;
+
+  const roundScoreFor = (pid: string): number | null => {
+    if (!game.roundsEnabled) return null;
+    const c = game.roundChips[pid];
+    if (!c) return 0;
+    return c.plus2 * 2 + c.plus1 - c.minus1;
+  };
+  const myRoundScore = roundScoreFor(uid);
 
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [acting, setActing] = useState(false);
@@ -128,7 +137,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
         <MarketRow
           market={game.market}
           deckSize={game.deck.length}
-          removedCount={game.removedCount}
           blockedCompanies={myAMs}
           onStallClick={inTakePhase ? handleStall : undefined}
           onDeckClick={inTakePhase ? handleDeck : undefined}
@@ -142,34 +150,12 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
         )}
       </section>
 
-      {opponentUids.length > 0 && (
-        <section className="su-section">
-          <h4 className="su-section-title">Opponents</h4>
-          <div className="su-opponents">
-            {opponentUids.map((pid) => {
-              const oppAMs = new Set<StartupsCompany>(
-                amChipsHeldBy(game.antiMonopoly, pid)
-              );
-              return (
-                <OpponentPanel
-                  key={pid}
-                  name={room.players[pid]?.name ?? pid}
-                  portfolio={game.portfolios[pid] ?? []}
-                  silver={game.silver[pid] ?? 0}
-                  gold={game.gold[pid] ?? 0}
-                  handSize={game.handSizes[pid] ?? 0}
-                  amCompanies={oppAMs}
-                  isCurrent={pid === currentUid}
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       <section className="su-section">
         <h4 className="su-section-title">
-          Your portfolio
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "var(--s-2)" }}>
+            Your portfolio
+            {myRoundScore !== null && <RoundScorePill score={myRoundScore} />}
+          </span>
           <span className="su-section-meta">
             <span className="su-chip su-chip--silver" /> {game.silver[uid] ?? 0}
             {(game.gold[uid] ?? 0) > 0 && (
@@ -222,6 +208,32 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
 
       {game.lastAction && (
         <p className="su-last-action">Last action: {game.lastAction}</p>
+      )}
+
+      {opponentUids.length > 0 && (
+        <section className="su-section">
+          <h4 className="su-section-title">Opponents</h4>
+          <div className="su-opponents">
+            {opponentUids.map((pid) => {
+              const oppAMs = new Set<StartupsCompany>(
+                amChipsHeldBy(game.antiMonopoly, pid)
+              );
+              return (
+                <OpponentPanel
+                  key={pid}
+                  name={room.players[pid]?.name ?? pid}
+                  portfolio={game.portfolios[pid] ?? []}
+                  silver={game.silver[pid] ?? 0}
+                  gold={game.gold[pid] ?? 0}
+                  handSize={game.handSizes[pid] ?? 0}
+                  amCompanies={oppAMs}
+                  isCurrent={pid === currentUid}
+                  roundScore={roundScoreFor(pid)}
+                />
+              );
+            })}
+          </div>
+        </section>
       )}
     </div>
   );

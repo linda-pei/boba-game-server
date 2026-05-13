@@ -5,7 +5,7 @@
 /* ---- Emote bar (bottom-right picker) ---- */
 .emote-bar {
   position: fixed;
-  bottom: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   right: 16px;
   z-index: 50;
   display: flex;
@@ -15,6 +15,8 @@
   border-radius: var(--r-pill);
   padding: 6px 10px;
   box-shadow: var(--shadow-sticker);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 .emote-btn {
@@ -51,10 +53,12 @@
 /* ---- Emote overlay (above emote bar, bottom-right) ---- */
 .emote-overlay {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   right: 16px;
   z-index: 50;
   pointer-events: none;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 /* ---- Rise wrapper (vertical float + fade) ---- */
@@ -118,7 +122,7 @@
 /* ---- Mobile ---- */
 @media (max-width: 480px) {
   .emote-bar {
-    bottom: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     right: 8px;
     padding: 4px 8px;
     gap: 4px;
@@ -131,7 +135,7 @@
   }
 
   .emote-overlay {
-    bottom: 60px;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
     right: 8px;
   }
 }
