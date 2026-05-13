@@ -136,6 +136,7 @@
 .game-sticker.oo    .badge-mini { --badge-bg: var(--honey-500); --badge-ink: var(--ink); }
 .game-sticker.ds    .badge-mini { --badge-bg: var(--ds-coral);  --badge-ink: #fff; }
 .game-sticker.tt    .badge-mini { --badge-bg: var(--tt-lunar);  --badge-ink: var(--tt-solar); }
+.game-sticker.fb    .badge-mini { --badge-bg: var(--fb-apple);  --badge-ink: #fff; }
 
 /* per-game tile tints — light mode */
 .game-sticker.tir   { --tile-bg: #ffe2d4; --tile-bg2: #f7c4b0; }
@@ -148,6 +149,8 @@
 .game-sticker.tt .art {
   background: linear-gradient(180deg, var(--tt-cream) 0%, var(--tt-cream) 52%, var(--tt-lunar) 52%, var(--tt-lunar) 100%);
 }
+/* Fruit Boss: warm marketplace gradient */
+.game-sticker.fb    { --tile-bg: #fde6c2; --tile-bg2: #f1bf85; }
 
 /* per-game tile tints — dark mode */
 [data-theme="dark"] .game-sticker.tir   { --tile-bg: #5a2818; --tile-bg2: #3a1810; }
@@ -158,6 +161,7 @@
 [data-theme="dark"] .game-sticker.tt .art {
   background: linear-gradient(180deg, #3a2f10 0%, #3a2f10 52%, #0c1024 52%, #0c1024 100%);
 }
+[data-theme="dark"] .game-sticker.fb { --tile-bg: #4a2818; --tile-bg2: #2e1810; }
 
 /* Wrapper that keeps the banner aligned with the phase's .screen card below. */
 .game-screen-wrap {
@@ -242,6 +246,7 @@
 .game-banner.oo    .round-pill { --pill-bg: var(--honey-500); --pill-ink: var(--ink); }
 .game-banner.ds    .round-pill { --pill-bg: var(--ds-coral);  --pill-ink: #fff; }
 .game-banner.tt    .round-pill { --pill-bg: var(--tt-solar);  --pill-ink: var(--tt-lunar); border-color: var(--tt-lunar); }
+.game-banner.fb    .round-pill { --pill-bg: var(--fb-apple);  --pill-ink: #fff; }
 
 /* per-game banner tints — light mode */
 .game-banner.tir   { --banner-bg: #ffe2d4; background: var(--banner-bg); }
@@ -261,6 +266,9 @@
 .game-banner.tt .banner-icon { background: var(--tt-cream); border-color: var(--tt-lunar); }
 .game-banner.tt .banner-title h2 { color: var(--tt-lunar); }
 .game-banner.tt .banner-title .sub { color: var(--tt-lunar); opacity: 0.7; }
+/* Fruit Boss banner: warm market gradient */
+.game-banner.fb { background: linear-gradient(110deg, #fde6c2 0%, #f1bf85 100%); }
+.game-banner.fb .banner-icon { background: #fff5dc; }
 
 /* per-game banner tints — dark mode */
 [data-theme="dark"] .game-banner.tir   { background: linear-gradient(110deg, #5a2818 0%, #3a1810 100%); --banner-ink: #fff; --banner-sub: #f0c8b4; }
@@ -277,6 +285,8 @@
 [data-theme="dark"] .game-banner.tt .banner-icon { background: var(--tt-lunar); border-color: var(--tt-solar); }
 [data-theme="dark"] .game-banner.tt .banner-title h2 { color: var(--tt-solar); }
 [data-theme="dark"] .game-banner.tt .banner-title .sub { color: var(--tt-solar); opacity: 0.75; }
+[data-theme="dark"] .game-banner.fb { background: linear-gradient(110deg, #4a2818 0%, #2e1810 100%); --banner-ink: #fff; --banner-sub: #f0c8b4; }
+[data-theme="dark"] .game-banner.fb .banner-title h2 { color: #fff; }
 
 /* gentle banner-icon idle motion */
 @keyframes banner-bob {

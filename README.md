@@ -6,6 +6,9 @@ Fun server for game time! Current games:
 * Werewords
 * Order Overload
 * Deep Sea Adventure
+* Take Time
+* Fruit Boss
+* Startups
 
 
 ## Prerequisites

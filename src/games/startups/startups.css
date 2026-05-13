@@ -1,0 +1,572 @@
+/* =========================================================
+   Startups — share-trading theme
+   ========================================================= */
+
+.su-screen {
+  max-width: 900px;
+}
+
+.su-play {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.su-section {
+  text-align: left;
+}
+
+.su-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.su-section-meta {
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.su-hint {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+  text-align: center;
+  margin-top: var(--s-2);
+  font-style: italic;
+}
+
+.su-error {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--rose-500);
+  margin-top: var(--s-2);
+  font-weight: 600;
+}
+
+.su-last-action {
+  font-size: 0.8rem;
+  color: var(--ink-mute);
+  text-align: center;
+  margin: 0;
+}
+
+.su-place-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  flex-wrap: wrap;
+}
+
+/* ---- Company icon ---- */
+.su-company-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  border: 2px solid var(--border-strong);
+  line-height: 1;
+}
+
+/* ---- Card ---- */
+.su-card {
+  aspect-ratio: 5 / 7;
+  border-radius: var(--r-3);
+  border: 2px solid var(--border-strong);
+  box-shadow: 2px 2px 0 var(--ink);
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  position: relative;
+}
+
+.su-card-glyph {
+  line-height: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.su-card-name {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.su-card-num {
+  font-size: 0.65rem;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Market ---- */
+.su-market {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.su-deck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-1);
+  padding: var(--s-3);
+  background: var(--surface-2);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-3);
+  min-width: 96px;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-spring-soft);
+  font-family: inherit;
+  color: var(--ink);
+}
+
+.su-deck:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.su-deck.is-disabled,
+.su-deck:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.su-deck-back {
+  width: 56px;
+  height: 80px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--syrup-500),
+    var(--syrup-500) 6px,
+    var(--syrup-300) 6px,
+    var(--syrup-300) 12px
+  );
+  border: 2px solid var(--ink);
+  border-radius: var(--r-2);
+}
+
+.su-deck-label {
+  text-align: center;
+}
+
+.su-deck-count {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.su-deck-meta {
+  font-size: 0.7rem;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.su-deck-cost {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.su-deck-removed {
+  font-size: 0.65rem;
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+.su-market-stalls {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.su-market-empty {
+  padding: var(--s-3);
+  color: var(--ink-mute);
+  font-style: italic;
+  font-size: 0.85rem;
+  align-self: center;
+}
+
+.su-stall {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.su-stall.is-clickable {
+  cursor: pointer;
+}
+
+.su-stall.is-clickable:hover .su-card {
+  transform: translateY(-3px);
+  box-shadow: 3px 5px 0 var(--ink);
+}
+
+.su-stall.is-blocked .su-card {
+  opacity: 0.45;
+}
+
+.su-stall .su-card {
+  width: 72px;
+}
+
+.su-stall-chips {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.su-stall-chips-count {
+  margin-left: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Chips ---- */
+.su-chip {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  vertical-align: middle;
+}
+
+.su-chip--silver {
+  background: var(--su-silver-top);
+  background-image: radial-gradient(circle at 30% 30%, var(--su-silver-top), var(--su-silver));
+}
+
+.su-chip--gold {
+  background: var(--su-gold-top);
+  background-image: radial-gradient(circle at 30% 30%, var(--su-gold-top), var(--su-gold));
+}
+
+.su-chip-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Portfolio ---- */
+.su-portfolio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.su-portfolio-empty {
+  font-size: 0.85rem;
+  color: var(--ink-mute);
+  font-style: italic;
+}
+
+.su-portfolio-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  border: 2px solid var(--border-strong);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.su-portfolio--compact .su-portfolio-group {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  box-shadow: 1.5px 1.5px 0 var(--ink);
+}
+
+.su-portfolio-glyph {
+  font-size: 1.05rem;
+  text-shadow: none;
+}
+
+.su-portfolio-name {
+  letter-spacing: 0.02em;
+}
+
+.su-portfolio-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.su-am-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background: var(--su-am-chip);
+  color: var(--surface);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  border: 1.5px solid var(--surface);
+  margin-left: 4px;
+}
+
+/* ---- Opponents ---- */
+.su-opponents {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.su-opponent {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  padding: var(--s-3);
+  background: var(--surface);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.su-opponent.is-current {
+  background: var(--surface-2);
+  outline: 3px solid var(--honey-500);
+  outline-offset: 2px;
+}
+
+.su-opponent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--s-2);
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.su-opponent-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.su-opponent-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.su-opponent-hand {
+  color: var(--ink-mute);
+  font-size: 0.78rem;
+}
+
+/* ---- Hand ---- */
+.su-hand {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  min-height: 110px;
+  padding: var(--s-3) 0;
+}
+
+.su-hand-empty {
+  color: var(--ink-mute);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.su-hand-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: default;
+  transition: transform 0.18s var(--ease-spring-soft);
+}
+
+.su-hand-card:disabled {
+  cursor: default;
+}
+
+.su-hand-card.is-selected .su-card {
+  box-shadow: 3px 5px 0 var(--ink), 0 0 0 3px var(--honey-500);
+}
+
+.su-hand-card:hover:not(:disabled) {
+  z-index: 100 !important;
+}
+
+/* ---- Round-end screen ---- */
+.su-round-end {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  text-align: left;
+}
+
+.su-round-end-title {
+  text-align: center;
+  margin: 0;
+}
+
+.su-round-end-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.su-round-end-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.su-breakdown {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: 2px 2px 0 var(--ink);
+  padding: var(--s-3);
+}
+
+.su-breakdown-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-2);
+}
+
+.su-breakdown-rank {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--honey-500);
+  min-width: 2.5em;
+}
+
+.su-breakdown-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  flex: 1;
+}
+
+.su-breakdown-total {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.su-breakdown-chips {
+  display: flex;
+  gap: var(--s-3);
+  margin-bottom: var(--s-2);
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.su-breakdown-mult {
+  color: var(--ink-mute);
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.su-breakdown-empty {
+  color: var(--ink-mute);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.su-breakdown-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.su-breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.su-breakdown-result {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.su-breakdown-result.is-gain {
+  color: var(--jade-700);
+  font-weight: 600;
+}
+
+.su-breakdown-result.is-loss {
+  color: var(--rose-500);
+  font-weight: 600;
+}
+
+/* ---- Game over ---- */
+.su-game-over {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.su-winner-line {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.su-round-chip-detail {
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+  font-weight: 500;
+}
