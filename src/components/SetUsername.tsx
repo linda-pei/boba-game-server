@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BrandTitle from "./shared/BrandTitle";
 
 interface SetUsernameProps {
   onSubmit: (username: string) => void;
@@ -16,6 +17,7 @@ export default function SetUsername({ onSubmit }: SetUsernameProps) {
 
   return (
     <div className="set-username screen">
+      <BrandTitle size="md" />
       <h2>Choose a Username</h2>
       <form onSubmit={handleSubmit}>
         <input

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
 import { joinRoom } from "../hooks/useRoom";
+import BrandTitle from "./shared/BrandTitle";
 
 export default function JoinRedirect() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -21,6 +22,7 @@ export default function JoinRedirect() {
   if (error) {
     return (
       <div className="screen">
+        <BrandTitle size="md" />
         <p className="error-message">{error}</p>
         <button className="btn btn--primary" onClick={() => navigate("/")}>Back to Home</button>
       </div>

@@ -14,6 +14,7 @@ import { startStartupsGame } from "../games/startups/useStartupsGame";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
+import BrandTitle from "./shared/BrandTitle";
 import GameSticker from "./shared/GameSticker";
 import { GAME_ID_TO_KEY } from "./shared/GameIcon";
 import PlayerCountStatus from "./shared/PlayerCountStatus";
@@ -48,6 +49,7 @@ export default function Lobby() {
   if (error || !room) {
     return (
       <div className="lobby screen">
+        <BrandTitle size="md" />
         <p className="error-message">{error || "Room not found"}</p>
         <button className="btn btn--primary" onClick={() => navigate("/")}>Back to Home</button>
       </div>
@@ -166,6 +168,7 @@ export default function Lobby() {
 
   return (
     <div className="lobby screen">
+      <BrandTitle size="md" />
       <h2>Room: {roomCode}</h2>
       <p>
         {players.length}/{room.maxPlayers} players

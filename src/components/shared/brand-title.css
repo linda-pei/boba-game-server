@@ -1,0 +1,38 @@
+.brand-title {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.55em;
+  line-height: 1;
+  color: var(--peach-700);
+  text-shadow: 3px 3px 0 var(--milk-100);
+  margin: 0;
+}
+
+[data-theme="dark"] .brand-title {
+  color: var(--honey-500);
+  text-shadow: 3px 3px 0 #1a1208;
+}
+
+.brand-title--lg {
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+  margin: 0 0 0.25rem;
+}
+
+.brand-title--md {
+  font-size: 1.5rem;
+  margin: 0 0 1rem;
+  text-shadow: 2px 2px 0 var(--milk-100);
+}
+
+[data-theme="dark"] .brand-title--md {
+  text-shadow: 2px 2px 0 #1a1208;
+}
+
+.brand-cup {
+  width: 1em;
+  height: 1.25em;
+  flex: none;
+  transform: rotate(-6deg);
+  transform-origin: bottom center;
+}

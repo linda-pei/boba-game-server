@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/AuthContext";
 import { createRoom, joinRoom } from "../hooks/useRoom";
+import BrandTitle from "./shared/BrandTitle";
 
 export default function Home() {
   const [roomCode, setRoomCode] = useState("");
@@ -43,7 +44,7 @@ export default function Home() {
 
   return (
     <div className="home screen">
-      <h1>Boba Game Time!</h1>
+      <BrandTitle size="lg" />
       <p>Welcome, {username}!</p>
 
       {error && <p className="error-message">{error}</p>}
@@ -60,6 +61,7 @@ export default function Home() {
             type="text"
             placeholder="ABCD"
             maxLength={4}
+            size={4}
             value={roomCode}
             onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
           />

@@ -251,7 +251,7 @@ button {
   box-shadow: var(--shadow-1);
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background-color: var(--peach-700);
   box-shadow: var(--shadow-2);
   transform: translateY(-1px);
