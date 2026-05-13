@@ -112,7 +112,7 @@ function buildFreshRound(input: FreshRoundInput): FreshRoundOutput {
   const deck = shuffle(buildDeck());
 
   // Remove 5 random cards (already-shuffled deck → take from the top).
-  const _removed = deck.splice(0, REMOVED_AT_SETUP);
+  const removedCards = deck.splice(0, REMOVED_AT_SETUP);
 
   // Deal STARTING_HAND cards to each player.
   const hands: Record<string, StartupsHand> = {};
@@ -151,7 +151,8 @@ function buildFreshRound(input: FreshRoundInput): FreshRoundOutput {
     tookFromMarketCompany: null,
     market: [],
     deck,
-    removedCount: REMOVED_AT_SETUP,
+    removedCards,
+    revealedRemovedCount: 0,
     portfolios,
     silver,
     gold,
@@ -453,18 +454,26 @@ export async function placeToPortfolio(
 ): Promise<void> {
   await runTransaction(db, async (tx) => {
     const gameRef = doc(db, "games", roomCode);
-    const handRef = doc(db, "games", roomCode, "hands", uid);
     const gameSnap = await tx.get(gameRef);
-    const handSnap = await tx.get(handRef);
-    if (!gameSnap.exists() || !handSnap.exists()) throw new Error("Missing doc");
+    if (!gameSnap.exists()) throw new Error("Missing game doc");
     const game = gameSnap.data() as StartupsGame;
-    const hand = handSnap.data() as StartupsHand;
     assertMyPlaceTurn(game, uid);
 
-    const card = hand.cards.find((c) => c.id === cardId);
+    // Read every player's hand up-front (Firestore tx requires all reads before
+    // any writes). We need them if this place ends the round.
+    const handRefs = game.turnOrder.map((u) =>
+      doc(db, "games", roomCode, "hands", u)
+    );
+    const handSnaps = await Promise.all(handRefs.map((r) => tx.get(r)));
+    const myHandIdx = game.turnOrder.indexOf(uid);
+    const myHandSnap = handSnaps[myHandIdx];
+    if (!myHandSnap.exists()) throw new Error("Missing hand doc");
+    const myHand = myHandSnap.data() as StartupsHand;
+
+    const card = myHand.cards.find((c) => c.id === cardId);
     if (!card) throw new Error("Card not in hand");
 
-    const newHandCards = hand.cards.filter((c) => c.id !== cardId);
+    const newHandCards = myHand.cards.filter((c) => c.id !== cardId);
     const newPortfolios = {
       ...game.portfolios,
       [uid]: [...game.portfolios[uid], card],
@@ -481,19 +490,55 @@ export async function placeToPortfolio(
     };
 
     const after = advanceTurnFields(game);
+    const endingRound = after.status === "round-end";
 
-    tx.update(gameRef, {
-      portfolios: newPortfolios,
-      handSizes: newHandSizes,
-      antiMonopoly: newAntiMonopoly,
-      ...after,
-      lastAction: `${name} placed ${card.company} ${card.number} in portfolio`,
-    });
-    tx.update(handRef, { cards: newHandCards });
+    if (endingRound) {
+      // Fold all hands (incl. mine post-place) into portfolios + compute scoring atomically.
+      const finalPortfolios: Record<string, StartupsCard[]> = { ...newPortfolios };
+      const finalHandSizes: Record<string, number> = { ...newHandSizes };
+      handSnaps.forEach((snap, i) => {
+        if (!snap.exists()) return;
+        const playerUid = game.turnOrder[i];
+        const h = snap.data() as StartupsHand;
+        const remaining = playerUid === uid ? newHandCards : h.cards;
+        finalPortfolios[playerUid] = [
+          ...(finalPortfolios[playerUid] ?? []),
+          ...remaining,
+        ];
+        finalHandSizes[playerUid] = 0;
+      });
+
+      const breakdowns = computeScoreBreakdowns(finalPortfolios, game.silver);
+      const finalSilver: Record<string, number> = {};
+      const finalGold: Record<string, number> = {};
+      for (const playerUid of game.turnOrder) {
+        finalSilver[playerUid] = breakdowns[playerUid].finalSilver;
+        finalGold[playerUid] = breakdowns[playerUid].finalGold;
+      }
+
+      tx.update(gameRef, {
+        portfolios: finalPortfolios,
+        handSizes: finalHandSizes,
+        antiMonopoly: newAntiMonopoly,
+        silver: finalSilver,
+        gold: finalGold,
+        scoreBreakdowns: breakdowns,
+        ...after,
+        lastAction: `${name} placed ${card.company} ${card.number} in portfolio — round end`,
+      });
+      // Empty every player's hand.
+      handRefs.forEach((r) => tx.update(r, { cards: [] }));
+    } else {
+      tx.update(gameRef, {
+        portfolios: newPortfolios,
+        handSizes: newHandSizes,
+        antiMonopoly: newAntiMonopoly,
+        ...after,
+        lastAction: `${name} placed ${card.company} ${card.number} in portfolio`,
+      });
+      tx.update(handRefs[myHandIdx], { cards: newHandCards });
+    }
   });
-
-  // After place: if status flipped to round-end, finalise scoring.
-  await maybeFinaliseRound(roomCode);
 }
 
 /** Place a card from hand into the market (new face-up stall, 0 chips). Blocked if same company as just taken. */
@@ -505,15 +550,21 @@ export async function placeToMarket(
 ): Promise<void> {
   await runTransaction(db, async (tx) => {
     const gameRef = doc(db, "games", roomCode);
-    const handRef = doc(db, "games", roomCode, "hands", uid);
     const gameSnap = await tx.get(gameRef);
-    const handSnap = await tx.get(handRef);
-    if (!gameSnap.exists() || !handSnap.exists()) throw new Error("Missing doc");
+    if (!gameSnap.exists()) throw new Error("Missing game doc");
     const game = gameSnap.data() as StartupsGame;
-    const hand = handSnap.data() as StartupsHand;
     assertMyPlaceTurn(game, uid);
 
-    const card = hand.cards.find((c) => c.id === cardId);
+    const handRefs = game.turnOrder.map((u) =>
+      doc(db, "games", roomCode, "hands", u)
+    );
+    const handSnaps = await Promise.all(handRefs.map((r) => tx.get(r)));
+    const myHandIdx = game.turnOrder.indexOf(uid);
+    const myHandSnap = handSnaps[myHandIdx];
+    if (!myHandSnap.exists()) throw new Error("Missing hand doc");
+    const myHand = myHandSnap.data() as StartupsHand;
+
+    const card = myHand.cards.find((c) => c.id === cardId);
     if (!card) throw new Error("Card not in hand");
     if (
       game.tookFromMarketCompany &&
@@ -522,7 +573,7 @@ export async function placeToMarket(
       throw new Error("Can't return the same company you took from market");
     }
 
-    const newHandCards = hand.cards.filter((c) => c.id !== cardId);
+    const newHandCards = myHand.cards.filter((c) => c.id !== cardId);
     const newStall: StartupsMarketStall = {
       id: `stall-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
       card,
@@ -532,17 +583,52 @@ export async function placeToMarket(
     const newHandSizes = { ...game.handSizes, [uid]: newHandCards.length };
 
     const after = advanceTurnFields(game);
+    const endingRound = after.status === "round-end";
 
-    tx.update(gameRef, {
-      market: newMarket,
-      handSizes: newHandSizes,
-      ...after,
-      lastAction: `${name} put ${card.company} ${card.number} on the market`,
-    });
-    tx.update(handRef, { cards: newHandCards });
+    if (endingRound) {
+      const finalPortfolios: Record<string, StartupsCard[]> = { ...game.portfolios };
+      const finalHandSizes: Record<string, number> = { ...newHandSizes };
+      handSnaps.forEach((snap, i) => {
+        if (!snap.exists()) return;
+        const playerUid = game.turnOrder[i];
+        const h = snap.data() as StartupsHand;
+        const remaining = playerUid === uid ? newHandCards : h.cards;
+        finalPortfolios[playerUid] = [
+          ...(finalPortfolios[playerUid] ?? []),
+          ...remaining,
+        ];
+        finalHandSizes[playerUid] = 0;
+      });
+
+      const breakdowns = computeScoreBreakdowns(finalPortfolios, game.silver);
+      const finalSilver: Record<string, number> = {};
+      const finalGold: Record<string, number> = {};
+      for (const playerUid of game.turnOrder) {
+        finalSilver[playerUid] = breakdowns[playerUid].finalSilver;
+        finalGold[playerUid] = breakdowns[playerUid].finalGold;
+      }
+
+      tx.update(gameRef, {
+        market: newMarket,
+        portfolios: finalPortfolios,
+        handSizes: finalHandSizes,
+        silver: finalSilver,
+        gold: finalGold,
+        scoreBreakdowns: breakdowns,
+        ...after,
+        lastAction: `${name} put ${card.company} ${card.number} on the market — round end`,
+      });
+      handRefs.forEach((r) => tx.update(r, { cards: [] }));
+    } else {
+      tx.update(gameRef, {
+        market: newMarket,
+        handSizes: newHandSizes,
+        ...after,
+        lastAction: `${name} put ${card.company} ${card.number} on the market`,
+      });
+      tx.update(handRefs[myHandIdx], { cards: newHandCards });
+    }
   });
-
-  await maybeFinaliseRound(roomCode);
 }
 
 // ---- Internal helpers ----
@@ -582,57 +668,19 @@ function advanceTurnFields(game: StartupsGame): {
   };
 }
 
-/** After a place that flipped status to round-end, fold all hands into portfolios + score. */
-async function maybeFinaliseRound(roomCode: string): Promise<void> {
-  // Read game; if already finalised (scoreBreakdowns set) or not in round-end, no-op.
-  const gameRef = doc(db, "games", roomCode);
-  const gameSnap = await getDoc(gameRef);
-  if (!gameSnap.exists()) return;
-  const game = gameSnap.data() as StartupsGame;
-  if (game.status !== "round-end") return;
-  if (game.scoreBreakdowns) return; // already done
-
-  // Read every player's hand.
-  const handDocs = await Promise.all(
-    game.turnOrder.map((uid) => getDoc(doc(db, "games", roomCode, "hands", uid)))
-  );
-
-  // Fold hand cards into portfolios.
-  const newPortfolios: Record<string, StartupsCard[]> = { ...game.portfolios };
-  const newHandSizes: Record<string, number> = { ...game.handSizes };
-  handDocs.forEach((snap, i) => {
+/** Any player can flip the next removed-card face-up during the round-end reveal phase. */
+export async function revealNextRemovedCard(roomCode: string): Promise<void> {
+  await runTransaction(db, async (tx) => {
+    const gameRef = doc(db, "games", roomCode);
+    const snap = await tx.get(gameRef);
     if (!snap.exists()) return;
-    const uid = game.turnOrder[i];
-    const h = snap.data() as StartupsHand;
-    newPortfolios[uid] = [...(newPortfolios[uid] ?? []), ...h.cards];
-    newHandSizes[uid] = 0;
+    const game = snap.data() as StartupsGame;
+    if (game.status !== "round-end") return;
+    if (game.revealedRemovedCount >= game.removedCards.length) return;
+    tx.update(gameRef, {
+      revealedRemovedCount: game.revealedRemovedCount + 1,
+    });
   });
-
-  // Score using current silver counts (gameplay silver = startingSilver - paid + acquired).
-  const breakdowns = computeScoreBreakdowns(newPortfolios, game.silver);
-
-  // Compute gold + final silver per player.
-  const newSilver: Record<string, number> = {};
-  const newGold: Record<string, number> = {};
-  for (const uid of game.turnOrder) {
-    const b = breakdowns[uid];
-    newSilver[uid] = b.finalSilver;
-    newGold[uid] = b.finalGold;
-  }
-
-  const batch = writeBatch(db);
-  batch.update(gameRef, {
-    portfolios: newPortfolios,
-    handSizes: newHandSizes,
-    silver: newSilver,
-    gold: newGold,
-    scoreBreakdowns: breakdowns,
-  });
-  // Clear hands so the player UI doesn't keep showing dealt cards.
-  for (const uid of game.turnOrder) {
-    batch.update(doc(db, "games", roomCode, "hands", uid), { cards: [] });
-  }
-  await batch.commit();
 }
 
 // ---- Round / game advance ----

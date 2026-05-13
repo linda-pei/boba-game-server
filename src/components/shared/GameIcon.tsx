@@ -169,27 +169,46 @@ export default function GameIcon({ game, size = 44 }: Props) {
     case "su":
       return (
         <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
-          {/* Three stacked coin piles of varying heights — like climbing share value */}
-          {/* Left pile (silver) */}
-          <ellipse cx="20" cy="58" rx="11" ry="4" fill="var(--su-silver)" />
-          <ellipse cx="20" cy="52" rx="11" ry="4" fill="var(--su-silver)" />
-          <ellipse cx="20" cy="46" rx="11" ry="4" fill="var(--su-silver-top)" />
-          {/* Middle pile (gold, tallest) */}
-          <ellipse cx="40" cy="62" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="40" cy="56" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="40" cy="50" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="40" cy="44" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="40" cy="38" rx="11" ry="4" fill="var(--su-gold-top)" />
-          {/* Right pile (gold) */}
-          <ellipse cx="60" cy="60" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="60" cy="54" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="60" cy="48" rx="11" ry="4" fill="var(--su-gold)" />
-          <ellipse cx="60" cy="42" rx="11" ry="4" fill="var(--su-gold-top)" />
-          {/* Upward arrow above piles */}
-          <path
-            d="M40 32 L34 20 L37 20 L37 12 L43 12 L43 20 L46 20 Z"
-            fill="var(--su-arrow)"
-          />
+          {/* Bowwow Games controller (top-left) */}
+          <g transform="translate(2 6) scale(0.38)" fill="var(--su-bowwow)">
+            <path className="nostroke" d="M22 38 q-12 -8 -8 -22 q4 -8 14 -4 q4 4 4 16 z" />
+            <path className="nostroke" d="M78 38 q12 -8 8 -22 q-4 -8 -14 -4 q-4 4 -4 16 z" />
+            <path
+              className="nostroke"
+              fillRule="evenodd"
+              d="M16 40 q0 -8 8 -8 h52 q8 0 8 8 v24 q0 8 -8 8 h-52 q-8 0 -8 -8 z
+                 M30 48 h6 v-6 h6 v6 h6 v6 h-6 v6 h-6 v-6 h-6 z
+                 M62 46 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0
+                 M70 56 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0"
+            />
+          </g>
+          {/* Elephant Mars Travel helmet (top-right) */}
+          <g transform="translate(42 2) scale(0.4)" fill="var(--su-emt)">
+            <circle cx="50" cy="44" r="36" fill="none" stroke="var(--su-emt)" strokeWidth="4" className="nostroke" />
+            <path className="nostroke" d="M18 76 q4 -8 16 -10 h32 q12 2 16 10 v10 h-64 z" />
+            <ellipse className="nostroke" cx="30" cy="46" rx="9" ry="13" transform="rotate(-18 30 46)" />
+            <ellipse className="nostroke" cx="70" cy="46" rx="9" ry="13" transform="rotate(18 70 46)" />
+            <path
+              className="nostroke"
+              fillRule="evenodd"
+              d="M50 24 q-16 0 -16 18 q0 10 6 14 q-2 8 1 14 q4 6 9 0 q2 -4 2 -8 q3 0 6 0 q0 4 2 8 q5 6 9 0 q3 -6 1 -14 q6 -4 6 -14 q0 -18 -16 -18 z
+                 M44 40 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0
+                 M51 40 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0"
+            />
+          </g>
+          {/* Hippo Powertech head (bottom-center) */}
+          <g transform="translate(14 34) scale(0.52)" fill="var(--su-hippo)">
+            <ellipse cx="26" cy="34" rx="6" ry="8" className="nostroke" />
+            <ellipse cx="74" cy="34" rx="6" ry="8" className="nostroke" />
+            <path
+              className="nostroke"
+              fillRule="evenodd"
+              d="M50 20 c-22 0 -32 14 -32 30 c0 18 14 32 32 32 c18 0 32 -14 32 -32 c0 -16 -10 -30 -32 -30 z
+                 M56 32 L36 56 L48 56 L42 76 L66 50 L54 50 L60 32 Z"
+            />
+            <circle cx="42" cy="72" r="2.5" className="nostroke" />
+            <circle cx="58" cy="72" r="2.5" className="nostroke" />
+          </g>
         </svg>
       );
     case "fb":

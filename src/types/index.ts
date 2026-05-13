@@ -501,8 +501,10 @@ export interface StartupsGame {
   market: StartupsMarketStall[];
   /** Deck stored on the game doc (private game state). */
   deck: StartupsCard[];
-  /** 5 cards removed at setup (hidden, revealed at game end if you want; we keep them hidden). */
-  removedCount: number;
+  /** 5 cards removed at setup. Hidden during play; revealed one-by-one at round end. */
+  removedCards: StartupsCard[];
+  /** How many of the removed cards have been flipped face-up during the round-end reveal. */
+  revealedRemovedCount: number;
   /** Public portfolios: cards each player has placed in front of them. */
   portfolios: Record<string, StartupsCard[]>;
   /** Public silver chip counts. */

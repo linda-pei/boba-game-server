@@ -1,5 +1,6 @@
 import type { StartupsCard, StartupsCompany } from "../../types";
-import { COMPANIES, COMPANY_COLOR, COMPANY_GLYPH, COMPANY_SHORT } from "./deck";
+import { COMPANIES, COMPANY_COLOR, COMPANY_INK, COMPANY_SHORT } from "./deck";
+import CompanyLogo from "./CompanyLogo";
 
 interface Props {
   cards: StartupsCard[];
@@ -36,9 +37,14 @@ export default function PortfolioPanel({ cards, amCompanies, compact }: Props) {
           <div
             key={company}
             className={`su-portfolio-group${holdsAM ? " has-am" : ""}`}
-            style={{ background: COMPANY_COLOR[company] }}
+            style={{
+              background: COMPANY_COLOR[company],
+              color: COMPANY_INK[company],
+            }}
           >
-            <span className="su-portfolio-glyph">{COMPANY_GLYPH[company]}</span>
+            <span className="su-portfolio-glyph">
+              <CompanyLogo company={company} size={compact ? 14 : 18} />
+            </span>
             <span className="su-portfolio-name">{COMPANY_SHORT[company]}</span>
             <span className="su-portfolio-count">×{list.length}</span>
             {holdsAM && (

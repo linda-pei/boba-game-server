@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { Room, StartupsGame, StartupsScoreBreakdown } from "../../types";
 import { useAuthContext } from "../../hooks/AuthContext";
-import { advanceFromRoundEnd } from "./useStartupsGame";
-import { COMPANIES, COMPANY_COLOR, COMPANY_GLYPH, COMPANY_SHORT } from "./deck";
+import { advanceFromRoundEnd, revealNextRemovedCard } from "./useStartupsGame";
+import { COMPANIES, COMPANY_COLOR, COMPANY_INK, COMPANY_SHORT } from "./deck";
+import CompanyLogo from "./CompanyLogo";
+import MiniCard from "./MiniCard";
 
 interface Props {
   roomCode: string;
@@ -23,6 +25,8 @@ export default function RoundEndScreen({ roomCode, game, room }: Props) {
   );
 
   const isFinalRound = !game.roundsEnabled || game.currentRound >= game.totalRounds;
+  const revealComplete =
+    game.revealedRemovedCount >= game.removedCards.length;
 
   const handleAdvance = async () => {
     setAdvancing(true);
@@ -41,43 +45,105 @@ export default function RoundEndScreen({ roomCode, game, room }: Props) {
           : "Final scoring"}
       </h2>
 
-      <div className="su-round-end-list">
-        {ranking.map((pid, idx) => {
-          const name = room.players[pid]?.name ?? pid.slice(0, 6);
-          const b = breakdowns[pid];
-          return (
-            <BreakdownCard
-              key={pid}
-              rank={idx + 1}
-              name={name}
-              breakdown={b}
-              room={room}
-            />
-          );
-        })}
-      </div>
+      <RevealStage game={game} roomCode={roomCode} />
 
-      {isHost && (
-        <div className="su-round-end-actions">
-          <button
-            className="btn btn--primary"
-            onClick={handleAdvance}
-            disabled={advancing}
-          >
-            {advancing
-              ? "…"
-              : isFinalRound
-                ? "Show winner"
-                : "Continue to next round"}
-          </button>
-        </div>
-      )}
-      {!isHost && (
-        <p className="su-hint">Waiting for the host to continue…</p>
+      {revealComplete && (
+        <>
+          <div className="su-round-end-list">
+            {ranking.map((pid, idx) => {
+              const name = room.players[pid]?.name ?? pid.slice(0, 6);
+              const b = breakdowns[pid];
+              return (
+                <BreakdownCard
+                  key={pid}
+                  rank={idx + 1}
+                  name={name}
+                  breakdown={b}
+                  room={room}
+                />
+              );
+            })}
+          </div>
+
+          {isHost && (
+            <div className="su-round-end-actions">
+              <button
+                className="btn btn--primary"
+                onClick={handleAdvance}
+                disabled={advancing}
+              >
+                {advancing
+                  ? "…"
+                  : isFinalRound
+                    ? "Show winner"
+                    : "Continue to next round"}
+              </button>
+            </div>
+          )}
+          {!isHost && (
+            <p className="su-hint">Waiting for the host to continue…</p>
+          )}
+        </>
       )}
     </div>
   );
 }
+
+function RevealStage({ game, roomCode }: { game: StartupsGame; roomCode: string }) {
+  const [revealing, setRevealing] = useState(false);
+  const total = game.removedCards.length;
+  const shown = game.revealedRemovedCount;
+  const allShown = shown >= total;
+
+  const handleReveal = async () => {
+    setRevealing(true);
+    try {
+      await revealNextRemovedCard(roomCode);
+    } finally {
+      setRevealing(false);
+    }
+  };
+
+  return (
+    <div className="su-reveal">
+      <p className="su-reveal-title">
+        {allShown
+          ? "The 5 cards removed at setup:"
+          : `The 5 cards removed at setup — ${shown}/${total} revealed`}
+      </p>
+      <div className="su-reveal-row">
+        {Array.from({ length: total }).map((_, i) => {
+          const isShown = i < shown;
+          const card = game.removedCards[i];
+          return (
+            <div
+              key={i}
+              className={`su-reveal-card${isShown ? " is-shown" : ""}`}
+            >
+              {isShown ? (
+                <MiniCard card={card} width={84} />
+              ) : (
+                <div className="su-reveal-back" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {!allShown && (
+        <div className="su-round-end-actions">
+          <button
+            className="btn btn--secondary"
+            onClick={handleReveal}
+            disabled={revealing}
+          >
+            Reveal next card
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function BreakdownCard({
   rank,
@@ -130,9 +196,14 @@ function BreakdownCard({
               <div key={company} className="su-breakdown-row">
                 <span
                   className="su-portfolio-group"
-                  style={{ background: COMPANY_COLOR[company] }}
+                  style={{
+                    background: COMPANY_COLOR[company],
+                    color: COMPANY_INK[company],
+                  }}
                 >
-                  <span className="su-portfolio-glyph">{COMPANY_GLYPH[company]}</span>
+                  <span className="su-portfolio-glyph">
+                    <CompanyLogo company={company} size={16} />
+                  </span>
                   <span className="su-portfolio-name">{COMPANY_SHORT[company]}</span>
                   <span className="su-portfolio-count">×{entry.shares}</span>
                 </span>

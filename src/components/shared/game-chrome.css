@@ -151,6 +151,9 @@
 }
 /* Fruit Boss: warm marketplace gradient */
 .game-sticker.fb    { --tile-bg: #fde6c2; --tile-bg2: #f1bf85; }
+/* Startups: warm stock-ticker gold */
+.game-sticker.su    { --tile-bg: #fdf5e0; --tile-bg2: #f0dca0; }
+.game-sticker.su .badge-mini { --badge-bg: var(--su-gold); --badge-ink: var(--ink); }
 
 /* per-game tile tints — dark mode */
 [data-theme="dark"] .game-sticker.tir   { --tile-bg: #5a2818; --tile-bg2: #3a1810; }
@@ -162,6 +165,7 @@
   background: linear-gradient(180deg, #3a2f10 0%, #3a2f10 52%, #0c1024 52%, #0c1024 100%);
 }
 [data-theme="dark"] .game-sticker.fb { --tile-bg: #4a2818; --tile-bg2: #2e1810; }
+[data-theme="dark"] .game-sticker.su { --tile-bg: #3a3010; --tile-bg2: #2a2008; }
 
 /* Wrapper that keeps the banner aligned with the phase's .screen card below. */
 .game-screen-wrap {
@@ -269,6 +273,21 @@
 /* Fruit Boss banner: warm market gradient */
 .game-banner.fb { background: linear-gradient(110deg, #fde6c2 0%, #f1bf85 100%); }
 .game-banner.fb .banner-icon { background: #fff5dc; }
+/* Startups banner: stock-ticker gold with company color stripe */
+.game-banner.su {
+  background:
+    linear-gradient(90deg,
+      var(--su-giraffe) 0%, var(--su-giraffe) 16.6%,
+      var(--su-bowwow)  16.6%, var(--su-bowwow) 33.3%,
+      var(--su-flamingo) 33.3%, var(--su-flamingo) 50%,
+      var(--su-octo) 50%, var(--su-octo) 66.6%,
+      var(--su-hippo) 66.6%, var(--su-hippo) 83.3%,
+      var(--su-emt) 83.3%, var(--su-emt) 100%)
+    bottom / 100% 4px no-repeat,
+    linear-gradient(110deg, #fdf5e0 0%, #f5e4b0 100%);
+}
+.game-banner.su .banner-icon { background: #fdf5e0; border-color: var(--su-gold); }
+.game-banner.su .round-pill { --pill-bg: var(--su-gold); --pill-ink: var(--ink); }
 
 /* per-game banner tints — dark mode */
 [data-theme="dark"] .game-banner.tir   { background: linear-gradient(110deg, #5a2818 0%, #3a1810 100%); --banner-ink: #fff; --banner-sub: #f0c8b4; }
@@ -287,6 +306,21 @@
 [data-theme="dark"] .game-banner.tt .banner-title .sub { color: var(--tt-solar); opacity: 0.75; }
 [data-theme="dark"] .game-banner.fb { background: linear-gradient(110deg, #4a2818 0%, #2e1810 100%); --banner-ink: #fff; --banner-sub: #f0c8b4; }
 [data-theme="dark"] .game-banner.fb .banner-title h2 { color: #fff; }
+[data-theme="dark"] .game-banner.su {
+  background:
+    linear-gradient(90deg,
+      var(--su-giraffe) 0%, var(--su-giraffe) 16.6%,
+      var(--su-bowwow)  16.6%, var(--su-bowwow) 33.3%,
+      var(--su-flamingo) 33.3%, var(--su-flamingo) 50%,
+      var(--su-octo) 50%, var(--su-octo) 66.6%,
+      var(--su-hippo) 66.6%, var(--su-hippo) 83.3%,
+      var(--su-emt) 83.3%, var(--su-emt) 100%)
+    bottom / 100% 4px no-repeat,
+    linear-gradient(110deg, #3a3010 0%, #2a2008 100%);
+  --banner-ink: #fff; --banner-sub: #f0d4a0;
+}
+[data-theme="dark"] .game-banner.su .banner-icon { background: #3a3010; border-color: var(--su-gold); }
+[data-theme="dark"] .game-banner.su .banner-title h2 { color: #fff; }
 
 /* gentle banner-icon idle motion */
 @keyframes banner-bob {

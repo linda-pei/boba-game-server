@@ -128,7 +128,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
         <MarketRow
           market={game.market}
           deckSize={game.deck.length}
-          removedCount={game.removedCount}
           blockedCompanies={myAMs}
           onStallClick={inTakePhase ? handleStall : undefined}
           onDeckClick={inTakePhase ? handleDeck : undefined}
@@ -141,31 +140,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
           </div>
         )}
       </section>
-
-      {opponentUids.length > 0 && (
-        <section className="su-section">
-          <h4 className="su-section-title">Opponents</h4>
-          <div className="su-opponents">
-            {opponentUids.map((pid) => {
-              const oppAMs = new Set<StartupsCompany>(
-                amChipsHeldBy(game.antiMonopoly, pid)
-              );
-              return (
-                <OpponentPanel
-                  key={pid}
-                  name={room.players[pid]?.name ?? pid}
-                  portfolio={game.portfolios[pid] ?? []}
-                  silver={game.silver[pid] ?? 0}
-                  gold={game.gold[pid] ?? 0}
-                  handSize={game.handSizes[pid] ?? 0}
-                  amCompanies={oppAMs}
-                  isCurrent={pid === currentUid}
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       <section className="su-section">
         <h4 className="su-section-title">
@@ -222,6 +196,31 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
 
       {game.lastAction && (
         <p className="su-last-action">Last action: {game.lastAction}</p>
+      )}
+
+      {opponentUids.length > 0 && (
+        <section className="su-section">
+          <h4 className="su-section-title">Opponents</h4>
+          <div className="su-opponents">
+            {opponentUids.map((pid) => {
+              const oppAMs = new Set<StartupsCompany>(
+                amChipsHeldBy(game.antiMonopoly, pid)
+              );
+              return (
+                <OpponentPanel
+                  key={pid}
+                  name={room.players[pid]?.name ?? pid}
+                  portfolio={game.portfolios[pid] ?? []}
+                  silver={game.silver[pid] ?? 0}
+                  gold={game.gold[pid] ?? 0}
+                  handSize={game.handSizes[pid] ?? 0}
+                  amCompanies={oppAMs}
+                  isCurrent={pid === currentUid}
+                />
+              );
+            })}
+          </div>
+        </section>
       )}
     </div>
   );
