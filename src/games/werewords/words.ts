@@ -1,4 +1,4 @@
-export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney";
+export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney" | "myth";
 
 export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
@@ -249,6 +249,35 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "Yzma",
     "Zazu", "Zurg"
   ],
+  myth: [
+    "Achilles", "Aeneas", "Aether", "Aphrodite", "Apollo", "Apsu", "Arachne", "Ares", "Artemis", "Asclepius", 
+    "Ashura", "Athena", "Atlas", "Amaterasu", "Anubis", "Atum",
+    "Baldur", "Bastet", "Beowulf", "Brahma", "Brigid",
+    "Calypso", "Cernunnos", "Cerberus", "Chaos", "Charon", "Charybdis", "Circe", "Cronus",
+    "Daedalus", "Dagon", "Demeter", "Dionysus", "Durga",
+    "Echidna", "Eir", "Eos", "Epona", "Erebus", "Eros", "Eurydice", "Echidna",
+    "Fenrir", "Freya", "Freyr", "Fujin",
+    "Ganesha", "Gaia", "Gilgamesh", "Griffin", "Guanyin",
+    "Hades", "Hathor", "Hecate", "Heimdall", "Hel", "Hephaestus", "Hera", "Hermes", "Hestia", "Horus", "Hunab Ku", "Hercules",
+    "Icarus", "Indra", "Inanna", "Ishtar", "Isis", "Inari", "Imhotep",
+    "Janus", "Jinn", "Jormungandr", "Jupiter", "Jason",
+    "Kali", "Kamaitachi", "Kappa", "Kitsune", "Kraken", "Ku", "King Arthur", 
+    "Loki", "Lugh", "Luna", "Lady of the Lake",
+    "Marduk", "Maui", "Medusa", "Minerva", "Minotaur", "Mithras", "Morrigan", "Morgana", "Merlin", "Mordred",
+    "Naga", "Nammu", "Nemesis", "Nephthys", "Neptune", "Nergal", "Njord", "Nyx", "Nurarihyon",
+    "Odin", "Oni", "Osiris",
+    "Pan", "Pele", "Pegasus", "Persephone", "Perseus", "Poseidon", "Prometheus",
+    "Quetzalcoatl",
+    "Ra", "Rama", "Ravana", "Rhea", "Ryujin",
+    "Set", "Shiva", "Sigurd", "Sif", "Sirens", "Sisyphus", "Sobek", "Sun Wukong", "Susanoo", "Scylla", 
+    "Tanuki", "Taweret", "Theseus", "Thor", "Tiamat", "Tlaloc", "Tyr",
+    "Ullr", "Uranus",
+    "Valkyrie", "Vishnu", "Vulcan",
+    "Wendigo",
+    "Xolotl",
+    "Yama", "Ymir", "Yokai", "Yuki‑Onna",
+    "Zeus", "Zhong Kui"
+  ],
 };
 
 export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
@@ -260,4 +289,5 @@ export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "slayTheSpire1", label: "Slay the Spire 1"},
   { value: "smash", label: "Smash Characters"},
   { value: "disney", label: "Disney Characters"},
+  { value: "myth", label: "Mythological Characters"},
 ];
