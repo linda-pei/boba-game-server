@@ -32,7 +32,21 @@ interface Props {
   room: Room;
 }
 
-type ActionMode = "add" | "combine" | "slide" | "cat";
+type ActionMode = "add" | "combine" | "slide";
+
+/**
+ * What the current hand-card selection lets the player do.
+ *  - "empty"     → nothing selected yet
+ *  - "add"       → fruit/star (same suit). Click a stall to place.
+ *  - "cat"       → exactly one cat card. Click a market card to eat it.
+ *  - "invalid"   → mixed/incoherent (shouldn't normally happen since we
+ *                  replace-on-incompatible, but kept as a guard).
+ */
+type AddIntent =
+  | { kind: "empty" }
+  | { kind: "add"; suit: FruitSuit | null }
+  | { kind: "cat"; catCardId: string }
+  | { kind: "invalid"; reason: string };
 
 type AddOpts = { toppleInto?: number; collectFrom?: number; starAttachTo?: FruitSuit };
 
@@ -78,15 +92,37 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
   };
 
   const handCards = hand?.cards ?? [];
-  const addSelection = selectionForAdd(handCards, selectedIds);
+
+  // Single helper that decides "what does this selection let me do?"
+  const intent: AddIntent = (() => {
+    if (selectedIds.size === 0) return { kind: "empty" };
+    const selected = handCards.filter((c) => selectedIds.has(c.id));
+    const cats = selected.filter((c) => c.kind === "cat");
+    const nonCats = selected.filter((c) => c.kind !== "cat");
+    if (cats.length > 0 && nonCats.length > 0) {
+      return { kind: "invalid", reason: "Cats can't be combined with fruit/star." };
+    }
+    if (cats.length > 0) {
+      if (cats.length > 1) return { kind: "invalid", reason: "Only one cat at a time." };
+      return { kind: "cat", catCardId: cats[0].id };
+    }
+    const fruitSel = selectionForAdd(handCards, selectedIds);
+    if (!fruitSel.valid) return { kind: "invalid", reason: fruitSel.reason };
+    return { kind: "add", suit: fruitSel.suit };
+  })();
 
   // ---- Mode validation: which stalls / cards are currently legal targets? ----
 
-  // Add mode: any stall whose suit matches selection
+  // Add mode covers both placing fruit/star AND playing a cat. Which stalls
+  // are valid depends on the current intent.
   const addValidStalls = new Set<number>();
-  if (mode === "add" && isMyTurn && addSelection.valid && game.actionsLeft > 0) {
-    for (let i = 0; i < game.market.length; i++) {
-      if (canPlaceAt(game.market, i, addSelection)) addValidStalls.add(i);
+  if (mode === "add" && isMyTurn && game.actionsLeft > 0) {
+    if (intent.kind === "add") {
+      for (let i = 0; i < game.market.length; i++) {
+        if (canPlaceAt(game.market, i, intent)) addValidStalls.add(i);
+      }
+    } else if (intent.kind === "cat") {
+      for (let i = 0; i < game.market.length; i++) if (game.market[i]) addValidStalls.add(i);
     }
   }
 
@@ -114,15 +150,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
     }
   }
 
-  // Cat mode: when a single cat is selected in hand, every occupied stall's cards are eligible
-  const catCardId = mode === "cat" && selectedIds.size === 1 ? [...selectedIds][0] : null;
-  const catCardIsCat =
-    catCardId && handCards.find((c) => c.id === catCardId && c.kind === "cat") !== undefined;
-  const catValidStalls = new Set<number>();
-  if (mode === "cat" && catCardIsCat && isMyTurn && game.actionsLeft > 0) {
-    for (let i = 0; i < game.market.length; i++) if (game.market[i]) catValidStalls.add(i);
-  }
-
   // While a stall-choice (collect or topple) is pending, override the marketplace
   // highlight so the player can simply click one of the two adjacent stalls.
   const stallChoicePending =
@@ -135,7 +162,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
     : mode === "add" ? addValidStalls
     : mode === "combine" ? combineValidStalls
     : mode === "slide" ? slideValidStalls
-    : mode === "cat" ? catValidStalls
     : new Set<number>();
 
   // While a stall-choice is pending, simulate the placement client-side so the
@@ -258,7 +284,7 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
     }
 
     if (mode === "add") {
-      if (!addSelection.valid) return;
+      if (intent.kind !== "add") return;
       const cardIds = [...selectedIds];
       advanceCtx({ type: "add", stallIdx, cardIds, opts: {} });
       return;
@@ -290,9 +316,9 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
   };
 
   const handleCardClickInStall = (stallIdx: number, cardId: string) => {
-    if (mode !== "cat" || !catCardId || !catCardIsCat) return;
+    if (mode !== "add" || intent.kind !== "cat") return;
     if (!isMyTurn || acting || game.actionsLeft <= 0) return;
-    submitCat(catCardId, stallIdx, cardId);
+    submitCat(intent.catCardId, stallIdx, cardId);
   };
 
   const handleEndTurn = async () => {
@@ -326,14 +352,35 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
     if (!isMyTurn || acting) return;
     setErrorMsg(null);
     setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      // Cat mode: only one selection at a time
-      if (mode === "cat" && next.size > 1) {
-        return new Set([id]);
+      // Clicking an already-selected card → deselect.
+      if (prev.has(id)) {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
       }
-      return next;
+      const clicked = handCards.find((c) => c.id === id);
+      if (!clicked) return prev;
+      const current = handCards.filter((c) => prev.has(c.id));
+      const hasCat = current.some((c) => c.kind === "cat");
+      const currentSuit = current
+        .map((c) => (c.kind === "fruit" ? c.suit : undefined))
+        .find((s) => s !== undefined);
+      // Cats are always solo. Clicking a cat replaces the selection.
+      if (clicked.kind === "cat") return new Set([id]);
+      // Click on fruit/star while a cat is selected → switch focus.
+      if (hasCat) return new Set([id]);
+      // Same-suit (or star — wild): extend the selection.
+      const compatible =
+        clicked.kind === "star" ||
+        !currentSuit ||
+        (clicked.kind === "fruit" && clicked.suit === currentSuit);
+      if (compatible) {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      }
+      // Different fruit suit → switch focus to the new card.
+      return new Set([id]);
     });
   };
 
@@ -367,8 +414,12 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
     }
     if (game.actionsLeft <= 0) return "Out of actions — end your turn to draw.";
     if (mode === "add") {
-      if (selectedIds.size === 0) return "ADD: pick same-suit cards (stars wild), then click a stall.";
-      if (!addSelection.valid) return addSelection.reason;
+      if (intent.kind === "empty")
+        return "Pick same-suit cards (stars wild) to add, or a cat to eat a market card.";
+      if (intent.kind === "invalid") return intent.reason;
+      if (intent.kind === "cat")
+        return "Click a card in any market stall — your cat will eat it.";
+      // intent.kind === "add"
       if (validStalls.size === 0) return "No legal stalls for this selection.";
       return `Click a green stall to place these ${selectedIds.size} card(s).`;
     }
@@ -381,11 +432,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
       if (sourceStall === null) return "SLIDE: pick a stack to move.";
       if (validStalls.size === 0) return "No reachable empty stall. Pick a different source.";
       return `Click an empty stall to slide stall ${sourceStall + 1} into.`;
-    }
-    if (mode === "cat") {
-      if (!catCardId) return "CAT: select a cat card from your hand.";
-      if (!catCardIsCat) return "That card isn't a cat. Pick a cat card.";
-      return "Click a card in any market stall — your cat will eat it.";
     }
     return null;
   })();
@@ -412,7 +458,7 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
 
       {isMyTurn && (
         <div className="fb-action-bar">
-          {(["add", "combine", "slide", "cat"] as const).map((m) => (
+          {(["add", "combine", "slide"] as const).map((m) => (
             <button
               key={m}
               type="button"
@@ -442,8 +488,19 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
           market={displayMarket}
           deckSize={game.deck.length}
           discard={game.discard}
-          onStallClick={isMyTurn && mode !== "cat" ? handleStallClick : undefined}
-          onCardClick={isMyTurn && mode === "cat" ? handleCardClickInStall : undefined}
+          onStallClick={
+            // In add mode with a cat selected, the click target is a specific
+            // CARD inside a stall, not the stall itself — so disable stall click
+            // when the intent is "cat".
+            isMyTurn && !(mode === "add" && intent.kind === "cat")
+              ? handleStallClick
+              : undefined
+          }
+          onCardClick={
+            isMyTurn && mode === "add" && intent.kind === "cat"
+              ? handleCardClickInStall
+              : undefined
+          }
           validStalls={validStalls}
           selectedStallIdx={
             pendingDestStallIdx !== null
@@ -497,14 +554,7 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
               : handCards
           }
           selectedIds={selectedIds}
-          onToggle={
-            isMyTurn && !acting && (mode === "add" || mode === "cat") ? toggleCard : undefined
-          }
-          eligibleIds={
-            mode === "cat"
-              ? new Set(handCards.filter((c) => c.kind === "cat").map((c) => c.id))
-              : undefined
-          }
+          onToggle={isMyTurn && !acting && mode === "add" ? toggleCard : undefined}
         />
         {actionHint && <div className="fb-action-hint">{actionHint}</div>}
         {errorMsg && <div className="fb-error">{errorMsg}</div>}

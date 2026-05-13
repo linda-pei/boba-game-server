@@ -29,6 +29,7 @@ export default function MiniCard({ card, width }: Props) {
   if (card.kind === "star") {
     return (
       <div className="fb-mini fb-mini--star" style={widthStyle}>
+        <span className="fb-mini-value">{card.value}</span>
         <FruitIcon suit="star" size={(width ?? 28) * 0.65} />
       </div>
     );
