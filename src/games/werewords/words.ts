@@ -1,4 +1,5 @@
-export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney" | "myth";
+export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smash" | "disney" | "myth"
+| "borrowed";
 
 export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
@@ -278,6 +279,32 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "Yama", "Ymir", "Yokai", "Yuki‑Onna",
     "Zeus", "Zhong Kui"
   ],
+  borrowed: [
+    "al dente", "al fresco", "algebra", "anime", "aperitif",
+    "bagel", "baklava", "ballet", "banjo", "bazaar", "beignet", "bikini", "blitz", "bon appétit", "bon voyage",
+    "bossa nova", "bouquet", "bravo", "brioche", "bruschetta",
+    "café", "calamari", "camaraderie", "caramel", "carte blanche", "caviar", "chaos", "chef", "chic", "chow mein",
+    "cigar", "croissant", "cuisine", "déjà vu", "doppelgänger",
+    "eclair", "emoji", "ensemble", "entrepreneur", "espresso",
+    "fajita", "faux pas", "fiancé", "flamenco", "fondue",
+    "gelato", "ginkgo", "gnocchi", "gourmet", "guacamole",
+    "haiku", "hammock", "hibachi", "hummus",
+    "jalapeño", "judo", "karaoke", "ketchup", "kimono", "kindergarten", "klutz", "koala", "koi", "kung fu",
+    "latte", "linguine", "lo mein", "macaron", "macaroni", "macho", "manga", "mantra", "maracas", "matador",
+    "miso", "mocha", "mochi", "mosquito", "mousse",
+    "nacho", "naive", "ninja", "noodle", "nouveau",
+    "omelette", "origami",
+    "paparazzi", "pasta", "patio", "peacoat", "piñata", "piranha", "pizza", "polka", "poncho", "pretzel", "prima donna", "pro bono",
+    "quesadilla", "quiche",
+    "ramen", "ravioli", "ricotta", "risotto", "rouge",
+    "safari", "salsa", "samosa", "sauna", "schmooze", "schmutz", "schnoz", "schnitzel", "siesta", "soprano", "soufflé", "spaghetti", "sushi",
+    "taco", "tamale", "tandoori", "tapas", "tattoo", "tempura", "teriyaki", "tofu", "tsunami",
+    "umbra", "umami",
+    "veto", "vinaigrette", "vodka", "volcano",
+    "wasabi", "wok",
+    "yoga", "yogurt",
+    "zebra", "zeitgeist", "zucchini"
+  ],
 };
 
 export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
@@ -290,4 +317,5 @@ export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "smash", label: "Smash Characters"},
   { value: "disney", label: "Disney Characters"},
   { value: "myth", label: "Mythological Characters"},
+  { value: "borrowed", label: "Borrowed Words Into English"},
 ];
