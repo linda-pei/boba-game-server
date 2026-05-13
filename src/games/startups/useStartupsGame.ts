@@ -331,15 +331,14 @@ export function computeScoreBreakdowns(
       };
     }
 
-    // Settle: convert silver→gold to pay debts; if not enough silver, balance goes negative.
-    // Math is equivalent to a simultaneous settlement (the "can't pay with received gold" rule
-    // gives the same final totals).
-    const netGoldChange = goldReceived - goldOwed; // can be negative
-    const finalGold = Math.max(0, netGoldChange);
-    // If netGoldChange is negative, we owed more gold than we received and consumed silver.
-    const silverConsumed = Math.max(0, -netGoldChange) * 3;
-    const finalSilver = startingSilver - silverConsumed; // may go negative ("minus point markers")
-
+    // Each minority shareholder hands over one chip per share (silver → flipped to
+    // gold as it changes hands). So:
+    //   - minority loses 1 silver per share they own in a non-majority company
+    //   - majority gains 1 gold per share each minority owns of their company
+    // The two sides are independent (you don't pay debts with received gold).
+    // If silver goes negative, the difference is the "minus point markers" from the rules.
+    const finalSilver = startingSilver - goldOwed;
+    const finalGold = goldReceived;
     const totalPoints = finalSilver + finalGold * 3;
 
     breakdowns[uid] = {
