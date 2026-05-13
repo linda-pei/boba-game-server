@@ -1,13 +1,16 @@
-import type { TakeTimePlacedCard, TakeTimeSegmentRule, TakeTimeBetweenRule } from "../../types";
+import { useEffect, useRef, useState } from "react";
+import type { TakeTimePlacedCard, TakeTimeSegmentRule, TakeTimeBetweenRule, TakeTimeLevelDef } from "../../types";
 import { RuleGlyph, CenterGlyph, BetweenRuleGlyph, type CenterGlyphType } from "./RuleGlyph";
 import CardSlot from "./CardSlot";
 import { TT } from "./theme";
+import { describeClockRule } from "./levels";
 
 interface Props {
   segments: Record<number, TakeTimePlacedCard[]>;
   segmentRules: Record<number, TakeTimeSegmentRule[]>;
   clockRotation: number;
-  clockRule: string;
+  clockRule: TakeTimeLevelDef["clockRule"];
+  maxSpread?: number;
   chapter?: number;
   test?: number;
   specialRules?: string[];
@@ -66,8 +69,40 @@ export default function ClockDisplay({
   secondHandPosition,
   hourHand,
   betweenRules,
+  maxSpread,
 }: Props) {
-  const handDeg = clockRotation * 60;
+  // Cumulative hand angle: when clockRotation wraps (5 → 0), animate +60° clockwise
+  // rather than -300° backwards. Tracks the shortest signed delta across renders.
+  const [handDeg, setHandDeg] = useState(() => clockRotation * 60);
+  const lastRotRef = useRef(clockRotation);
+  useEffect(() => {
+    if (lastRotRef.current === clockRotation) return;
+    let delta = clockRotation - lastRotRef.current;
+    if (delta > 3) delta -= 6;
+    if (delta < -3) delta += 6;
+    setHandDeg((prev) => prev + delta * 60);
+    lastRotRef.current = clockRotation;
+  }, [clockRotation]);
+
+  // Same shortest-path treatment for the second hand (level X) which also wraps 6 → 1
+  const [secondHandDeg, setSecondHandDeg] = useState(() =>
+    secondHandPosition !== undefined ? (secondHandPosition - 0.5) * 60 : 0
+  );
+  const lastSecondRef = useRef(secondHandPosition);
+  useEffect(() => {
+    if (secondHandPosition === undefined) return;
+    if (lastSecondRef.current === undefined) {
+      setSecondHandDeg((secondHandPosition - 0.5) * 60);
+      lastSecondRef.current = secondHandPosition;
+      return;
+    }
+    if (lastSecondRef.current === secondHandPosition) return;
+    let delta = secondHandPosition - lastSecondRef.current;
+    if (delta > 3) delta -= 6;
+    if (delta < -3) delta += 6;
+    setSecondHandDeg((prev) => prev + delta * 60);
+    lastSecondRef.current = secondHandPosition;
+  }, [secondHandPosition]);
   const handLen = R - 6;
 
   // For card/glyph positioning outside the SVG
@@ -82,8 +117,12 @@ export default function ClockDisplay({
     "max-spread": "max-spread",
   };
   let centerRuleType: CenterGlyphType | null = clockRuleToCenterGlyph[clockRule] ?? null;
+  let centerTooltip: string | undefined = describeClockRule(clockRule, maxSpread) ?? undefined;
   if (!centerRuleType && specialRules?.includes("no-faceup")) {
     centerRuleType = "no-faceup";
+    centerTooltip = "No cards may be played face-up this test.";
+  } else if (centerRuleType && specialRules?.includes("no-faceup")) {
+    centerTooltip = (centerTooltip ? centerTooltip + " " : "") + "No cards may be played face-up this test.";
   }
 
   return (
@@ -221,14 +260,7 @@ export default function ClockDisplay({
           <circle cx={CX} cy={CY} r={RINNER} fill="url(#tt-hub)" stroke={TT.goldDeep} strokeWidth="1" />
           <circle cx={CX} cy={CY} r={RINNER - 6} fill="none" stroke={TT.goldDeep} strokeWidth="0.5" />
 
-          {/* Hub content: center glyph when there's a clock-wide rule */}
-          {centerRuleType && (
-            <foreignObject x={CX - 30} y={CY - 30} width={60} height={60}>
-              <div style={{ width: 60, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <CenterGlyph type={centerRuleType} size={56} />
-              </div>
-            </foreignObject>
-          )}
+          {/* Center glyph is rendered as HTML overlay (below) so tooltips work without SVG clipping. */}
 
           {/* Clock hand — rotates to point at starting segment */}
           <g
@@ -280,11 +312,10 @@ export default function ClockDisplay({
 
           {/* Second hand (X) — thin red hand blocking two opposite segments */}
           {secondHandPosition !== undefined && (() => {
-            const shDeg = (secondHandPosition - 0.5) * 60;
             return (
               <g
                 style={{
-                  transform: `rotate(${shDeg}deg)`,
+                  transform: `rotate(${secondHandDeg}deg)`,
                   transformOrigin: `${CX}px ${CY}px`,
                   transition: "transform .5s cubic-bezier(.34,1.56,.64,1)",
                 }}
@@ -337,6 +368,12 @@ export default function ClockDisplay({
       {/* Rule glyph overlays — HTML so CSS tooltips work */}
       {/* Glyphs are defined by logical segment but rotate with the board */}
       <div className="tt-slots-overlay">
+        {/* Center glyph (clock-wide rule) — sits over the hub */}
+        {centerRuleType && (
+          <div className="tt-glyph-slot tt-center-glyph-slot" style={{ left: "50%", top: "50%" }}>
+            <CenterGlyph type={centerRuleType} size={56} tooltip={centerTooltip} />
+          </div>
+        )}
         {[1, 2, 3, 4, 5, 6].map((logicalSeg) => {
           const rules = segmentRules[logicalSeg] || [];
           if (rules.length === 0) return null;

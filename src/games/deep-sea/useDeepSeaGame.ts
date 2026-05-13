@@ -203,12 +203,8 @@ export async function breatheAndAdvance(
     // Already counting down extra turns
     updates.airOutTurnsLeft = game.airOutTurnsLeft - 1;
   } else if (newAir <= 0) {
-    // Air just hit 0 — count active players, each gets one more turn
-    let activeCount = 0;
-    for (const [, d] of Object.entries(game.divers)) {
-      if (!d.returned) activeCount++;
-    }
-    updates.airOutTurnsLeft = activeCount;
+    // Air just hit 0 — current player finishes this turn; one more turn after
+    updates.airOutTurnsLeft = 1;
   }
 
   // Determine if player can/should declare direction

@@ -11,6 +11,7 @@ import { validatePlay, beatsCurrentPile, flipCard } from "./scoutDeck";
 import HandDisplay from "./HandDisplay";
 import CenterPile from "./CenterPile";
 import ScoreBoard from "./ScoreBoard";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 type ActionMode = "play" | "scout" | "scout+play";
 type ScoutPlayStep = "scout" | "play";
@@ -230,9 +231,9 @@ export default function PlayerTurn({
       })()}
 
       {/* Turn status */}
-      <div className={`turn-status${isMyTurn ? " turn-status--mine" : " turn-status--waiting"}`}>
+      <TurnStatus mood={isMyTurn ? "mine" : "waiting"}>
         {isMyTurn ? "Your turn!" : `${currentPlayerName}'s turn`}
-      </div>
+      </TurnStatus>
 
       {/* Center pile — show reduced pile during S+S play step */}
       {game.centerPile ? (

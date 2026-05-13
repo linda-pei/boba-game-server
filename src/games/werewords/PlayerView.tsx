@@ -3,6 +3,7 @@ import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import { countTokensUsed, TOKEN_LIMITS } from "./useWerewordsGame";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -47,7 +48,7 @@ export default function PlayerView({ game, hand, uid, room }: Props) {
 
       <RoleBanner hand={hand} game={game} uid={uid} />
 
-      <div className="turn-status">
+      <TurnStatus>
         <strong>{mayorName}</strong> is answering your questions.
         {canSeeWord && (
           <div style={{ marginTop: "0.5rem" }}>
@@ -59,7 +60,7 @@ export default function PlayerView({ game, hand, uid, room }: Props) {
             {formatTime(timeLeft)}
           </div>
         )}
-      </div>
+      </TurnStatus>
 
       {game.wayOff && (
         <div className="ww-way-off-banner">

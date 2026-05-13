@@ -1,0 +1,44 @@
+/* =========================================================
+   PLAYER CHIP — row of name chips with optional badges.
+   ========================================================= */
+
+.player-list-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-2);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sticker);
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.18s var(--ease-spring);
+}
+
+.badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15em 0.5em;
+  border-radius: var(--r-1);
+  color: white;
+  background: var(--ink-soft);
+}
+
+.badge-host {
+  background: var(--peach-500);
+}
+
+.badge-knower {
+  background: var(--jade-500);
+}

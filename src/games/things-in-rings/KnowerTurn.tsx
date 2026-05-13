@@ -3,6 +3,7 @@ import { knowerAutoPlay } from "./useGame";
 import { getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import GameCard from "../../components/shared/GameCard";
+import TurnStatus from "../../components/shared/TurnStatus";
 import type { Game, Hand } from "../../types";
 
 interface Props {
@@ -43,11 +44,11 @@ export default function KnowerTurn({ roomCode, game, hand, uid }: Props) {
         />
       </div>
 
-      <div className="turn-status turn-status--mine">
+      <TurnStatus mood="mine">
         {selectedCard
           ? `Click a zone to place "${selectedCard}" as a hint`
           : "Select a card from your hand to place as a hint"}
-      </div>
+      </TurnStatus>
 
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">

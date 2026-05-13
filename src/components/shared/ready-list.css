@@ -1,0 +1,35 @@
+/* =========================================================
+   READY LIST — chips showing each player's ready/done state.
+   ========================================================= */
+
+.ready-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+
+.ready-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--r-2);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.ready-chip.ready {
+  border-color: var(--jade-500);
+  background: var(--jade-100);
+  color: var(--jade-700);
+}
+
+[data-theme="dark"] .ready-chip.ready {
+  background: rgba(78, 165, 132, 0.15);
+  color: var(--jade-300);
+}

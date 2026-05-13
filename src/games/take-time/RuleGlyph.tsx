@@ -401,7 +401,7 @@ const CenterGlyphs: Record<string, React.FC<{ size: number }>> = {
     <svg viewBox="-30 -30 60 60" width={size} height={size}>
       <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
       <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
-      {/* Descending arrow: + to - */}
+      {/* + top-left, − bottom-right, arrow points + → − (down) */}
       <text x="-10" y="-6" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>+</text>
       <path d="M 0 -4 L 0 12" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round" />
       <polygon points="-5,8 0,15 5,8" fill={TT.goldMid} />
@@ -413,10 +413,10 @@ const CenterGlyphs: Record<string, React.FC<{ size: number }>> = {
     <svg viewBox="-30 -30 60 60" width={size} height={size}>
       <circle r="26" fill={TT.solarPaperHi} stroke={TT.ink} strokeWidth="1.5" />
       <circle r="23" fill="none" stroke={TT.goldDeep} strokeWidth="0.6" />
-      {/* Ascending arrow: - to + */}
+      {/* − top-left, + bottom-right, arrow points − → + (down) */}
       <text x="-10" y="-6" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>−</text>
-      <path d="M 0 12 L 0 -4" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round" />
-      <polygon points="-5,-1 0,-8 5,-1" fill={TT.goldMid} />
+      <path d="M 0 -4 L 0 12" stroke={TT.goldMid} strokeWidth="2.5" strokeLinecap="round" />
+      <polygon points="-5,8 0,15 5,8" fill={TT.goldMid} />
       <text x="10" y="12" textAnchor="middle" fontFamily="Inter,sans-serif" fontWeight="800" fontSize="14" fill={TT.ink}>+</text>
     </svg>
   ),
@@ -573,13 +573,20 @@ export type CenterGlyphType =
 export function CenterGlyph({
   type,
   size = 80,
+  tooltip,
 }: {
   type: CenterGlyphType;
   size?: number;
+  tooltip?: string;
 }) {
   const G = CenterGlyphs[type];
   if (!G) return null;
-  return <G size={size} />;
+  if (!tooltip) return <G size={size} />;
+  return (
+    <div className="tt-glyph-tip" data-tip={tooltip}>
+      <G size={size} />
+    </div>
+  );
 }
 
 // ---- Between-segment rule glyph ----

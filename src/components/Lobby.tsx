@@ -15,6 +15,8 @@ import { DIFFICULTIES } from "../games/werewords/words";
 import GameSticker from "./shared/GameSticker";
 import { GAME_ID_TO_KEY } from "./shared/GameIcon";
 import PlayerCountStatus from "./shared/PlayerCountStatus";
+import ConfirmButton from "./shared/ConfirmButton";
+import { PlayerChipList, PlayerChip, Badge } from "./shared/PlayerChipList";
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -151,15 +153,15 @@ export default function Lobby() {
       </p>
 
       <h3>Players</h3>
-      <div className="player-list-grid">
+      <PlayerChipList>
         {players
           .sort(([, a], [, b]) => a.order - b.order)
           .map(([id, player]) => (
-            <div key={id} className="player-chip">
+            <PlayerChip key={id}>
               {player.name}
-              {id === room.host && <span className="badge badge-host">Host</span>}
+              {id === room.host && <Badge variant="host">Host</Badge>}
               {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && id === knower && (
-                <span className="badge badge-knower">Knower</span>
+                <Badge variant="knower">Knower</Badge>
               )}
               {!isScout && !isWerewords && !isOrderOverload && !isDeepSea && !isTakeTime && isHost && id !== knower && (
                 <button
@@ -169,9 +171,9 @@ export default function Lobby() {
                   Set Knower
                 </button>
               )}
-            </div>
+            </PlayerChip>
           ))}
-      </div>
+      </PlayerChipList>
 
       <div className="settings-panel">
         <h3>Settings</h3>
@@ -370,9 +372,13 @@ export default function Lobby() {
         )}
       </div>
 
-      <button onClick={handleLeave} className="btn btn--danger" style={{ marginTop: "1rem" }}>
-        {isHost ? "Disband Room" : "Leave Room"}
-      </button>
+      <ConfirmButton
+        label={isHost ? "Disband Room" : "Leave Room"}
+        confirmLabel={isHost ? "Disband — sure?" : "Leave — sure?"}
+        busyLabel="Leaving…"
+        onConfirm={handleLeave}
+        style={{ marginTop: "1rem" }}
+      />
     </div>
   );
 }

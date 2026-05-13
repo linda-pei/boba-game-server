@@ -572,33 +572,38 @@ export function getNextLevel(chapter: number, test: number): { chapter: number; 
 }
 
 /** Get explanatory hints for levels with unique rules */
+/** One-sentence description of a clock-wide rule. Used for both the
+ *  in-game hint banner ("Clock Rule: …") and the center-glyph hover tooltip. */
+export function describeClockRule(
+  clockRule: TakeTimeLevelDef["clockRule"],
+  maxSpread?: number
+): string | null {
+  switch (clockRule) {
+    case "infinity":
+      return "Segment values may exceed 24.";
+    case "high-to-low":
+      return "On your turn, you must play the highest value card in your hand.";
+    case "low-to-high":
+      return "On your turn, you must play the lowest value card in your hand.";
+    case "locked-order":
+      return "You must always play the leftmost card in your hand. Card order is locked after discussion.";
+    case "two-per-segment":
+      return "Each segment must have exactly 2 cards.";
+    case "difference":
+      return "Each segment must have exactly 2 cards. Segment value = difference between the two cards (not the sum). Values must still increase clockwise.";
+    case "max-spread":
+      return `The difference between the highest and lowest segment values cannot exceed ${maxSpread ?? 4}.`;
+    default:
+      return null;
+  }
+}
+
 export function getLevelHints(def: TakeTimeLevelDef): string[] {
   const hints: string[] = [];
 
-  // Clock rules
-  switch (def.clockRule) {
-    case "infinity":
-      hints.push("Segment values may exceed 24.");
-      break;
-    case "high-to-low":
-      hints.push("On your turn, you must play the highest value card in your hand.");
-      break;
-    case "low-to-high":
-      hints.push("On your turn, you must play the lowest value card in your hand.");
-      break;
-    case "locked-order":
-      hints.push("You must always play the leftmost card in your hand. Card order is locked after discussion.");
-      break;
-    case "two-per-segment":
-      hints.push("Each segment must have exactly 2 cards.");
-      break;
-    case "difference":
-      hints.push("Each segment must have exactly 2 cards. Segment value = difference between the two cards (not the sum). Values must still increase clockwise.");
-      break;
-    case "max-spread":
-      hints.push(`The difference between the highest and lowest segment values cannot exceed ${def.maxSpread ?? 4}.`);
-      break;
-  }
+  // Clock rule
+  const clockRuleText = describeClockRule(def.clockRule, def.maxSpread);
+  if (clockRuleText) hints.push(`Clock Rule: ${clockRuleText}`);
 
   // Special rules
   if (def.specialRules?.includes("no-faceup")) {

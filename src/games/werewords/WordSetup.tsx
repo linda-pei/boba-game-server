@@ -2,6 +2,7 @@ import { useState } from "react";
 import { submitMagicWord } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -26,9 +27,9 @@ export default function WordSetup({ roomCode, game, hand, uid, room }: Props) {
       <div className="screen ww-screen">
         <h2>Word Setup</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
-        <div className="turn-status">
+        <TurnStatus mood="waiting">
           <strong>{mayorName}</strong> (the Mayor) is choosing the magic word...
-        </div>
+        </TurnStatus>
       </div>
     );
   }

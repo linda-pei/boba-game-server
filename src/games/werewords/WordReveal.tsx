@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { confirmWordReveal, checkWordRevealComplete } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -50,9 +51,9 @@ export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
       <div className="screen ww-screen">
         <h2>The Magic Word</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
-        <div className="turn-status" style={{ fontSize: "1.3rem", margin: "1.5rem 0" }}>
+        <TurnStatus style={{ fontSize: "1.3rem", margin: "1.5rem 0" }}>
           <strong style={{ textTransform: "capitalize" }}>{game.magicWord}</strong>
-        </div>
+        </TurnStatus>
         <p style={{ color: "var(--ink-soft)" }}>
           {hasConfirmed
             ? "Waiting for others..."
@@ -67,9 +68,9 @@ export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
     <div className="screen ww-screen">
       <h2>Word Reveal</h2>
       <RoleBanner hand={hand} game={game} uid={uid} />
-      <div className="turn-status">
+      <TurnStatus mood="waiting">
         Seer and Werewolf are viewing the magic word...
-      </div>
+      </TurnStatus>
     </div>
   );
 }

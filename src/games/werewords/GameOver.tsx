@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAuthContext } from "../../hooks/AuthContext";
 import confetti from "canvas-confetti";
 import GameEndButtons from "../../components/shared/GameEndButtons";
+import { PlayerChipList, PlayerChip, Badge } from "../../components/shared/PlayerChipList";
 import type { WerewordsGame, Room, WerewordsRole } from "../../types";
 
 interface Props {
@@ -81,31 +82,24 @@ export default function GameOver({ game, room }: Props) {
       {game.revealedRoles && (
         <div style={{ marginTop: "1.5rem" }}>
           <h3>Roles</h3>
-          <div className="player-list-grid">
+          <PlayerChipList>
             {game.turnOrder.map((pid) => {
               const role = game.revealedRoles![pid];
               if (!role) return null;
               const isMayor = pid === game.mayor;
               const team = getPlayerTeam(role);
               return (
-                <div key={pid} className="player-chip">
+                <PlayerChip key={pid}>
                   {room.players[pid]?.name ?? pid}
-                  <span
-                    className="badge"
-                    style={{ background: ROLE_COLORS[role] }}
-                  >
+                  <span className="badge" style={{ background: ROLE_COLORS[role] }}>
                     {ROLE_LABELS[role]}
                   </span>
-                  {isMayor && (
-                    <span className="badge badge-host">Mayor</span>
-                  )}
-                  {team === game.winner && (
-                    <span style={{ fontSize: "0.8rem" }}>🎉</span>
-                  )}
-                </div>
+                  {isMayor && <Badge variant="host">Mayor</Badge>}
+                  {team === game.winner && <span style={{ fontSize: "0.8rem" }}>🎉</span>}
+                </PlayerChip>
               );
             })}
-          </div>
+          </PlayerChipList>
         </div>
       )}
 

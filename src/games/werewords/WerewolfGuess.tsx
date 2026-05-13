@@ -3,6 +3,7 @@ import { submitWerewolfGuess } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -35,7 +36,7 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
       <div className="screen ww-screen">
         <h2>Werewolf Guess</h2>
         <RoleBanner hand={hand} game={game} uid={uid} />
-        <div className="turn-status">
+        <TurnStatus>
           The word was guessed correctly!
           <br />
           {werewolfNames.length > 0 ? (
@@ -46,7 +47,7 @@ export default function WerewolfGuess({ roomCode, game, hand, uid, room }: Props
           ) : (
             "The werewolf is now trying to identify the Seer..."
           )}
-        </div>
+        </TurnStatus>
         <PlayerGuessBoard game={game} room={room} />
       </div>
     );

@@ -3,6 +3,7 @@ import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
 import { confirmHandOrientation } from "./useScoutGame";
 import { flipHand } from "./scoutDeck";
 import HandDisplay from "./HandDisplay";
+import { PlayerChipList, PlayerChip } from "../../components/shared/PlayerChipList";
 
 interface HandSetupProps {
   roomCode: string;
@@ -26,13 +27,11 @@ export default function HandSetup({ roomCode, game, hand, uid, room }: HandSetup
         <h2>Round {game.roundNumber}</h2>
         <p>Hand confirmed! Waiting for others...</p>
         {frozenCards && <HandDisplay cards={frozenCards} />}
-        <div className="player-list-grid">
+        <PlayerChipList>
           {waitingOn.map((pid) => (
-            <div key={pid} className="player-chip">
-              {room.players[pid]?.name ?? pid}
-            </div>
+            <PlayerChip key={pid}>{room.players[pid]?.name ?? pid}</PlayerChip>
           ))}
-        </div>
+        </PlayerChipList>
       </div>
     );
   }

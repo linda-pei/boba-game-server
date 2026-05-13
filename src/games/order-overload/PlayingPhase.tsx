@@ -10,6 +10,8 @@ import {
 } from "./useOrderOverloadGame";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 import GameCard from "../../components/shared/GameCard";
+import TurnStatus from "../../components/shared/TurnStatus";
+import ConfirmButton from "../../components/shared/ConfirmButton";
 
 interface Props {
   roomCode: string;
@@ -31,7 +33,6 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   const [showAbility, setShowAbility] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
-  const [confirmDontHave, setConfirmDontHave] = useState(false);
   const prevTurn = useRef(game.currentTurn);
 
   const handCounts = useAllOrderOverloadHandCounts(roomCode, game.turnOrder);
@@ -59,7 +60,6 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
       setShowAbility(false);
       setSelectedCardIndex(null);
       setSelectedTarget(null);
-      setConfirmDontHave(false);
       prevTurn.current = game.currentTurn;
     }
   }, [game.currentTurn]);
@@ -67,7 +67,6 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   // Reset state when a new guess comes in (or resolves)
   useEffect(() => {
     setSelectedCardIndex(null);
-    setConfirmDontHave(false);
     if (game.currentGuess === null) {
       setGuessText("");
     }
@@ -129,14 +128,10 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
 
       {/* Turn status — right under level */}
       {isMyTurn && !isResponding && (
-        <div className="turn-status turn-status--mine">
-          Your turn!
-        </div>
+        <TurnStatus mood="mine">Your turn!</TurnStatus>
       )}
       {!isMyTurn && !isResponding && (
-        <div className="turn-status turn-status--waiting">
-          {currentPlayerName}'s turn to guess
-        </div>
+        <TurnStatus mood="waiting">{currentPlayerName}'s turn to guess</TurnStatus>
       )}
 
       {/* Last action */}
@@ -216,38 +211,26 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
                         ))}
                       </div>
                       <div style={{ width: "100%", marginTop: "0.5rem" }}>
-                        {confirmDontHave ? (
-                          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                            <button className="btn btn--danger" onClick={() => handleRespond(false)} disabled={acting}>
-                              {acting ? "..." : "Yes, I don't have it"}
-                            </button>
-                            <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDontHave(false)}>
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button className="btn btn--danger" onClick={() => setConfirmDontHave(true)}>
-                            I don't have it
-                          </button>
-                        )}
+                        <ConfirmButton
+                          label="I don't have it"
+                          confirmLabel="Yes, I don't have it"
+                          busyLabel="..."
+                          mode="pair"
+                          disabled={acting}
+                          onConfirm={() => handleRespond(false)}
+                        />
                       </div>
                     </>
                   )}
                   {hand.cards.length === 0 && (
-                    confirmDontHave ? (
-                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
-                        <button className="btn btn--danger" onClick={() => handleRespond(false)} disabled={acting}>
-                          {acting ? "..." : "Yes, I don't have it"}
-                        </button>
-                        <button className="btn btn--secondary btn--sm" onClick={() => setConfirmDontHave(false)}>
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button className="btn btn--danger" onClick={() => setConfirmDontHave(true)}>
-                        I don't have it
-                      </button>
-                    )
+                    <ConfirmButton
+                      label="I don't have it"
+                      confirmLabel="Yes, I don't have it"
+                      busyLabel="..."
+                      mode="pair"
+                      disabled={acting}
+                      onConfirm={() => handleRespond(false)}
+                    />
                   )}
                 </div>
               )}

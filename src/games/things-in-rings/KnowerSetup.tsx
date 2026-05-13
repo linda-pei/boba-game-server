@@ -5,6 +5,7 @@ import { RING_COLORS, RING_CATEGORIES } from "./vennPaths";
 import { CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES } from "./deck";
 import RingDisplay from "./RingDisplay";
 import GameCard from "../../components/shared/GameCard";
+import TurnStatus from "../../components/shared/TurnStatus";
 import type { Game, Hand } from "../../types";
 
 const CLUE_POOLS = [CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES];
@@ -118,9 +119,9 @@ export default function KnowerSetup({ roomCode, game, hand, uid }: Props) {
       </h3>
 
       {selectedCard && (
-        <div className="turn-status turn-status--mine">
+        <TurnStatus mood="mine">
           Placing <strong>{selectedCard}</strong> — click a zone on the diagram
-        </div>
+        </TurnStatus>
       )}
 
       <div className="paper">

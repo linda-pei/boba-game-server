@@ -3,6 +3,7 @@ import { judgeCorrect, judgeIncorrect } from "./useGame";
 import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import GameCard from "../../components/shared/GameCard";
+import TurnStatus from "../../components/shared/TurnStatus";
 import type { Game, Hand, Room } from "../../types";
 
 interface Props {
@@ -34,9 +35,9 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
           />
         </div>
 
-        <div className="turn-status">
+        <TurnStatus mood="waiting">
           Waiting for <strong>{currentPlayerName}</strong> to place a card...
-        </div>
+        </TurnStatus>
         {hand && hand.cards.length > 0 && (
           <>
             <h4>Your Hand ({hand.cards.length} cards)</h4>
@@ -91,10 +92,10 @@ export default function KnowerJudge({ roomCode, game, room, hand }: Props) {
 
 
       <h3>Judge This Play</h3>
-      <div className="turn-status turn-status--mine">
+      <TurnStatus mood="judging">
         <strong>{pending.cardId}</strong> was placed in{" "}
         <strong>{placedZone?.label ?? "unknown"}</strong>
-      </div>
+      </TurnStatus>
 
       <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "1rem" }}>
         <button

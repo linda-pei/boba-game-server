@@ -10,6 +10,7 @@ import {
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -74,14 +75,14 @@ export default function MayorView({ roomCode, game, hand, uid, room }: Props) {
 
       <RoleBanner hand={hand} game={game} uid={uid} />
 
-      <div className="turn-status">
+      <TurnStatus>
         Magic word: <strong>{game.magicWord}</strong>
         {timeLeft !== null && (
           <div style={{ marginTop: "0.5rem", fontSize: "1.2rem", color: timeLeft <= 30 ? "var(--rose-500)" : "var(--ink-soft)" }}>
             {formatTime(timeLeft)}
           </div>
         )}
-      </div>
+      </TurnStatus>
 
       {game.wayOff && (
         <div className="ww-way-off-banner">

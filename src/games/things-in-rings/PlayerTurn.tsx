@@ -3,6 +3,7 @@ import { playCard } from "./useGame";
 import { getZones, findZone, getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import GameCard from "../../components/shared/GameCard";
+import TurnStatus from "../../components/shared/TurnStatus";
 import type { Game, Hand, Room } from "../../types";
 
 interface Props {
@@ -54,9 +55,7 @@ export default function PlayerTurn({
           />
         </div>
 
-        <div className="turn-status">
-          Waiting for the Knower to judge...
-        </div>
+        <TurnStatus>Waiting for the Knower to judge...</TurnStatus>
         <p>
           <strong>{game.pendingPlay.cardId}</strong> was placed in{" "}
           <strong>{placedZone?.label ?? "a zone"}</strong>
@@ -78,9 +77,9 @@ export default function PlayerTurn({
           />
         </div>
 
-        <div className="turn-status">
+        <TurnStatus mood="waiting">
           Waiting for <strong>{currentPlayerName}</strong> to play...
-        </div>
+        </TurnStatus>
         <h4>Your Hand</h4>
         <div className="hand">
           {hand.cards.map((card) => (
@@ -104,11 +103,11 @@ export default function PlayerTurn({
         />
       </div>
 
-      <div className="turn-status turn-status--mine">
+      <TurnStatus mood="mine">
         {selectedCard
           ? `Click a zone on the diagram to place "${selectedCard}"`
           : "Select a card from your hand, then place it in a zone"}
-      </div>
+      </TurnStatus>
 
       <h4>Your Hand ({hand.cards.length} cards)</h4>
       <div className="hand">

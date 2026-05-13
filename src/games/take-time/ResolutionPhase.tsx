@@ -3,6 +3,7 @@ import { advanceReveal, finalizeRotation, setClockRotation } from "./useTakeTime
 import { getLevelLabel } from "./levels";
 import ClockDisplay from "./ClockDisplay";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -37,10 +38,10 @@ export default function ResolutionPhase({ roomCode, game, room, uid }: Props) {
 
   return (
     <div>
-      <div className="turn-status">
+      <TurnStatus>
         <span className="tt-level-label">{getLevelLabel(game.chapter, game.test)}</span>
         {" — "}Resolution Phase
-      </div>
+      </TurnStatus>
 
       <ClockDisplay
         segments={game.segments}
@@ -58,6 +59,7 @@ export default function ResolutionPhase({ roomCode, game, room, uid }: Props) {
         hourHand={game.levelDef.hourHand}
         betweenRules={game.levelDef.betweenRules}
         secondHandPosition={game.secondHandPosition}
+        maxSpread={game.levelDef.maxSpread}
       />
 
       <div style={{ textAlign: "center", marginTop: "1rem" }}>

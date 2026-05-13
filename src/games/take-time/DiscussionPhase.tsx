@@ -4,6 +4,9 @@ import { getLevelLabel, getLevelHints } from "./levels";
 import ClockDisplay from "./ClockDisplay";
 import CardSVG from "./CardSVG";
 import { toSuit } from "./theme";
+import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
+import TurnStatus from "../../components/shared/TurnStatus";
+import ReadyList from "../../components/shared/ReadyList";
 
 interface Props {
   roomCode: string;
@@ -36,10 +39,10 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
 
   return (
     <div>
-      <div className="turn-status">
+      <TurnStatus>
         <span className="tt-level-label">{getLevelLabel(game.chapter, game.test)}</span>
         {" — "}Discussion Phase
-      </div>
+      </TurnStatus>
       <p className="tt-muted-text" style={{ textAlign: "center", fontSize: "0.85rem" }}>
         Discuss strategy with your team before looking at your cards.
       </p>
@@ -65,6 +68,7 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         hourHand={game.levelDef.hourHand}
         betweenRules={game.levelDef.betweenRules}
         secondHandPosition={game.secondHandPosition}
+        maxSpread={game.levelDef.maxSpread}
       />
 
       {game.levelDef.handAdjustable && (
@@ -126,18 +130,43 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         </div>
       )}
 
-      {/* Ready status */}
-      <div className="tt-ready-list">
+      {/* Players — card color breakdown */}
+      <PlayerScores>
         {game.turnOrder.map((pid) => {
           const name = room.players[pid]?.name ?? pid;
-          const ready = game.readyPlayers[pid];
+          const colors = game.handColorSizes?.[pid];
+          const hidden = game.hiddenColorSizes?.[pid];
           return (
-            <span key={pid} className={`tt-ready-chip${ready ? " ready" : ""}`}>
-              {ready ? "✓" : "○"} {name}
-            </span>
+            <PlayerScoreRow
+              key={pid}
+              name={name}
+              isYou={pid === uid}
+            >
+              {colors && (
+                <span className="tt-hand-breakdown">
+                  Hand: <span className="tt-solar-count">☀</span> {colors.white}
+                  {" "}<span className="tt-lunar-count">🌙</span> {colors.black}
+                </span>
+              )}
+              {hidden && (
+                <span className="tt-hand-breakdown" style={{ marginLeft: "0.75rem" }}>
+                  Hidden: <span className="tt-solar-count">☀</span> {hidden.white}
+                  {" "}<span className="tt-lunar-count">🌙</span> {hidden.black}
+                </span>
+              )}
+            </PlayerScoreRow>
           );
         })}
-      </div>
+      </PlayerScores>
+
+      {/* Ready status */}
+      <ReadyList
+        players={game.turnOrder.map((pid) => ({
+          id: pid,
+          name: room.players[pid]?.name ?? pid,
+          ready: !!game.readyPlayers[pid],
+        }))}
+      />
 
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
         {!iAmReady ? (

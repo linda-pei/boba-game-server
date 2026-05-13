@@ -83,44 +83,6 @@
   margin: 0.5rem 0;
 }
 
-/* ---- Player chips ---- */
-.player-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: var(--r-3);
-  padding: 0.5rem 1rem;
-  font-weight: 500;
-}
-
-.player-chip .badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.15em 0.5em;
-  border-radius: var(--r-2);
-  color: white;
-}
-
-.badge-host {
-  background: var(--peach-500);
-}
-
-.badge-knower {
-  background: var(--jade-500);
-}
-
-.player-list-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin: 1rem 0;
-}
-
 /* ---- Set Username ---- */
 .set-username form {
   display: flex;
@@ -312,26 +274,6 @@
   line-height: 1;
   padding: 0.25rem 0.45rem;
   min-width: unset;
-}
-
-/* ---- Game board status ---- */
-.turn-status {
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: var(--r-3);
-  padding: 0.75rem 1rem;
-  margin: 1rem 0;
-  font-weight: 500;
-  box-shadow: var(--shadow-1);
-}
-
-.turn-status--mine {
-  background: color-mix(in srgb, var(--peach-500) 12%, transparent);
-  border-color: color-mix(in srgb, var(--peach-500) 30%, transparent);
-}
-
-.turn-status--waiting {
-  background: var(--surface-2);
 }
 
 /* ---- Responsive ---- */

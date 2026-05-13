@@ -1,5 +1,7 @@
 import { confirmRoleReveal } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
+import TurnStatus from "../../components/shared/TurnStatus";
+import { PlayerChipList, PlayerChip } from "../../components/shared/PlayerChipList";
 
 interface Props {
   roomCode: string;
@@ -36,10 +38,10 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
       <h2>Role Reveal</h2>
 
       {isMayor && (
-        <div className="turn-status">
+        <TurnStatus mood="mine">
           You are the <strong>Mayor</strong> — you will choose the magic word
           and answer the village's questions.
-        </div>
+        </TurnStatus>
       )}
 
       {hand && (
@@ -73,13 +75,11 @@ export default function RoleReveal({ roomCode, game, hand, uid, room }: Props) {
       {hasConfirmed && waitingFor.length > 0 && (
         <div style={{ marginTop: "1rem" }}>
           <p style={{ color: "var(--ink-mute)" }}>Waiting for others...</p>
-          <div className="player-list-grid" style={{ marginTop: "0.75rem" }}>
+          <PlayerChipList>
             {waitingFor.map((pid) => (
-              <div key={pid} className="player-chip">
-                {room.players[pid]?.name ?? pid}
-              </div>
+              <PlayerChip key={pid}>{room.players[pid]?.name ?? pid}</PlayerChip>
             ))}
-          </div>
+          </PlayerChipList>
         </div>
       )}
     </div>

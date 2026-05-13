@@ -243,32 +243,11 @@
   flex-wrap: wrap;
 }
 
-/* ---- Turn Status ---- */
+/* ---- Turn Status (Scout tweak: slight tilt; rest from shared turn-status.css) ---- */
 .scout-screen .turn-status {
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
   padding: 14px 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow-sticker);
-  font-family: var(--font-display);
   font-size: 1.1rem;
-  font-weight: 600;
-  text-align: center;
   transform: rotate(-0.6deg);
-  margin: var(--s-3) 0;
-}
-
-.scout-screen .turn-status.turn-status--mine {
-  background: var(--peach-100);
-  border-color: var(--peach-700);
-  color: var(--peach-700);
-  box-shadow: 3px 3px 0 var(--peach-700);
-  animation: scout-pop 0.5s var(--ease-spring);
-}
-
-.scout-screen .turn-status.turn-status--waiting {
-  background: var(--surface-2);
-  color: var(--ink-soft);
 }
 
 /* ---- Score row tweaks for Scout (multi-column, has S&S token & cumulative) ---- */
@@ -380,12 +359,6 @@
 }
 
 /* ---- Animations ---- */
-@keyframes scout-pop {
-  0%   { transform: scale(0.7) rotate(-3deg); opacity: 0; }
-  60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
-  100% { transform: scale(1) rotate(-0.6deg); opacity: 1; }
-}
-
 @keyframes scout-flip-in {
   0%   { transform: rotateY(-180deg) scale(0.8); opacity: 0; }
   60%  { transform: rotateY(20deg) scale(1.05); opacity: 1; }

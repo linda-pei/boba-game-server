@@ -6,6 +6,7 @@ import ClockDisplay from "./ClockDisplay";
 import CardSVG from "./CardSVG";
 import { toSuit } from "./theme";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -98,7 +99,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
 
   return (
     <div>
-      <div className={`turn-status${isMyTurn ? " turn-status--mine" : ""}`}>
+      <TurnStatus mood={isMyTurn ? "mine" : "neutral"}>
         <span className="tt-level-label">{getLevelLabel(game.chapter, game.test)}</span>
         {" — "}
         {isMyTurn
@@ -106,7 +107,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
             ? "Click a segment to place your card"
             : "Select a card from your hand"
           : `Waiting for ${currentPlayerName}...`}
-      </div>
+      </TurnStatus>
 
       {isFirstCard && isMyTurn && (
         <p className="tt-muted-text" style={{ textAlign: "center", fontSize: "0.85rem" }}>
@@ -139,6 +140,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
         secondHandPosition={game.secondHandPosition}
         hourHand={game.levelDef.hourHand}
         betweenRules={game.levelDef.betweenRules}
+        maxSpread={game.levelDef.maxSpread}
       />
 
       <div className="tt-status-bar">
@@ -150,14 +152,14 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
       </div>
 
       {showRevealMessage && (
-        <div className="turn-status" style={{ marginBottom: "0.5rem" }}>
+        <TurnStatus style={{ marginBottom: "0.5rem" }}>
           Hidden cards revealed! Check your hand.
-        </div>
+        </TurnStatus>
       )}
 
       {/* Hand — fanned */}
       <h4 style={{ textAlign: "center" }}>Your Hand ({visibleCards.length} cards)</h4>
-      <div className="tt-hand">
+      <div className={`tt-hand${isMyTurn ? " tt-hand--active" : ""}`}>
         {visibleCards.map((card, i) => {
           const offset = i - (N - 1) / 2;
           const tilt = offset * 4;
@@ -237,9 +239,13 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
         {game.turnOrder.map((pid) => {
           const name = room.players[pid]?.name ?? pid;
           const isActive = isFirstCard || game.turnOrder[game.currentTurn] === pid;
+          const colors = game.handColorSizes?.[pid];
+          const hidden = game.hiddenColorSizes?.[pid];
           const remaining = game.handSizes
             ? game.handSizes[pid] ?? 0
-            : Math.floor(12 / game.turnOrder.length) - (getCardsPlayedByPlayer(game)[pid] ?? 0);
+            : colors
+              ? colors.white + colors.black
+              : Math.floor(12 / game.turnOrder.length) - (getCardsPlayedByPlayer(game)[pid] ?? 0);
           return (
             <PlayerScoreRow
               key={pid}
@@ -249,6 +255,18 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
             >
               <span className="score-cards">
                 {remaining} card{remaining !== 1 ? "s" : ""}
+                {colors && (
+                  <span className="tt-hand-breakdown">
+                    {" "}· <span className="tt-solar-count">☀</span> {colors.white}
+                    {" "}<span className="tt-lunar-count">🌙</span> {colors.black}
+                  </span>
+                )}
+                {hidden && (hidden.white + hidden.black) > 0 && (
+                  <span className="tt-hand-breakdown" style={{ marginLeft: "0.5rem" }}>
+                    Hidden: <span className="tt-solar-count">☀</span> {hidden.white}
+                    {" "}<span className="tt-lunar-count">🌙</span> {hidden.black}
+                  </span>
+                )}
               </span>
             </PlayerScoreRow>
           );

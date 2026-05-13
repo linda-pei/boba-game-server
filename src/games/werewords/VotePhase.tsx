@@ -3,6 +3,7 @@ import { submitVote } from "./useWerewordsGame";
 import type { WerewordsGame, WerewordsHand, Room } from "../../types";
 import RoleBanner from "./RoleBanner";
 import PlayerGuessBoard from "./PlayerGuessBoard";
+import TurnStatus from "../../components/shared/TurnStatus";
 
 interface Props {
   roomCode: string;
@@ -34,9 +35,7 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
         Nobody guessed the word! Vote for who you think is a werewolf.
       </p>
 
-      <div className="turn-status">
-        Votes: {voteCount} / {voterCount}
-      </div>
+      <TurnStatus>Votes: {voteCount} / {voterCount}</TurnStatus>
 
       {!hasVoted && (
         <div className="ww-vote-grid" style={{ marginTop: "1rem" }}>

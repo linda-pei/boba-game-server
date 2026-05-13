@@ -130,6 +130,26 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
     handSizes[uid] = hands[uid].cards.length;
   }
 
+  // Track per-color hand sizes (public, for the player table breakdown).
+  // For 2-player levels, the 2 hidden cards are still part of the player's full hand,
+  // so include them in the initial count.
+  const handColorSizes: Record<string, { white: number; black: number }> = {};
+  const hiddenColorSizes: Record<string, { white: number; black: number }> = {};
+  for (const uid of turnOrder) {
+    const allCards = [...hands[uid].cards, ...(hands[uid].hiddenCards ?? [])];
+    handColorSizes[uid] = {
+      white: allCards.filter((c) => c.color === "white").length,
+      black: allCards.filter((c) => c.color === "black").length,
+    };
+    const hidden = hands[uid].hiddenCards ?? [];
+    if (hidden.length > 0) {
+      hiddenColorSizes[uid] = {
+        white: hidden.filter((c) => c.color === "white").length,
+        black: hidden.filter((c) => c.color === "black").length,
+      };
+    }
+  }
+
   const gameData: TakeTimeGame = {
     gameType: "take-time",
     status: "discussion",
@@ -151,6 +171,8 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
     ...(levelDef.secondHand !== undefined ? { secondHandPosition: levelDef.secondHand } : {}),
     boardRotation: 0,
     ...(hasDrawRule ? { handSizes } : {}),
+    handColorSizes,
+    ...(Object.keys(hiddenColorSizes).length > 0 ? { hiddenColorSizes } : {}),
   };
 
   const batch = writeBatch(db);
@@ -338,6 +360,17 @@ export async function placeCard(
     const handSizes = game.handSizes ? { ...game.handSizes } : {};
     handSizes[uid] = newHandSize;
 
+    // Update per-color counts: -1 for played card, +1 if a card was drawn.
+    const handColorSizes = game.handColorSizes
+      ? Object.fromEntries(
+          Object.entries(game.handColorSizes).map(([k, v]) => [k, { ...v }])
+        )
+      : {};
+    if (handColorSizes[uid]) {
+      handColorSizes[uid][card.color]--;
+      if (drawnCard) handColorSizes[uid][drawnCard.color]++;
+    }
+
     // For 2-player reveal, update sizes
     if (needsReveal) {
       if (hand.hiddenCards && hand.hiddenCards.length > 0) {
@@ -423,6 +456,9 @@ export async function placeCard(
     if (game.handSizes !== undefined) {
       gameUpdates.handSizes = handSizes;
     }
+    if (game.handColorSizes !== undefined) {
+      gameUpdates.handColorSizes = handColorSizes;
+    }
 
     if (allDone) {
       gameUpdates.status = "resolution";
@@ -439,7 +475,7 @@ export async function placeCard(
           hiddenCards: [],
         });
       }
-      txn.update(gameRef, { twoPlayerRevealed: true });
+      txn.update(gameRef, { twoPlayerRevealed: true, hiddenColorSizes: {} });
     }
   });
 }

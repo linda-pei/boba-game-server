@@ -340,6 +340,10 @@ export interface TakeTimeGame {
   secondHandPosition?: number;
   /** Track hand sizes for draw mechanic turn skipping */
   handSizes?: Record<string, number>;
+  /** Per-player remaining solar (white) / lunar (black) counts. Public so all players see the breakdown. */
+  handColorSizes?: Record<string, { white: number; black: number }>;
+  /** Per-player hidden pile solar/lunar counts (2-player mode). */
+  hiddenColorSizes?: Record<string, { white: number; black: number }>;
 }
 
 export interface TakeTimeCard {

@@ -68,6 +68,8 @@
 /* ---- Glyph tooltip ---- */
 .tt-glyph-tip {
   position: relative;
+  display: inline-block;
+  line-height: 0;
   cursor: help;
 }
 
@@ -77,12 +79,15 @@
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  padding: 4px 10px;
+  padding: 6px 10px;
   background: var(--pearl);
   color: var(--honey-500);
   font: 500 11px/1.3 var(--font-body);
   border-radius: var(--r-2);
-  white-space: nowrap;
+  max-width: 240px;
+  width: max-content;
+  text-align: center;
+  white-space: normal;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.15s;
@@ -92,6 +97,17 @@
 .tt-glyph-tip:hover::after {
   opacity: 1;
 }
+
+/* ---- Hand color breakdown in player table ---- */
+.tt-hand-breakdown {
+  color: var(--ink-mute);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.tt-solar-count { color: var(--tt-solar); }
+.tt-lunar-count { color: var(--ink); }
+[data-theme="dark"] .tt-solar-count { color: var(--tt-solar); }
+[data-theme="dark"] .tt-lunar-count { color: var(--ink-soft); }
 
 /* ---- Sum badge ---- */
 .tt-sum-badge {
@@ -138,25 +154,40 @@
   color: var(--ink-mute);
 }
 
-/* ---- Level hints ---- */
+/* ---- Level hints (sticker paper callout) ---- */
 .tt-hints {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-2);
-  padding: 0.5rem 0.75rem;
+  position: relative;
+  background: var(--tt-cream, #FBF3DE);
+  border: 2px solid var(--tt-lunar, #1a1a2e);
+  border-radius: var(--r-3);
+  padding: 0.6rem 1rem;
   margin: 0.5rem auto;
   max-width: 480px;
+  box-shadow: var(--shadow-sticker);
+}
+
+[data-theme="dark"] .tt-hints {
+  background: rgba(251, 243, 222, 0.08);
+  border-color: var(--tt-solar, #c99339);
 }
 
 .tt-hint {
   font-size: 0.8rem;
-  color: var(--ink-soft);
+  color: var(--tt-lunar, #1a1a2e);
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+  font-style: italic;
   margin: 0.25rem 0;
   line-height: 1.4;
 }
 
+[data-theme="dark"] .tt-hint {
+  color: var(--tt-solar, #c99339);
+}
+
 .tt-hints--compact {
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.75rem;
+  box-shadow: 2px 2px 0 var(--border-strong);
 }
 
 .tt-hints--compact .tt-hint {
@@ -173,39 +204,6 @@
   font-size: 0.85rem;
   color: var(--ink-soft);
   margin: 0.5rem 0;
-}
-
-/* ---- Ready status ---- */
-.tt-ready-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin: 0.75rem 0;
-}
-
-.tt-ready-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--r-2);
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--ink);
-}
-
-.tt-ready-chip.ready {
-  border-color: var(--jade-500);
-  background: var(--jade-100);
-  color: var(--jade-700);
-}
-
-[data-theme="dark"] .tt-ready-chip.ready {
-  background: rgba(78, 165, 132, 0.15);
-  color: var(--jade-300);
 }
 
 /* ---- Rotation controls ---- */
@@ -278,6 +276,29 @@
 .tt-hidden-pile-label {
   font-size: 0.85rem;
   color: var(--ink-soft);
+}
+
+/* ---- Turn status (celestial override) ---- */
+.tt-screen .turn-status.turn-status--mine {
+  background: var(--tt-cream);
+  border-color: var(--tt-solar);
+  box-shadow: 3px 3px 0 var(--tt-solar);
+}
+
+[data-theme="dark"] .tt-screen .turn-status.turn-status--mine {
+  background: rgba(251, 243, 222, 0.1);
+  border-color: var(--tt-solar);
+  box-shadow: 3px 3px 0 rgba(201, 147, 57, 0.4);
+}
+
+/* ---- Your-turn card pulse ---- */
+.tt-hand--active .tt-hand-card {
+  animation: tt-card-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes tt-card-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(201, 147, 57, 0)); }
+  50% { filter: drop-shadow(0 0 10px rgba(201, 147, 57, 0.45)); }
 }
 
 /* ---- Mobile ---- */

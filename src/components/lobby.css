@@ -13,38 +13,9 @@
   letter-spacing: -0.01em;
 }
 
-/* ---- Player chips — sticker style ---- */
-.lobby .player-chip {
-  background: var(--surface-2);
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-pill);
-  box-shadow: var(--shadow-sticker);
-  padding: 0.45rem 1rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: transform 0.18s var(--ease-spring);
-}
-
+/* ---- Player chips: lobby gives them a fun alternating tilt ---- */
 .lobby .player-chip:nth-child(odd) { transform: rotate(-1deg); }
 .lobby .player-chip:nth-child(even) { transform: rotate(1deg); }
-
-.lobby .player-chip .badge {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.15em 0.5em;
-  border-radius: var(--r-1);
-  color: white;
-}
-
-.lobby .badge-host {
-  background: var(--peach-500);
-}
-
-.lobby .badge-knower {
-  background: var(--jade-500);
-}
 
 /* ---- Settings panel — bordered sticker card ---- */
 .lobby .settings-panel {

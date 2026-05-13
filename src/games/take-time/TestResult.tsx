@@ -53,6 +53,7 @@ export default function TestResult({ roomCode, game, room, uid }: Props) {
         hourHand={game.levelDef.hourHand}
         betweenRules={game.levelDef.betweenRules}
         secondHandPosition={game.secondHandPosition}
+        maxSpread={game.levelDef.maxSpread}
       />
 
       {!passed && result.violations.length > 0 && (
