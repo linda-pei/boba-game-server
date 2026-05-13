@@ -620,6 +620,115 @@
   font-weight: 600;
 }
 
+/* ---- Round score pill (in-game running 4-round total) ---- */
+.su-round-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: var(--s-2);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.su-round-pill.is-gain {
+  background: var(--jade-300);
+  color: var(--jade-700);
+}
+.su-round-pill.is-loss {
+  background: color-mix(in srgb, var(--rose-500) 25%, var(--surface));
+  color: var(--rose-500);
+}
+.su-round-pill.is-neutral {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+/* ---- Round history table (rounds mode) ---- */
+.su-history {
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  padding: var(--s-3);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.su-history-title {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.su-history-scroll {
+  overflow-x: auto;
+}
+
+.su-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.su-history-table th,
+.su-history-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px dashed var(--border);
+}
+
+.su-history-table th {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+  font-weight: 700;
+}
+
+.su-history-th-name,
+.su-history-name {
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.su-history-th-total,
+.su-history-total {
+  font-weight: 700;
+  border-left: 1px solid var(--border);
+}
+
+.su-history-table th.is-current,
+.su-history-table td.is-current {
+  background: color-mix(in srgb, var(--honey-500) 12%, transparent);
+}
+
+.su-history-cell.is-gain {
+  color: var(--jade-700);
+  font-weight: 600;
+}
+
+.su-history-cell.is-loss {
+  color: var(--rose-500);
+  font-weight: 600;
+}
+
+.su-history-note {
+  margin: var(--s-2) 0 0;
+  font-size: 0.72rem;
+  color: var(--ink-mute);
+  font-style: italic;
+  text-align: right;
+}
+
 /* ---- Game over ---- */
 .su-game-over {
   display: flex;

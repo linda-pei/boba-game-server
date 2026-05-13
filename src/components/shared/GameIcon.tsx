@@ -30,7 +30,7 @@ export const GAME_META: Record<
     name: "Order Overload",
     tagline: "Race the clock. Sort the orders.",
     players: "2–6 players",
-    badge: "co-op",
+    badge: "co-op memory",
   },
   ds: {
     id: "deep-sea",

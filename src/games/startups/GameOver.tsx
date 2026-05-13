@@ -4,6 +4,7 @@ import { useAuthContext } from "../../hooks/AuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 import type { Room, StartupsGame } from "../../types";
+import RoundHistoryTable from "./RoundHistoryTable";
 
 interface Props {
   game: StartupsGame;
@@ -42,6 +43,8 @@ export default function GameOver({ game, room }: Props) {
     <div className="su-game-over">
       <h2>Game Over!</h2>
       <p className="su-winner-line">{winnerName} wins!</p>
+
+      <RoundHistoryTable game={game} room={room} />
 
       <PlayerScores title="Final Standings">
         {standings.map((pid, i) => {

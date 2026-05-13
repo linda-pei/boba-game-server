@@ -5,6 +5,7 @@ import { advanceFromRoundEnd, revealNextRemovedCard } from "./useStartupsGame";
 import { COMPANIES, COMPANY_COLOR, COMPANY_INK, COMPANY_SHORT } from "./deck";
 import CompanyLogo from "./CompanyLogo";
 import MiniCard from "./MiniCard";
+import RoundHistoryTable from "./RoundHistoryTable";
 
 interface Props {
   roomCode: string;
@@ -49,6 +50,8 @@ export default function RoundEndScreen({ roomCode, game, room }: Props) {
 
       {revealComplete && (
         <>
+          <RoundHistoryTable game={game} room={room} />
+
           <div className="su-round-end-list">
             {ranking.map((pid, idx) => {
               const name = room.players[pid]?.name ?? pid.slice(0, 6);
