@@ -1,4 +1,4 @@
-export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1";
+export type Difficulty = "easy" | "medium" | "hard" | "impossible" | "pokemonGen1" | "slayTheSpire1" | "smashCharacters";
 
 export const WORD_LISTS: Record<Difficulty, string[]> = {
   easy: [
@@ -198,6 +198,31 @@ export const WORD_LISTS: Record<Difficulty, string[]> = {
     "Well-Laid Plans", "Wheel Kick", "Whirlwind", "White Noise", "Wild Strike", "Wish", "Worship", "Wraith Form", "Writhe",
     "Zap",
   ],
+  smashCharacters: [
+    "Banjo & Kazooie", "Bayonetta", "Bowser", "Bowser Jr.", "Byleth",
+    "Captain Falcon", "Chrom", "Cloud", "Corrin",
+    "Daisy", "Dark Pit", "Dark Samus", "Diddy Kong", "Donkey Kong", "Dr. Mario", "Duck Hunt",
+    "Falco", "Fox",
+    "Ganondorf", "Greninja",
+    "Hero",
+    "Ice Climbers", "Ike", "Incineroar", "Inkling", "Isabelle",
+    "Jigglypuff", "Joker",
+    "Kazuya", "Ken", "King Dedede", "King K. Rool", "Kirby",
+    "Link", "Little Mac", "Lucario", "Lucas", "Lucina", "Luigi",
+    "Mario", "Marth", "Mega Man", "Meta Knight", "Mewtwo", "Mii Brawler", "Mii Gunner", "Mii Swordfighter", "Mr. Game & Watch",
+    "Ness",
+    "Olimar",
+    "Pac‑Man", "Palutena", "Peach", "Pichu", "Pikachu", "Piranha Plant", "Pit", "Pokémon Trainer",
+    "Richter", "Ridley", "R.O.B.", "Robin", "Rosalina & Luma", "Roy", "Ryu",
+    "Samus", "Sephiroth", "Sheik", "Shulk", "Simon", "Snake", "Sonic", "Sora",
+    "Steve",
+    "Terry", "Toon Link",
+    "Villager",
+    "Wario", "Wii Fit Trainer", "Wolf",
+    "Yoshi",
+    "Young Link",
+    "Zelda", "Zero Suit Samus" 
+  ],
 };
 
 export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
@@ -207,4 +232,5 @@ export const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "impossible", label: "Impossible" },
   { value: "pokemonGen1", label: "Pokemon Gen 1"},
   { value: "slayTheSpire1", label: "Slay the Spire 1"},
+  { value: "smashCharacters", label: "Smash Characters"},
 ];
