@@ -557,7 +557,6 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
             className={`fb-section fb-opp-section${isOppTurn ? " is-active-turn" : ""}`}
           >
             <h4 className="fb-section-title">
-              {isOppTurn && <span className="fb-active-dot" aria-hidden />}
               {name}'s collection
               <span className="fb-section-hint">
                 {"  "}· {oppHandCount} card{oppHandCount === 1 ? "" : "s"} in hand

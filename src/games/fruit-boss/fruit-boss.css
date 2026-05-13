@@ -54,32 +54,20 @@
   border: 2px solid var(--peach-500);
   border-radius: var(--r-3);
   background: color-mix(in srgb, var(--peach-500) 8%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--peach-500) 14%, transparent);
   padding: var(--s-3);
+  animation: fb-opp-active-pulse 1.8s ease-in-out infinite;
 }
 
 .fb-opp-section.is-active-turn .fb-section-title {
   color: var(--peach-700);
 }
 
-.fb-active-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--peach-500);
-  border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--peach-500) 60%, transparent);
-  animation: fb-active-pulse 1.6s ease-out infinite;
-}
-
-@keyframes fb-active-pulse {
+@keyframes fb-opp-active-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--peach-500) 60%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--peach-500) 0%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--peach-500) 0%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--peach-500) 28%, transparent);
   }
 }
 
