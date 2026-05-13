@@ -193,7 +193,7 @@ function BreakdownCard({
             const status = entry.isMajority
               ? `+${entry.goldReceived} gold from others`
               : entry.majorityHolder
-                ? `−${entry.goldOwed} gold to ${majorityName}`
+                ? `−${entry.goldOwed} silver to ${majorityName}`
                 : "tied — no payout";
             return (
               <div key={company} className="su-breakdown-row">
