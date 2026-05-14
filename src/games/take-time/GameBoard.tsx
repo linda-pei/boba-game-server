@@ -44,7 +44,7 @@ export default function TakeTimeGameBoard({ roomCode }: Props) {
   };
 
   return (
-    <div className="game-screen-wrap">
+    <div className="game-screen-wrap tt-wrap">
       <GameBanner
         game="tt"
         subtitle={phaseSubtitle[game.status]}

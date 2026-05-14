@@ -212,8 +212,8 @@ export default function ClockDisplay({
               return (
                 <text
                   key={i} x={nx} y={ny + 2} textAnchor="middle"
-                  fontFamily="'Cormorant Garamond', serif" fontWeight="600" fontSize="18"
-                  fill={TT.ink} opacity="0.55"
+                  fontFamily="'Cormorant Garamond', serif" fontWeight="700" fontSize="26"
+                  fill={TT.ink} opacity="0.6"
                 >
                   {i + 1}
                 </text>

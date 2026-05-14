@@ -53,10 +53,6 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
           ))}
         </div>
       )}
-      <div className="tt-status-bar">
-        <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
-      </div>
-
       <ClockDisplay
         segments={game.segments}
         segmentRules={game.levelDef.segmentRules}
@@ -86,7 +82,7 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
       )}
 
       {/* Card backs — fanned */}
-      <h4 style={{ textAlign: "center" }}>Your Cards (face down)</h4>
+      <h4 style={{ textAlign: "center", margin: "0.5rem 0 0" }}>Your Cards (face down)</h4>
       <div className="tt-hand">
         {hand.cards.map((card, i) => {
           const offset = i - (N - 1) / 2;
@@ -130,59 +126,65 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         </div>
       )}
 
-      {/* Ready status */}
-      <ReadyList
-        players={game.turnOrder.map((pid) => ({
-          id: pid,
-          name: room.players[pid]?.name ?? pid,
-          ready: !!game.readyPlayers[pid],
-        }))}
-      />
+      <div className="tt-board-sidebar">
+        <div className="tt-status-bar">
+          <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+        </div>
 
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        {!iAmReady ? (
-          <button className="btn btn--primary" onClick={handleReady}>
-            Ready
-          </button>
-        ) : allReady ? (
-          <button className="btn btn--primary" onClick={handleStart}>
-            Start Placement
-          </button>
-        ) : (
-          <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
-            Waiting for all players to be ready...
-          </p>
-        )}
+        {/* Ready status */}
+        <ReadyList
+          players={game.turnOrder.map((pid) => ({
+            id: pid,
+            name: room.players[pid]?.name ?? pid,
+            ready: !!game.readyPlayers[pid],
+          }))}
+        />
+
+        <div style={{ textAlign: "center", marginTop: "0.75rem" }}>
+          {!iAmReady ? (
+            <button className="btn btn--primary" onClick={handleReady}>
+              Ready
+            </button>
+          ) : allReady ? (
+            <button className="btn btn--primary" onClick={handleStart}>
+              Start Placement
+            </button>
+          ) : (
+            <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
+              Waiting for all players to be ready...
+            </p>
+          )}
+        </div>
+
+        {/* Players — card color breakdown */}
+        <PlayerScores>
+          {game.turnOrder.map((pid) => {
+            const name = room.players[pid]?.name ?? pid;
+            const colors = game.handColorSizes?.[pid];
+            const hidden = game.hiddenColorSizes?.[pid];
+            return (
+              <PlayerScoreRow
+                key={pid}
+                name={name}
+                isYou={pid === uid}
+              >
+                {colors && (
+                  <span className="tt-hand-breakdown">
+                    Hand: <span className="tt-solar-count">☀</span> {colors.white}
+                    {" "}<span className="tt-lunar-count">🌙</span> {colors.black}
+                  </span>
+                )}
+                {hidden && (
+                  <span className="tt-hand-breakdown" style={{ marginLeft: "0.75rem" }}>
+                    Hidden: <span className="tt-solar-count">☀</span> {hidden.white}
+                    {" "}<span className="tt-lunar-count">🌙</span> {hidden.black}
+                  </span>
+                )}
+              </PlayerScoreRow>
+            );
+          })}
+        </PlayerScores>
       </div>
-
-      {/* Players — card color breakdown */}
-      <PlayerScores>
-        {game.turnOrder.map((pid) => {
-          const name = room.players[pid]?.name ?? pid;
-          const colors = game.handColorSizes?.[pid];
-          const hidden = game.hiddenColorSizes?.[pid];
-          return (
-            <PlayerScoreRow
-              key={pid}
-              name={name}
-              isYou={pid === uid}
-            >
-              {colors && (
-                <span className="tt-hand-breakdown">
-                  Hand: <span className="tt-solar-count">☀</span> {colors.white}
-                  {" "}<span className="tt-lunar-count">🌙</span> {colors.black}
-                </span>
-              )}
-              {hidden && (
-                <span className="tt-hand-breakdown" style={{ marginLeft: "0.75rem" }}>
-                  Hidden: <span className="tt-solar-count">☀</span> {hidden.white}
-                  {" "}<span className="tt-lunar-count">🌙</span> {hidden.black}
-                </span>
-              )}
-            </PlayerScoreRow>
-          );
-        })}
-      </PlayerScores>
     </div>
   );
 }

@@ -143,14 +143,6 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
         maxSpread={game.levelDef.maxSpread}
       />
 
-      <div className="tt-status-bar">
-        <span className="tt-muted-text">Cards placed: {game.cardsPlayed}{game.deck === undefined ? "/12" : ""}</span>
-        <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
-        {game.deck !== undefined && (
-          <span className="tt-muted-text">Deck: {game.deck.length}</span>
-        )}
-      </div>
-
       {showRevealMessage && (
         <TurnStatus style={{ marginBottom: "0.5rem" }}>
           Hidden cards revealed! Check your hand.
@@ -158,7 +150,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
       )}
 
       {/* Hand — fanned */}
-      <h4 style={{ textAlign: "center" }}>Your Hand ({visibleCards.length} cards)</h4>
+      <h4 style={{ textAlign: "center", margin: "0.5rem 0 0" }}>Your Hand ({visibleCards.length} cards)</h4>
       <div className={`tt-hand${isMyTurn ? " tt-hand--active" : ""}`}>
         {visibleCards.map((card, i) => {
           const offset = i - (N - 1) / 2;
@@ -234,8 +226,17 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
         </div>
       )}
 
-      {/* Players */}
-      <PlayerScores>
+      <div className="tt-board-sidebar">
+        <div className="tt-status-bar">
+          <span className="tt-muted-text">Cards placed: {game.cardsPlayed}{game.deck === undefined ? "/12" : ""}</span>
+          <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+          {game.deck !== undefined && (
+            <span className="tt-muted-text">Deck: {game.deck.length}</span>
+          )}
+        </div>
+
+        {/* Players */}
+        <PlayerScores>
         {game.turnOrder.map((pid) => {
           const name = room.players[pid]?.name ?? pid;
           const isActive = isFirstCard || game.turnOrder[game.currentTurn] === pid;
@@ -272,6 +273,7 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
           );
         })}
       </PlayerScores>
+      </div>
     </div>
   );
 }

@@ -6,12 +6,37 @@
   max-width: 800px;
 }
 
+/* ---- Floating sidebar (players/ready) ---- */
+.tt-board-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 1100px) {
+  .tt-wrap {
+    position: relative;
+  }
+
+  .tt-wrap > .screen {
+    overflow: visible;
+  }
+
+  .tt-board-sidebar {
+    position: absolute;
+    right: 0;
+    top: 110px;
+    width: 340px;
+    transform: translateX(calc(100% + 1.5rem));
+  }
+}
+
 /* ---- Board container (clock + card slots + glyphs) ---- */
 .tt-board-container {
   position: relative;
   width: 100%;
   max-width: 700px;
-  margin: 0 auto;
+  margin: -0.5rem auto 0;
   aspect-ratio: 1;
 }
 
@@ -123,7 +148,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  min-height: 160px;
+  min-height: 130px;
   position: relative;
   margin: 0;
 }
@@ -146,7 +171,8 @@
   gap: 1.5rem;
   font-size: 0.8rem;
   text-align: center;
-  margin: 0.25rem 0;
+  margin: 0;
+  flex-wrap: wrap;
 }
 
 /* ---- Muted text ---- */
@@ -161,7 +187,7 @@
   border: 2px solid var(--tt-lunar, #1a1a2e);
   border-radius: var(--r-3);
   padding: 0.6rem 1rem;
-  margin: 0.5rem auto;
+  margin: 0.25rem auto;
   max-width: 480px;
   box-shadow: var(--shadow-sticker);
 }
