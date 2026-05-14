@@ -61,11 +61,13 @@
   --su-arrow:      #4ea584;
   --su-am-chip:    #2a1d12;  /* dark "monopoly" badge */
 
-  /* Fruit Boss — 7 fruit suits + wild/cat accents */
+  /* Fruit Boss — 7 fruit suits + wild/cat accents.
+     Apple is the bright crimson; tomato is a deep brick-red so the two read
+     as obviously different at mini-card scale. */
   --fb-plum:       #6f3f8e;
-  --fb-apple:      #c92e2e;
+  --fb-apple:      #d63a3d;
   --fb-orange:     #e8932e;
-  --fb-tomato:     #d44a4a;
+  --fb-tomato:     #7d2a26;
   --fb-watermelon: #e0537d;
   --fb-lemon:      #ecc83a;
   --fb-pear:       #8fb549;

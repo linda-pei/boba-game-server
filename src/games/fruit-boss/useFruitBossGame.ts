@@ -951,7 +951,8 @@ export async function discardAndRedraw(
     const hand = handSnap.data() as FruitBossHand;
     if (game.turnOrder[game.currentTurn] !== uid) throw new Error("Not your turn.");
     if (game.actionsLeft !== 2) throw new Error("You've already acted this turn.");
-    if (game.fireSale) throw new Error("Can't discard-redraw during the fire sale.");
+    // During fire sale the deck is empty, so the "redraw" half is a no-op,
+    // but we still allow the discard so the round can keep moving.
 
     const discard = [...game.discard, ...hand.cards];
     const deck = [...game.deck];
@@ -960,14 +961,78 @@ export async function discardAndRedraw(
       newCards.push(deck.shift()!);
     }
 
-    const nextTurn = (game.currentTurn + 1) % game.turnOrder.length;
+    // Mirror endTurn's fire-sale bookkeeping: if the deck just emptied (or
+    // was already empty), apply the wind-down + maybe trigger round end.
+    const fireSaleNowActive = game.fireSale || deck.length === 0;
+    const fireSaleFinalTurnTaken = { ...game.fireSaleFinalTurnTaken };
+    let fireSaleEnder = game.fireSaleEnder;
+    if (fireSaleEnder && uid !== fireSaleEnder) {
+      fireSaleFinalTurnTaken[uid] = true;
+    }
+    if (fireSaleNowActive && newCards.length === 0 && !fireSaleEnder) {
+      fireSaleEnder = uid;
+    }
+
+    const everyoneDone =
+      fireSaleEnder !== null &&
+      game.turnOrder.every((pid) => pid === fireSaleEnder || fireSaleFinalTurnTaken[pid]);
+
+    if (everyoneDone) {
+      // Gather hands for scoring.
+      const handsByUid: Record<string, FruitBossHand> = { [uid]: { cards: newCards } };
+      for (const pid of game.turnOrder) {
+        if (pid === uid) continue;
+        const snap = await tx.get(doc(db, "games", roomCode, "hands", pid));
+        if (snap.exists()) handsByUid[pid] = snap.data() as FruitBossHand;
+        else handsByUid[pid] = { cards: [] };
+      }
+      const finalGame: FruitBossGame = {
+        ...game,
+        deck,
+        discard,
+        fireSale: fireSaleNowActive,
+        fireSaleEnder,
+        fireSaleFinalTurnTaken,
+      };
+      const { scores, breakdowns, winner } = computeScores(finalGame, handsByUid);
+      tx.update(gameRef, {
+        status: "finished",
+        deck,
+        discard,
+        fireSale: fireSaleNowActive,
+        fireSaleEnder,
+        fireSaleFinalTurnTaken,
+        scores,
+        scoringBreakdowns: breakdowns,
+        winner,
+        lastAction: `${displayName} was stuck — discarded hand and ended the round`,
+      });
+      tx.update(handRef, { cards: newCards });
+      return;
+    }
+
+    // Advance turn, skipping fireSaleEnder + anyone who's already taken their final turn.
+    let nextTurn = (game.currentTurn + 1) % game.turnOrder.length;
+    let safety = game.turnOrder.length;
+    while (safety > 0) {
+      const candidate = game.turnOrder[nextTurn];
+      const isEnder = fireSaleEnder !== null && candidate === fireSaleEnder;
+      const alreadyTaken = !!fireSaleFinalTurnTaken[candidate];
+      if (!isEnder && !alreadyTaken) break;
+      nextTurn = (nextTurn + 1) % game.turnOrder.length;
+      safety--;
+    }
 
     tx.update(gameRef, {
       deck,
       discard,
       currentTurn: nextTurn,
       actionsLeft: 2,
-      lastAction: `${displayName} was stuck — discarded hand and redrew`,
+      status: fireSaleNowActive ? "fire-sale" : game.status,
+      fireSale: fireSaleNowActive,
+      fireSaleEnder,
+      fireSaleFinalTurnTaken,
+      lastAction: `${displayName} was stuck — discarded hand${newCards.length > 0 ? " and redrew" : ""}`,
     });
     tx.update(handRef, { cards: newCards });
   });

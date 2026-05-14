@@ -561,26 +561,22 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
       </section>
 
       <div className="fb-turn-actions">
-        {/* Per the rules, a player must take at least one action per turn —
-            except during fire sale, where wind-down requires turns to keep
-            moving even with nothing playable. */}
+        {/* Per the rules, a player must take at least one action per turn.
+            The "Stuck — discard & redraw" button below covers the rare case
+            where no legal action is possible. */}
         <button
           className="btn btn--primary"
           onClick={handleEndTurn}
-          disabled={
-            !isMyTurn ||
-            acting ||
-            (game.actionsLeft === 2 && !game.fireSale)
-          }
+          disabled={!isMyTurn || acting || game.actionsLeft === 2}
           title={
-            game.actionsLeft === 2 && !game.fireSale
+            game.actionsLeft === 2
               ? "You must take at least one action this turn."
               : undefined
           }
         >
           End Turn
         </button>
-        {isMyTurn && game.actionsLeft === 2 && !game.fireSale && (
+        {isMyTurn && game.actionsLeft === 2 && (
           <button
             className="btn btn--danger"
             onClick={() => setConfirmingRedraw(true)}
@@ -632,8 +628,11 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
             <h3 className="fb-modal-title">No playable actions?</h3>
             <p className="fb-modal-body">
               Confirm that none of your hand cards can be added, combined,
-              slid, or used as a cat. Your entire hand will be discarded and
-              you'll draw a fresh hand of {HAND_LIMIT}. Your turn ends.
+              slid, or used as a cat. Your entire hand will be discarded
+              {game.fireSale
+                ? " (no redraw — the deck is empty). "
+                : ` and you'll draw a fresh hand of ${HAND_LIMIT}. `}
+              Your turn ends.
             </p>
             <div className="fb-modal-buttons">
               <button
