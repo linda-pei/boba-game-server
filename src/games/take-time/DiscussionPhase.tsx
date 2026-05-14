@@ -130,6 +130,15 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         </div>
       )}
 
+      {/* Ready status */}
+      <ReadyList
+        players={game.turnOrder.map((pid) => ({
+          id: pid,
+          name: room.players[pid]?.name ?? pid,
+          ready: !!game.readyPlayers[pid],
+        }))}
+      />
+
       {/* Players — card color breakdown */}
       <PlayerScores>
         {game.turnOrder.map((pid) => {
@@ -158,15 +167,6 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
           );
         })}
       </PlayerScores>
-
-      {/* Ready status */}
-      <ReadyList
-        players={game.turnOrder.map((pid) => ({
-          id: pid,
-          name: room.players[pid]?.name ?? pid,
-          ready: !!game.readyPlayers[pid],
-        }))}
-      />
 
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
         {!iAmReady ? (
