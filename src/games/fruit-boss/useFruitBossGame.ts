@@ -1129,6 +1129,9 @@ export async function endTurn(roomCode: string, uid: string, displayName: string
       safety--;
     }
 
+    // Note: we intentionally leave `lastAction` untouched so the history
+    // continues to show the last gameplay event (place / combine / etc.)
+    // rather than getting overwritten with "ended their turn".
     tx.update(gameRef, {
       deck,
       currentTurn: nextTurn,
@@ -1137,7 +1140,6 @@ export async function endTurn(roomCode: string, uid: string, displayName: string
       fireSale: fireSaleNowActive,
       fireSaleEnder,
       fireSaleFinalTurnTaken,
-      lastAction: `${displayName} ended their turn`,
     });
     tx.update(handRef, { cards });
   });

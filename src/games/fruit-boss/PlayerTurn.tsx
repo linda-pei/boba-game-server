@@ -441,7 +441,7 @@ export default function PlayerTurn({ roomCode, game, hand, uid, room }: Props) {
       <TurnStatus mood={isMyTurn ? "mine" : "waiting"}>
         {isMyTurn
           ? `Your turn — ${game.actionsLeft} action${game.actionsLeft === 1 ? "" : "s"} left`
-          : `Waiting for ${currentName}…`}
+          : `Waiting for ${currentName} — ${game.actionsLeft} action${game.actionsLeft === 1 ? "" : "s"} left`}
       </TurnStatus>
 
       {game.fireSale && (
