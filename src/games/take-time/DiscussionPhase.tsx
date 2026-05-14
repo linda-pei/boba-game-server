@@ -139,6 +139,22 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
         }))}
       />
 
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        {!iAmReady ? (
+          <button className="btn btn--primary" onClick={handleReady}>
+            Ready
+          </button>
+        ) : allReady ? (
+          <button className="btn btn--primary" onClick={handleStart}>
+            Start Placement
+          </button>
+        ) : (
+          <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
+            Waiting for all players to be ready...
+          </p>
+        )}
+      </div>
+
       {/* Players — card color breakdown */}
       <PlayerScores>
         {game.turnOrder.map((pid) => {
@@ -167,22 +183,6 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
           );
         })}
       </PlayerScores>
-
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        {!iAmReady ? (
-          <button className="btn btn--primary" onClick={handleReady}>
-            Ready
-          </button>
-        ) : allReady ? (
-          <button className="btn btn--primary" onClick={handleStart}>
-            Start Placement
-          </button>
-        ) : (
-          <p className="tt-muted-text" style={{ fontSize: "0.85rem" }}>
-            Waiting for all players to be ready...
-          </p>
-        )}
-      </div>
     </div>
   );
 }

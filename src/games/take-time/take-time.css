@@ -172,13 +172,11 @@
 }
 
 .tt-hint {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--tt-lunar, #1a1a2e);
-  font-family: "Cormorant Garamond", serif;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 500;
   margin: 0.25rem 0;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 [data-theme="dark"] .tt-hint {
@@ -191,7 +189,7 @@
 }
 
 .tt-hints--compact .tt-hint {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   margin: 0.15rem 0;
 }
 
