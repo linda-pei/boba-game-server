@@ -523,7 +523,7 @@ export async function placeToPortfolio(
         gold: finalGold,
         scoreBreakdowns: breakdowns,
         ...after,
-        lastAction: `${name} placed ${card.company} ${card.number} in portfolio — round end`,
+        lastAction: `${name} placed ${card.company} in portfolio — round end`,
       });
       // Empty every player's hand.
       handRefs.forEach((r) => tx.update(r, { cards: [] }));
@@ -533,7 +533,7 @@ export async function placeToPortfolio(
         handSizes: newHandSizes,
         antiMonopoly: newAntiMonopoly,
         ...after,
-        lastAction: `${name} placed ${card.company} ${card.number} in portfolio`,
+        lastAction: `${name} placed ${card.company} in portfolio`,
       });
       tx.update(handRefs[myHandIdx], { cards: newHandCards });
     }
@@ -615,7 +615,7 @@ export async function placeToMarket(
         gold: finalGold,
         scoreBreakdowns: breakdowns,
         ...after,
-        lastAction: `${name} put ${card.company} ${card.number} on the market — round end`,
+        lastAction: `${name} put ${card.company} on the market — round end`,
       });
       handRefs.forEach((r) => tx.update(r, { cards: [] }));
     } else {
@@ -623,7 +623,7 @@ export async function placeToMarket(
         market: newMarket,
         handSizes: newHandSizes,
         ...after,
-        lastAction: `${name} put ${card.company} ${card.number} on the market`,
+        lastAction: `${name} put ${card.company} on the market`,
       });
       tx.update(handRefs[myHandIdx], { cards: newHandCards });
     }
