@@ -50,6 +50,121 @@
   pointer-events: none;
 }
 
+/* ---- Divider between preset and custom ---- */
+.emote-divider {
+  width: 2px;
+  align-self: stretch;
+  margin: 6px 2px;
+  background: var(--border-strong);
+  opacity: 0.4;
+  border-radius: 1px;
+}
+
+/* ---- Add / custom button ---- */
+.emote-btn--add {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+/* ---- Emoji keyboard popover ---- */
+.emote-picker-wrap {
+  position: relative;
+}
+
+.emote-keyboard {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  box-shadow: var(--shadow-sticker);
+  overflow: hidden;
+  animation: emote-kb-pop 0.2s var(--ease-spring);
+}
+
+/* ---- Category tabs ---- */
+.emote-kb-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border-strong);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.emote-kb-tabs::-webkit-scrollbar { display: none; }
+
+.emote-kb-tab {
+  flex: 1 0 auto;
+  padding: 8px 6px;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.emote-kb-tab:hover {
+  opacity: 0.8;
+  background: var(--surface-2);
+}
+
+.emote-kb-tab--active {
+  opacity: 1;
+  background: var(--surface-2);
+  box-shadow: inset 0 -2px 0 var(--accent-primary);
+}
+
+/* ---- Emoji grid ---- */
+.emote-kb-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.emote-kb-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: none;
+  background: none;
+  border-radius: var(--r-2);
+  cursor: pointer;
+  transition: background 0.12s, transform 0.12s;
+  line-height: 1;
+  padding: 0;
+}
+
+.emote-kb-cell:hover {
+  background: var(--surface-2);
+  transform: scale(1.2);
+}
+
+.emote-kb-cell:active {
+  transform: scale(0.9);
+}
+
+.emote-kb-cell[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+@keyframes emote-kb-pop {
+  0% { transform: scale(0.85) translateY(8px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
 /* ---- Emote overlay (above emote bar, bottom-right) ---- */
 .emote-overlay {
   position: fixed;
