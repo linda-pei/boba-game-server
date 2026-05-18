@@ -49,12 +49,19 @@
   margin: 0;
 }
 
-/* ---- Active-player opponent section ---- */
-.fb-opp-section.is-active-turn {
-  border: 2px solid var(--peach-500);
+/* ---- Active-player opponent section ----
+   Border + padding are applied to every opponent section so the active-turn
+   styling doesn't shift the collection layout when it kicks in. Inactive
+   sections just keep their border transparent. */
+.fb-opp-section {
+  border: 2px solid transparent;
   border-radius: var(--r-3);
-  background: color-mix(in srgb, var(--peach-500) 8%, transparent);
   padding: var(--s-3);
+}
+
+.fb-opp-section.is-active-turn {
+  border-color: var(--peach-500);
+  background: color-mix(in srgb, var(--peach-500) 8%, transparent);
   animation: fb-opp-active-pulse 1.8s ease-in-out infinite;
 }
 
