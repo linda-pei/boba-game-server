@@ -5,6 +5,7 @@ Take time is a co-op game consisting of 40 tests, divided into 10 chapters each 
 Game consists of circular clock like object composed of 6 segments, with a hand pointed to the starting segment. In later levels, the players will choose which segment the game will start on.
 Each test has a different clock, so we'll have to define a level for each - each clock may have a special rule in the center. Each segment additionally main contain a rule We should likely consider some sort of level editor that defines how each segment is encoded.
 There is one reminder token corresponding to the number of players playing. Shared resource between all players.
+Optional setting — Bonus tokens: when enabled in the lobby, each time the group fails a test they gain +1 bonus reminder token (up to a maximum of 3). Bonus tokens add to the face-up cards the group may place on the retry, and reset when advancing to the next test. The host can also turn this on mid-game from the test-result screen after a loss, which immediately grants the bonus token for that loss.
 The deck is composed of 12 black cards, 1-12, and 12 white cards, 1-12.
 Always deal 12 cards, at 4 players, each player gets 3 cards. At 3, each player gets 4. At 2, each player gets 6 cards, they see an initial set of 4 of the 6, and only see the remaining once BOTH players have played 2 cards from hand.
 

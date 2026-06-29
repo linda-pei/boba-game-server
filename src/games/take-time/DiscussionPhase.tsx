@@ -128,7 +128,10 @@ export default function DiscussionPhase({ roomCode, game, hand, uid, room }: Pro
 
       <div className="tt-board-sidebar">
         <div className="tt-status-bar">
-          <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+          <span className="tt-muted-text">
+            Reminder tokens: {game.faceUpRemaining}
+            {(game.bonusTokens ?? 0) > 0 && ` (incl. ${game.bonusTokens} 🎁 bonus)`}
+          </span>
         </div>
 
         {/* Ready status */}

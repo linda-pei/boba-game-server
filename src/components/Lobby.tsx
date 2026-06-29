@@ -275,6 +275,15 @@ export default function Lobby() {
                 })}
               </select>
             </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              <input
+                type="checkbox"
+                checked={room.settings.bonusTokensEnabled === true}
+                onChange={(e) => updateRoomSettings(roomCode!, { bonusTokensEnabled: e.target.checked })}
+                disabled={!isHost}
+              />
+              Bonus tokens (gain +1 reminder token each time you fail, up to 3)
+            </label>
           </>
         )}
 

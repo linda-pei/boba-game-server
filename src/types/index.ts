@@ -16,6 +16,8 @@ export interface RoomSettings {
   mayor?: string;
   /** Startups: enable the optional 4-round variant. */
   roundsEnabled?: boolean;
+  /** Take Time: gain an extra reminder token each time you fail a test (max 3). */
+  bonusTokensEnabled?: boolean;
 }
 
 export interface Room {
@@ -330,6 +332,10 @@ export interface TakeTimeGame {
   cardsPlayed: number;
   segments: Record<number, TakeTimePlacedCard[]>;
   faceUpRemaining: number;
+  /** Whether the bonus-token-on-fail setting is enabled for this game. */
+  bonusTokensEnabled?: boolean;
+  /** Extra reminder tokens earned by failing (capped at 3). Added to faceUpRemaining at setup. */
+  bonusTokens?: number;
   readyPlayers: Record<string, boolean>;
   revealIndex: number;
   twoPlayerRevealed: boolean;

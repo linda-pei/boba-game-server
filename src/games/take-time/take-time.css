@@ -283,6 +283,14 @@
   padding: 0.25rem 0;
 }
 
+.tt-bonus-note {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--jade-500);
+  margin: 0.75rem auto 0;
+  max-width: 400px;
+}
+
 /* ---- Hidden pile (2-player mode) ---- */
 .tt-hidden-pile {
   display: flex;

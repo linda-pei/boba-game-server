@@ -79,7 +79,11 @@ function buildDeck(): TakeTimeCard[] {
 
 // ---- Game Actions ----
 
-export async function startTakeTimeGame(roomCode: string, room: Room): Promise<void> {
+export async function startTakeTimeGame(
+  roomCode: string,
+  room: Room,
+  bonusTokens = 0,
+): Promise<void> {
   const chapter = room.settings.chapter ?? 1;
   const testNumber = room.settings.testNumber ?? 1;
   const levelDef = getLevel(chapter, testNumber);
@@ -110,6 +114,9 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
   }
 
   const hasFaceUpBan = levelDef.specialRules?.includes("no-faceup");
+  const bonusTokensEnabled = room.settings.bonusTokensEnabled === true;
+  // Bonus tokens only matter when face-up reveals are allowed at all.
+  const appliedBonus = hasFaceUpBan ? 0 : bonusTokens;
   const readyPlayers: Record<string, boolean> = {};
   turnOrder.forEach((uid) => { readyPlayers[uid] = false; });
 
@@ -162,7 +169,9 @@ export async function startTakeTimeGame(roomCode: string, room: Room): Promise<v
     firstPlayer: null,
     cardsPlayed: 0,
     segments: emptySegments,
-    faceUpRemaining: hasFaceUpBan ? 0 : playerCount,
+    faceUpRemaining: hasFaceUpBan ? 0 : playerCount + appliedBonus,
+    bonusTokensEnabled,
+    bonusTokens,
     readyPlayers,
     revealIndex: 0,
     twoPlayerRevealed: playerCount !== 2,
@@ -513,24 +522,66 @@ export async function advanceReveal(roomCode: string, game: TakeTimeGame): Promi
     updates.lastAction = result.passed
       ? "Test passed!"
       : `Test failed: ${result.violations.join("; ")}`;
+    const earned = bonusTokenOnFail(game, result.passed);
+    if (earned !== null) updates.bonusTokens = earned;
   }
 
   await updateDoc(doc(db, "games", roomCode), updates);
 }
 
+/**
+ * If the bonus-token setting is on and the test just failed, return the new bonus token
+ * count (current + 1, capped at 3). Returns null when no change should be written.
+ */
+function bonusTokenOnFail(game: TakeTimeGame, passed: boolean): number | null {
+  if (passed || !game.bonusTokensEnabled) return null;
+  const current = game.bonusTokens ?? 0;
+  if (current >= 3) return null;
+  return current + 1;
+}
+
 export async function finalizeRotation(roomCode: string, game: TakeTimeGame): Promise<void> {
   // Called after post-reveal rotation adjustment (Chapter III+)
   const result = validateTest(game);
-  await updateDoc(doc(db, "games", roomCode), {
+  const updates: Record<string, unknown> = {
     status: result.passed ? "pass" : "fail",
     lastAction: result.passed
       ? "Test passed!"
       : `Test failed: ${result.violations.join("; ")}`,
-  });
+  };
+  const earned = bonusTokenOnFail(game, result.passed);
+  if (earned !== null) updates.bonusTokens = earned;
+  await updateDoc(doc(db, "games", roomCode), updates);
 }
 
-export async function retryTest(roomCode: string, room: Room): Promise<void> {
-  await startTakeTimeGame(roomCode, room);
+export async function retryTest(
+  roomCode: string,
+  room: Room,
+  bonusTokens = 0,
+): Promise<void> {
+  await startTakeTimeGame(roomCode, room, bonusTokens);
+}
+
+/**
+ * Turn on the bonus-token feature mid-game from the test-result screen. Persists the setting
+ * to the room (so future tests keep it) and, when called on a failed test, immediately awards
+ * the bonus token for this loss (capped at 3) so the retry benefits.
+ */
+export async function enableBonusTokens(roomCode: string): Promise<void> {
+  await runTransaction(db, async (txn) => {
+    const gameRef = doc(db, "games", roomCode);
+    const gameSnap = await txn.get(gameRef);
+    if (!gameSnap.exists()) return;
+    const game = gameSnap.data() as TakeTimeGame;
+
+    txn.update(doc(db, "rooms", roomCode), { "settings.bonusTokensEnabled": true });
+
+    const updates: Record<string, unknown> = { bonusTokensEnabled: true };
+    // Treat enabling-on-a-loss as if the setting had been on for this failure.
+    const earned = bonusTokenOnFail({ ...game, bonusTokensEnabled: true }, game.status === "pass");
+    if (earned !== null) updates.bonusTokens = earned;
+    txn.update(gameRef, updates);
+  });
 }
 
 export async function nextTest(roomCode: string, room: Room, game: TakeTimeGame): Promise<void> {

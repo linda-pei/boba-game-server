@@ -229,7 +229,10 @@ export default function PlacementPhase({ roomCode, game, hand, uid, room }: Prop
       <div className="tt-board-sidebar">
         <div className="tt-status-bar">
           <span className="tt-muted-text">Cards placed: {game.cardsPlayed}{game.deck === undefined ? "/12" : ""}</span>
-          <span className="tt-muted-text">Reminder tokens: {game.faceUpRemaining}</span>
+          <span className="tt-muted-text">
+            Reminder tokens: {game.faceUpRemaining}
+            {(game.bonusTokens ?? 0) > 0 && ` (incl. ${game.bonusTokens} 🎁 bonus)`}
+          </span>
           {game.deck !== undefined && (
             <span className="tt-muted-text">Deck: {game.deck.length}</span>
           )}
