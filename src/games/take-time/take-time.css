@@ -90,6 +90,13 @@
   transition: left .6s cubic-bezier(.34,1.56,.64,1), top .6s cubic-bezier(.34,1.56,.64,1);
 }
 
+/* The transform above makes each slot its own stacking context, which would trap the
+   tooltip behind neighbouring glyphs. Lift the hovered slot above its siblings so the
+   tooltip floats above all icons. */
+.tt-glyph-slot:hover {
+  z-index: 40;
+}
+
 /* ---- Glyph tooltip ---- */
 .tt-glyph-tip {
   position: relative;
