@@ -820,12 +820,19 @@ function checkSegmentRule(
     }
     case "closest-to": {
       const target = rule.targetValue!;
-      const segDiff = Math.abs(sums[seg] - target);
-      const minDiff = Math.min(
-        ...Object.values(sums).map((s) => Math.abs(s - target))
-      );
-      if (segDiff > minDiff)
-        return `sum ${sums[seg]} is not closest to ${target}`;
+      // |x| always compares the arithmetic SUM of a segment's cards to the target,
+      // even in difference-mode chapters (VI): targets like 12/24 are sum-scale, and a
+      // two-card difference can't reach them. This is independent of the ascending
+      // check, which uses the difference in those chapters.
+      const sumOf = (cards: TakeTimePlacedCard[]) =>
+        cards.reduce((acc, c) => acc + c.value, 0);
+      const segSum = sumOf(segCards);
+      const otherDiffs = Object.values(allSegments)
+        .filter((cs) => cs.length > 0)
+        .map((cs) => Math.abs(sumOf(cs) - target));
+      const minDiff = otherDiffs.length > 0 ? Math.min(...otherDiffs) : 0;
+      if (Math.abs(segSum - target) > minDiff)
+        return `sum ${segSum} is not closest to ${target}`;
       return null;
     }
     case "max":
