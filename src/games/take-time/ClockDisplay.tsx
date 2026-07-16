@@ -348,7 +348,12 @@ export default function ClockDisplay({
 
           const revealOrder = ((seg - 1 - clockRotation + 600) % 6);
           const segRevealed = revealedUpTo !== undefined && revealOrder < revealedUpTo;
-          const sum = cards.reduce((a, c) => a + c.value, 0);
+          // Difference-mode clocks (Chapter VI) score the |max − min| of the segment, not the sum.
+          const isDifference = clockRule === "difference";
+          const values = cards.map((c) => c.value);
+          const segValue = isDifference
+            ? Math.max(...values) - Math.min(...values)
+            : values.reduce((a, v) => a + v, 0);
 
           return (
             <div
@@ -358,7 +363,7 @@ export default function ClockDisplay({
             >
               <CardSlot cards={cards} angle={angle} revealed={segRevealed} playerNames={playerNames} uid={uid} />
               {showSums && segRevealed && cards.length > 0 && (
-                <div className="tt-sum-badge">Σ{sum}</div>
+                <div className="tt-sum-badge">{isDifference ? "Δ" : "Σ"}{segValue}</div>
               )}
             </div>
           );
