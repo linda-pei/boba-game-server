@@ -1,8 +1,7 @@
 :root {
-  --clover-board-size: 420px;
-  --clover-slot-size: 178px;
-  --clover-tile-size: 140px;
-  --clover-tray-slot-size: 150px;
+  --clover-board-size: 500px;
+  --clover-tile-size: 150px;
+  --clover-tray-slot-size: 170px;
 }
 
 #root:has(.clover-screen) {
@@ -68,8 +67,8 @@
   height: var(--clover-board-size);
   max-width: 100%;
   margin: 0 auto;
-  padding: 2.6rem 2.9rem;
   box-sizing: border-box;
+  padding: 3.1rem 3.6rem;
 }
 
 .clover-board-grid {
@@ -77,7 +76,7 @@
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 0.8rem;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -91,7 +90,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.55rem;
   background: var(--surface-2);
   border: 2px dashed var(--border);
   border-radius: var(--r-2);
@@ -154,7 +153,6 @@
   position: absolute;
   inset: 0;
   transform-origin: center;
-  transition: transform 0.2s ease;
 }
 
 .clover-word {
@@ -164,7 +162,7 @@
   justify-content: center;
   text-align: center;
   font-weight: 700;
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   line-height: 1.1;
   color: var(--ink);
   padding: 0.12rem 0.3rem;
@@ -201,14 +199,22 @@
   right: 0;
 }
 
-.clover-square-tile__actions {
+.clover-rotate-button {
   position: absolute;
   left: 50%;
-  bottom: 0.45rem;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.35rem;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 3;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--accent-primary);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.38rem 0.6rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
 }
 
 .clover-edge-inputs {
@@ -224,7 +230,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  width: 130px;
+  width: 150px;
   pointer-events: auto;
   font-size: 0.72rem;
   font-weight: 700;
@@ -238,44 +244,44 @@
 
 .clover-edge-field input {
   width: 100%;
-  height: 2.1rem;
+  height: 2.2rem;
   border: 2px solid rgba(84, 58, 36, 0.55);
   border-radius: 999px;
   background: rgba(255, 245, 235, 0.96);
   color: var(--ink);
   text-align: center;
   font-size: 0.72rem;
-  padding: 0.15rem 0.7rem;
+  padding: 0.15rem 0.85rem;
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
 .clover-edge-field--top {
   left: 50%;
-  top: -1.05rem;
+  top: 0;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--right {
-  right: -1.3rem;
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-edge-field--bottom {
   left: 50%;
-  bottom: -1.05rem;
+  bottom: 0;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--left {
-  left: -1.3rem;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-return-tray {
-  width: min(100%, 680px);
+  width: min(100%, 720px);
   margin: 1rem auto 0;
   padding: 0.9rem;
   border: 2px solid var(--border-strong);
@@ -318,28 +324,19 @@
   visibility: hidden;
 }
 
-.clover-tile-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--clover-tile-size), 1fr));
-  gap: 0.85rem;
-  margin-top: 1rem;
-  justify-items: center;
-}
-
 @media (max-width: 620px) {
   :root {
-    --clover-board-size: 300px;
-    --clover-slot-size: 126px;
-    --clover-tile-size: 114px;
+    --clover-board-size: 360px;
+    --clover-tile-size: 120px;
     --clover-tray-slot-size: 122px;
   }
 
   .clover-board-grid-wrap {
-    padding: 2.1rem 2.2rem;
+    padding: 2.4rem 2.8rem;
   }
 
   .clover-board-grid {
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 
   .clover-slot {
@@ -347,20 +344,23 @@
   }
 
   .clover-edge-field {
-    width: 92px;
+    width: 110px;
   }
 }
 
 @media (max-width: 420px) {
   :root {
-    --clover-board-size: 260px;
-    --clover-slot-size: 108px;
-    --clover-tile-size: 94px;
-    --clover-tray-slot-size: 102px;
+    --clover-board-size: 300px;
+    --clover-tile-size: 102px;
+    --clover-tray-slot-size: 110px;
+  }
+
+  .clover-board-grid-wrap {
+    padding: 2.1rem 2.4rem;
   }
 
   .clover-edge-field {
-    width: 78px;
+    width: 90px;
     font-size: 0.64rem;
   }
 

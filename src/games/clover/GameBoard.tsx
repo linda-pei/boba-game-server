@@ -98,10 +98,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     });
   };
 
-  const handleBoardRemoveTile = (tileId: string) => {
-    setPlacements((prev) => removeTileFromMap(prev, tileId));
-  };
-
   const handleBoardWordChange = (index: number, value: string) => {
     setEdgeWords((prev) => {
       const next = [...prev] as [string, string, string, string];
@@ -133,7 +129,11 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     });
   };
 
-  const handleRemoveGuessTile = (tileId: string) => {
+  const handleReturnToTray = (tileId: string, mode: "board" | "guess") => {
+    if (mode === "board") {
+      setPlacements((prev) => removeTileFromMap(prev, tileId));
+      return;
+    }
     setGuess((prev) => removeTileFromMap(prev, tileId));
   };
 
@@ -155,15 +155,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     await submitCloverSecondGuess(roomCode, currentOwner, guess);
     setAttempt("first");
     setGuess({});
-  };
-
-  const handleReturnToTray = (tileId: string, mode: "board" | "guess") => {
-    if (mode === "board") {
-      setPlacements((prev) => removeTileFromMap(prev, tileId));
-      return;
-    }
-
-    setGuess((prev) => removeTileFromMap(prev, tileId));
   };
 
   const renderBoardEdgeInputs = () => (
@@ -277,8 +268,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                   {tileId ? (
                     (() => {
                       const tile =
-                        (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ??
-                        null;
+                        (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ?? null;
 
                       if (!tile) return null;
 
@@ -291,11 +281,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                           onClick={() => onRotateTile(tileId)}
                           className="clover-placed-tile"
                         >
-                          {renderTileBody({
-                            tile,
-                            rotation,
-                            onRotate: onRotateTile,
-                          })}
+                          {renderTileBody({ tile, rotation, onRotate: onRotateTile })}
                         </div>
                       );
                     })()
@@ -340,12 +326,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
             return (
               <div key={tile.id} className="clover-return-slot">
-                {renderTileBody({
-                  tile,
-                  rotation,
-                  onRotate,
-                  isInTray: true,
-                })}
+                {renderTileBody({ tile, rotation, onRotate, isInTray: true })}
               </div>
             );
           })}
