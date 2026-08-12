@@ -16,6 +16,7 @@ import ResignButton from "../../components/shared/ResignButton";
 const SLOT_ORDER = [0, 1, 2, 3];
 
 function rotateEdgeWordsClockwise(edges: string[]) {
+  // clockwise ring shift for [top, right, bottom, left]
   return [edges[3], edges[0], edges[1], edges[2]];
 }
 
@@ -227,7 +228,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
         <button
           type="button"
           className="clover-rotate-button"
-          onClick={() => onRotate(tile.id)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onRotate(tile.id);
+          }}
         >
           Rotate
         </button>
@@ -278,7 +282,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                         <div
                           draggable
                           onDragStart={(event) => handleDragStart(event, tileId)}
-                          onClick={() => onRotateTile(tileId)}
                           className="clover-placed-tile"
                         >
                           {renderTileBody({ tile, rotation, onRotate: onRotateTile })}
@@ -394,7 +397,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             </p>
             <p>
               {nextOwner
-                ? `Ready for the next board: ${room.players[nextOwner]?.name ?? "next player"}`
+                ? `Ready for the next board: ${room.players[nextOwner]?.name ?? "next player"}` 
                 : "All boards are complete."}
             </p>
 
