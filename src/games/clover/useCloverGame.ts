@@ -64,14 +64,7 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
   const playerUids = Object.keys(room.players);
   const turnOrder = [...playerUids].sort(() => Math.random() - 0.5);
 
-  const boards: Record<
-    string,
-    CloverBoard & {
-      decoyTile?: any;
-      sharedGuess?: CloverPlacementMap;
-      guessAttempts?: number;
-    }
-  > = {};
+  const boards: Record<string, CloverBoard & { decoyTile?: any; sharedGuess?: CloverPlacementMap; guessAttempts?: number }> = {};
 
   for (const uid of playerUids) {
     const tiles = generateCloverTiles(4);
@@ -324,7 +317,8 @@ export async function advanceCloverBoard(roomCode: string) {
 
   const game = snap.data() as CloverGame & { boards: Record<string, any> };
 
-  const nextOwner = game.boardOrder.find((uid) => !game.boards[uid]?.scored) ?? null;
+  const nextOwner =
+    game.boardOrder.find((uid) => !game.boards[uid]?.scored) ?? null;
 
   if (!nextOwner) {
     await updateDoc(ref, {
@@ -386,11 +380,7 @@ export function getCloverScoreSummary(playerCount: number, score: number) {
   };
 
   const ranges = thresholds[playerCount] ?? thresholds[4];
-  return (
-    ranges.find(
-      (range) => score >= range.min && (range.max === null || score <= range.max)
-    ) ?? ranges[ranges.length - 1]
-  );
+  return ranges.find((range) => score >= range.min && (range.max === null || score <= range.max)) ?? ranges[ranges.length - 1];
 }
 
 export async function resetCloverGame(roomCode: string) {
