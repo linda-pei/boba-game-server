@@ -563,15 +563,6 @@ export interface CloverBoard {
 
   // second try for this board
   secondGuess?: Record<string, CloverPlacement> | null;
-
-  // shared guess board state used by the live guess phase
-  sharedGuess?: Record<string, CloverPlacement> | null;
-
-  // decoy tile included in the guess tray
-  decoyTile?: CloverTile | null;
-
-  // number of shared attempts recorded
-  guessAttempts?: number;
 }
 
 export interface CloverGame {

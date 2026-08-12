@@ -1,13 +1,13 @@
 import "./clover.css";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import {
   advanceCloverBoard,
   getCloverScoreSummary,
-  lockSharedCloverGuess,
   submitCloverBoard,
-  submitSharedCloverGuess,
+  submitCloverFirstGuess,
+  submitCloverSecondGuess,
   useCloverGame,
 } from "./useCloverGame";
 import GameBanner from "../../components/shared/GameBanner";
@@ -15,9 +15,8 @@ import ResignButton from "../../components/shared/ResignButton";
 
 const SLOT_ORDER = [0, 1, 2, 3];
 
-type PlacementMap = Record<string, { slot: number; rotation: number }>;
-
 function rotateEdgeWordsClockwise(edges: string[]) {
+  // clockwise ring shift for [top, right, bottom, left]
   return [edges[3], edges[0], edges[1], edges[2]];
 }
 
@@ -30,7 +29,11 @@ function getDisplayedEdges(edges: string[], rotation: number) {
   return next as [string, string, string, string];
 }
 
-function moveTileToSlot(map: PlacementMap, tileId: string, slot: number) {
+function moveTileToSlot(
+  map: Record<string, { slot: number; rotation: number }>,
+  tileId: string,
+  slot: number
+) {
   const next = { ...map };
 
   const currentOccupant = Object.entries(next).find(([, value]) => value.slot === slot)?.[0];
@@ -47,7 +50,10 @@ function moveTileToSlot(map: PlacementMap, tileId: string, slot: number) {
   return next;
 }
 
-function removeTileFromMap(map: PlacementMap, tileId: string) {
+function removeTileFromMap(
+  map: Record<string, { slot: number; rotation: number }>,
+  tileId: string
+) {
   const next = { ...map };
   delete next[tileId];
   return next;
@@ -58,30 +64,23 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const { room } = useRoom(roomCode);
   const { game, loading } = useCloverGame(roomCode);
 
-  const [guess, setGuess] = useState<PlacementMap>({});
-  const [placements, setPlacements] = useState<PlacementMap>({});
+  const [guess, setGuess] = useState<Record<string, { slot: number; rotation: number }>>({});
+  const [attempt, setAttempt] = useState<"first" | "second">("first");
+  const [placements, setPlacements] = useState<Record<string, { slot: number; rotation: number }>>({});
   const [edgeWords, setEdgeWords] = useState<[string, string, string, string]>(["", "", "", ""]);
   const [confirmingBoard, setConfirmingBoard] = useState(false);
-
-  useEffect(() => {
-    if (!game || !uid) return;
-    const currentOwner = game.currentBoardOwner ?? "";
-    const board = game.boards[currentOwner] as any;
-    if (board?.sharedGuess) {
-      setGuess(board.sharedGuess);
-    }
-  }, [game, uid]);
 
   if (loading) return <p>Loading game...</p>;
   if (!game || !room) return <p>Game not found.</p>;
 
   const currentOwner = game.currentBoardOwner ?? "";
-  const currentBoard = game.boards[currentOwner] as any;
-  const myBoard = uid ? (game.boards[uid] as any) : undefined;
-  const isBoardOwner = uid === currentOwner;
+  const currentBoard = game.boards[currentOwner];
+  const myBoard = uid ? game.boards[uid] : undefined;
 
-  const getTileForSlot = (slotMap: PlacementMap, slot: number) =>
-    Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
+  const getTileForSlot = (
+    slotMap: Record<string, { slot: number; rotation: number }>,
+    slot: number
+  ) => Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
 
   const handleBoardPlaceTile = (tileId: string, slot: number) => {
     setPlacements((prev) => moveTileToSlot(prev, tileId, slot));
@@ -115,25 +114,19 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   };
 
   const handlePlaceGuessTile = (tileId: string, slot: number) => {
-    if (!uid || isBoardOwner) return;
-    const nextGuess = moveTileToSlot(guess, tileId, slot);
-    setGuess(nextGuess);
-    void submitSharedCloverGuess(roomCode, currentOwner, nextGuess);
+    setGuess((prev) => moveTileToSlot(prev, tileId, slot));
   };
 
   const handleRotateGuessTile = (tileId: string) => {
-    if (!uid || isBoardOwner) return;
     setGuess((prev) => {
       const current = prev[tileId] ?? { slot: 0, rotation: 0 };
-      const next = {
+      return {
         ...prev,
         [tileId]: {
           ...current,
           rotation: (current.rotation + 90) % 360,
         },
       };
-      void submitSharedCloverGuess(roomCode, currentOwner, next);
-      return next;
     });
   };
 
@@ -142,13 +135,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
       setPlacements((prev) => removeTileFromMap(prev, tileId));
       return;
     }
-
-    if (isBoardOwner) return;
-    setGuess((prev) => {
-      const next = removeTileFromMap(prev, tileId);
-      void submitSharedCloverGuess(roomCode, currentOwner, next);
-      return next;
-    });
+    setGuess((prev) => removeTileFromMap(prev, tileId));
   };
 
   const handleDragStart = (event: React.DragEvent<HTMLElement>, tileId: string) => {
@@ -157,17 +144,18 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   };
 
   const handleSubmitGuess = async () => {
-    if (!uid || !currentBoard || isBoardOwner) return;
+    if (!uid || !currentBoard) return;
     if (Object.keys(guess).length !== 4) return;
 
-    const currentAttempts = Number((currentBoard as any).guessAttempts ?? 0);
-
-    if (currentAttempts < 2) {
-      await lockSharedCloverGuess(roomCode, currentOwner, guess);
+    if (attempt === "first") {
+      await submitCloverFirstGuess(roomCode, currentOwner, guess);
+      setAttempt("second");
       return;
     }
 
-    await lockSharedCloverGuess(roomCode, currentOwner, guess);
+    await submitCloverSecondGuess(roomCode, currentOwner, guess);
+    setAttempt("first");
+    setGuess({});
   };
 
   const renderBoardEdgeInputs = () => (
@@ -210,19 +198,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     </div>
   );
 
-  const renderBoardEdgeLabels = () => {
-    const labels = currentBoard?.edgeWords ?? ["", "", "", ""];
-
-    return (
-      <div className="clover-edge-labels">
-        <div className="clover-edge-label clover-edge-label--top">{labels[0] || "Top"}</div>
-        <div className="clover-edge-label clover-edge-label--right">{labels[1] || "Right"}</div>
-        <div className="clover-edge-label clover-edge-label--bottom">{labels[2] || "Bottom"}</div>
-        <div className="clover-edge-label clover-edge-label--left">{labels[3] || "Left"}</div>
-      </div>
-    );
-  };
-
   const renderTileBody = ({
     tile,
     rotation,
@@ -239,7 +214,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     return (
       <div
         key={tile.id}
-        draggable={!isBoardOwner}
+        draggable
         onDragStart={(event) => handleDragStart(event, tile.id)}
         className={`clover-square-tile ${isInTray ? "clover-hand-tile" : ""}`}
       >
@@ -270,7 +245,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     onRotateTile,
     mode,
   }: {
-    placedMap: PlacementMap;
+    placedMap: Record<string, { slot: number; rotation: number }>;
     onDropTile: (tileId: string, slot: number) => void;
     onRotateTile: (tileId: string) => void;
     mode: "board" | "guess";
@@ -297,9 +272,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                   {tileId ? (
                     (() => {
                       const tile =
-                        (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ??
-                        currentBoard?.decoyTile ??
-                        null;
+                        (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ?? null;
 
                       if (!tile) return null;
 
@@ -307,7 +280,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
                       return (
                         <div
-                          draggable={!isBoardOwner}
+                          draggable
                           onDragStart={(event) => handleDragStart(event, tileId)}
                           className="clover-placed-tile"
                         >
@@ -323,19 +296,11 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             })}
           </div>
 
-          {mode === "board" ? renderBoardEdgeInputs() : renderBoardEdgeLabels()}
+          {mode === "board" && renderBoardEdgeInputs()}
         </div>
       </div>
     );
   };
-
-  const guessTrayTiles = useMemo(() => {
-    if (!currentBoard) return [];
-    const base = [...(currentBoard.tiles ?? [])];
-    const decoy = currentBoard.decoyTile ? { ...currentBoard.decoyTile } : null;
-    if (decoy) base.push(decoy);
-    return shuffle(base);
-  }, [currentBoard]);
 
   const renderTileTray = ({
     tiles,
@@ -388,9 +353,9 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
         <div className="clover-board-shell">
           <div className="clover-status-box">
             <div>
-              <strong>TEAM'S FINAL SCORE IS:</strong> {game.teamScore}
+              <strong>Final team score:</strong> {game.teamScore}
             </div>
-            <div>FOR {playerCount} PLAYERS</div>
+            <div>{summary.label}</div>
           </div>
 
           <div className="clover-panel">
@@ -398,7 +363,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             <p>
               With {playerCount} players, that lands in the {summary.label.toLowerCase()} tier.
             </p>
-            <p>Final team total: {game.teamScore}</p>
           </div>
         </div>
       </div>
@@ -425,17 +389,22 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           <div className="clover-panel">
             <h3>Board resolved</h3>
             <p>
-              {game.lastAction ?? "Board resolved."}
+              {room.players[roundOwner]?.name ?? "This board"} earned +{boardScore} point
+              {boardScore === 1 ? "" : "s"}.
+            </p>
+            <p>
+              Team score so far: <strong>{game.teamScore}</strong>
             </p>
             <p>
               {nextOwner
-                ? `Ready for the next board: ${room.players[nextOwner]?.name ?? "next player"}`
+                ? `Ready for the next board: ${room.players[nextOwner]?.name ?? "next player"}` 
                 : "All boards are complete."}
             </p>
 
             <button
               className="btn btn--primary"
               onClick={async () => {
+                setAttempt("first");
                 setGuess({});
                 await advanceCloverBoard(roomCode);
               }}
@@ -474,10 +443,14 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               <button
                 className="btn btn--primary"
                 onClick={() => {
+                  if (!confirmingBoard) {
+                    setConfirmingBoard(true);
+                    return;
+                  }
                   handleLockBoard();
                 }}
               >
-                Lock board
+                {confirmingBoard ? "Are you sure?" : "Lock board"}
               </button>
             </div>
           </div>
@@ -485,17 +458,8 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
         {game.status === "guessing" && currentBoard && (
           <div className="clover-panel">
-            <h3>
-              {isBoardOwner
-                ? `Viewing ${room.players[currentOwner]?.name ?? "the owner"}'s board`
-                : `Guessing ${room.players[currentOwner]?.name ?? "the owner"}'s board`}
-            </h3>
-
-            <p>
-              {isBoardOwner
-                ? "You are viewing the shared guess board."
-                : `Attempt: ${((currentBoard as any).guessAttempts ?? 0) < 2 ? "First try" : "Last attempt"}`}
-            </p>
+            <h3>Guessing {room.players[currentOwner]?.name ?? "the owner"}'s board</h3>
+            <p>Attempt: {attempt === "first" ? "First try" : "Second try"}</p>
 
             {renderBoardGrid({
               placedMap: guess,
@@ -504,21 +468,17 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               mode: "guess",
             })}
 
-            {!isBoardOwner && (
-              <>
-                {renderTileTray({
-                  tiles: guessTrayTiles.filter((tile) => !guess[tile.id]),
-                  onRotate: handleRotateGuessTile,
-                  mode: "guess",
-                })}
+            {renderTileTray({
+              tiles: currentBoard.tiles.filter((tile) => !guess[tile.id]),
+              onRotate: handleRotateGuessTile,
+              mode: "guess",
+            })}
 
-                <div style={{ marginTop: "1rem" }}>
-                  <button className="btn btn--primary" onClick={handleSubmitGuess}>
-                    {(currentBoard as any).guessAttempts >= 2 ? "Lock final guess" : "Lock board"}
-                  </button>
-                </div>
-              </>
-            )}
+            <div style={{ marginTop: "1rem" }}>
+              <button className="btn btn--primary" onClick={handleSubmitGuess}>
+                {attempt === "first" ? "Lock first guess" : "Lock second guess"}
+              </button>
+            </div>
           </div>
         )}
       </div>

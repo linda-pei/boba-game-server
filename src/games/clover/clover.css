@@ -271,14 +271,14 @@
 }
 
 .clover-edge-field--right {
-  right: -10rem;
+  right: -20rem;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-edge-field--bottom {
   left: 50%;
-  bottom: -1rem;
+  bottom: -2rem;
   transform: translateX(-50%);
 }
 
@@ -416,4 +416,31 @@
   background: var(--clover-slot-bg);
   border-color: var(--clover-border);
   color: var(--clover-ink-soft);
+}
+
+[data-theme="dark"] .clover-square-tile {
+  background: linear-gradient(180deg, #2d2119 0%, #1d1713 100%);
+  border-color: var(--clover-border-strong);
+  color: var(--clover-ink);
+}
+
+[data-theme="dark"] .clover-word {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--clover-ink);
+}
+
+[data-theme="dark"] .clover-edge-field input {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--clover-border);
+  color: var(--clover-ink);
+}
+
+.clover-board-grid-wrap {
+  position: relative;
+  width: var(--clover-board-size);
+  height: var(--clover-board-size);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 4rem 4.4rem 4.8rem;
+  box-sizing: border-box;
 }

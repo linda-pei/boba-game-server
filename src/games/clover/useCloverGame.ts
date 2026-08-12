@@ -12,33 +12,6 @@ import {
 import { db } from "../../firebase";
 import type { CloverGame, CloverBoard, Room } from "../../types";
 import { generateCloverTiles } from "./tileDeck";
-import { CLOVER_WORD_BANK } from "./words";
-
-type CloverPlacement = { slot: number; rotation: number };
-type CloverPlacementMap = Record<string, CloverPlacement>;
-
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function makeDecoyTile(excludedWords: string[]) {
-  const available = CLOVER_WORD_BANK.filter((word) => !excludedWords.includes(word));
-  const word = available[Math.floor(Math.random() * available.length)] ?? "mystery";
-  return {
-    id: `decoy-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    edges: [
-      word,
-      available[Math.floor(Math.random() * available.length)] ?? "focus",
-      available[Math.floor(Math.random() * available.length)] ?? "skill",
-      available[Math.floor(Math.random() * available.length)] ?? "route",
-    ] as [string, string, string, string],
-  };
-}
 
 export function useCloverGame(roomCode: string | undefined) {
   const [game, setGame] = useState<CloverGame | null>(null);
@@ -72,11 +45,10 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
   const playerUids = Object.keys(room.players);
   const turnOrder = [...playerUids].sort(() => Math.random() - 0.5);
 
-  const boards: Record<string, CloverBoard & { decoyTile?: any; sharedGuess?: CloverPlacementMap; guessAttempts?: number }> = {};
+  const boards: Record<string, CloverBoard> = {};
 
   for (const uid of playerUids) {
     const tiles = generateCloverTiles(4);
-    const excludedWords = tiles.flatMap((tile) => tile.edges);
 
     boards[uid] = {
       ownerUid: uid,
@@ -87,13 +59,10 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
       scored: false,
       firstGuess: null,
       secondGuess: null,
-      decoyTile: makeDecoyTile(excludedWords),
-      sharedGuess: {},
-      guessAttempts: 0,
     };
   }
 
-  const gameDoc: CloverGame & { boards: Record<string, any> } = {
+  const gameDoc: CloverGame = {
     gameType: "clover",
     status: "board-lock",
     round: 1,
@@ -122,7 +91,7 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
 export async function submitCloverBoard(
   roomCode: string,
   uid: string,
-  placements: Record<string, CloverPlacement>,
+  placements: Record<string, { slot: number; rotation: number }>,
   edgeWords: [string, string, string, string]
 ) {
   const gameRef = doc(db, "games", roomCode);
@@ -133,15 +102,13 @@ export async function submitCloverBoard(
     [`boards.${uid}.locked`]: true,
     [`boards.${uid}.firstGuess`]: null,
     [`boards.${uid}.secondGuess`]: null,
-    [`boards.${uid}.sharedGuess`]: {},
-    [`boards.${uid}.guessAttempts`]: 0,
     lastAction: `${uid} locked their Clover board`,
   });
 
   const snap = await getDoc(gameRef);
   if (!snap.exists()) return;
 
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
+  const game = snap.data() as CloverGame;
   const allLocked = Object.values(game.boards).every((board) => board.locked);
 
   if (allLocked) {
@@ -156,8 +123,8 @@ export async function submitCloverBoard(
 }
 
 export function compareCloverGuess(
-  original: CloverPlacementMap,
-  guess: CloverPlacementMap
+  original: Record<string, { slot: number; rotation: number }>,
+  guess: Record<string, { slot: number; rotation: number }>
 ): number {
   let correct = 0;
 
@@ -178,93 +145,17 @@ export function compareCloverGuess(
   return correct;
 }
 
-export async function submitSharedCloverGuess(
-  roomCode: string,
-  ownerUid: string,
-  guess: CloverPlacementMap
-): Promise<void> {
-  const gameRef = doc(db, "games", roomCode);
-  const snap = await getDoc(gameRef);
-
-  if (!snap.exists()) return;
-
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
-  const board = game.boards[ownerUid];
-  const currentAttempts = Number(board?.guessAttempts ?? 0);
-
-  await updateDoc(gameRef, {
-    [`boards.${ownerUid}.sharedGuess`]: guess,
-    [`boards.${ownerUid}.guessAttempts`]: currentAttempts + 1,
-    lastAction: `Shared guess updated for ${ownerUid}`,
-  });
-}
-
-export async function lockSharedCloverGuess(
-  roomCode: string,
-  ownerUid: string,
-  guess: CloverPlacementMap
-): Promise<void> {
-  const gameRef = doc(db, "games", roomCode);
-  const snap = await getDoc(gameRef);
-
-  if (!snap.exists()) return;
-
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
-  const board = game.boards[ownerUid];
-  const original = board?.placements ?? {};
-  const correctTiles = compareCloverGuess(original, guess);
-  const attemptNumber = Number(board?.guessAttempts ?? 0);
-
-  const isPerfect = correctTiles === 4;
-  const isFinalAttempt = attemptNumber >= 2;
-
-  if (isPerfect) {
-    await updateDoc(gameRef, {
-      teamScore: (game.teamScore ?? 0) + 6,
-      [`boards.${ownerUid}.sharedGuess`]: guess,
-      [`boards.${ownerUid}.scored`]: true,
-      [`boards.${ownerUid}.firstGuess`]: guess,
-      [`boards.${ownerUid}.secondGuess`]: guess,
-      lastBoardOwner: ownerUid,
-      lastBoardScore: 6,
-      status: "round-end",
-      lastAction: `ALL CORRECT! PERFECT SCORE OF 6!`,
-    });
-    return;
-  }
-
-  if (isFinalAttempt) {
-    await updateDoc(gameRef, {
-      teamScore: (game.teamScore ?? 0) + correctTiles,
-      [`boards.${ownerUid}.sharedGuess`]: guess,
-      [`boards.${ownerUid}.secondGuess`]: guess,
-      [`boards.${ownerUid}.scored`]: true,
-      lastBoardOwner: ownerUid,
-      lastBoardScore: correctTiles,
-      status: "round-end",
-      lastAction: `WRONG! SCORED ${correctTiles}`,
-    });
-    return;
-  }
-
-  await updateDoc(gameRef, {
-    [`boards.${ownerUid}.sharedGuess`]: guess,
-    [`boards.${ownerUid}.firstGuess`]: guess,
-    lastAction: `LAST ATTEMPT AT GUESSING ${ownerUid} BOARD`,
-  });
-}
-
 export async function submitCloverFirstGuess(
   roomCode: string,
   ownerUid: string,
-  guess: CloverPlacementMap
+  guess: Record<string, { slot: number; rotation: number }>
 ): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
   const snap = await getDoc(gameRef);
 
   if (!snap.exists()) return;
 
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
+  const game = snap.data() as CloverGame;
   const original = game.boards[ownerUid]?.placements ?? {};
   const correctTiles = compareCloverGuess(original, guess);
 
@@ -292,14 +183,14 @@ export async function submitCloverFirstGuess(
 export async function submitCloverSecondGuess(
   roomCode: string,
   ownerUid: string,
-  guess: CloverPlacementMap
+  guess: Record<string, { slot: number; rotation: number }>
 ): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
   const snap = await getDoc(gameRef);
 
   if (!snap.exists()) return;
 
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
+  const game = snap.data() as CloverGame;
   const original = game.boards[ownerUid]?.placements ?? {};
   const correctTiles = compareCloverGuess(original, guess);
 
@@ -320,7 +211,7 @@ export async function advanceCloverBoard(roomCode: string) {
 
   if (!snap.exists()) return;
 
-  const game = snap.data() as CloverGame & { boards: Record<string, any> };
+  const game = snap.data() as CloverGame;
 
   const nextOwner =
     game.boardOrder.find((uid) => !game.boards[uid]?.scored) ?? null;
@@ -349,7 +240,7 @@ export function getCloverScoreSummary(playerCount: number, score: number) {
   const thresholds: Record<number, Array<{ min: number; max: number | null; label: string }>> = {
     2: [
       { min: 12, max: 12, label: "PERFECT SCORE" },
-      { min: 10, max: 11, label: "LEGENDARY" },
+      { min: 10,  max: 11, label: "LEGENDARY" },
       { min: 8, max: 9, label: "GREAT GAME" },
       { min: 6, max: 7, label: "AVERAGE" },
       { min: 0, max: 5, label: "ROOM FOR GROWTH" },
@@ -390,7 +281,7 @@ export function getCloverScoreSummary(playerCount: number, score: number) {
 
 export async function resetCloverGame(roomCode: string) {
   const handsSnap = await getDocs(collection(db, "games", roomCode, "hands"));
-  await Promise.all(handsSnap.docs.map((handDoc: { ref: any }) => deleteDoc(handDoc.ref)));
+  await Promise.all(handsSnap.docs.map((handDoc: { ref: any; }) => deleteDoc(handDoc.ref)));
 
   await deleteDoc(doc(db, "games", roomCode));
   await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
