@@ -1,5 +1,5 @@
 import "./clover.css";
-import { useEffect, useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import { shuffled } from "../../utils/shuffle";
@@ -62,6 +62,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const [guess, setGuess] = useState<PlacementMap>({});
   const [placements, setPlacements] = useState<PlacementMap>({});
   const [edgeWords, setEdgeWords] = useState<[string, string, string, string]>(["", "", "", ""]);
+  const [confirmingBoard, setConfirmingBoard] = useState(false);
 
   useEffect(() => {
     if (!game || !uid) return;
@@ -111,11 +112,11 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const handleLockBoard = async () => {
     if (!uid || Object.keys(placements).length !== 4) return;
     await submitCloverBoard(roomCode, uid, placements, edgeWords);
+    setConfirmingBoard(false);
   };
 
   const handlePlaceGuessTile = (tileId: string, slot: number) => {
     if (!uid || isBoardOwner) return;
-
     const nextGuess = moveTileToSlot(guess, tileId, slot);
     setGuess(nextGuess);
     void submitSharedCloverGuess(roomCode, currentOwner, nextGuess);
@@ -123,7 +124,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
   const handleRotateGuessTile = (tileId: string) => {
     if (!uid || isBoardOwner) return;
-
     setGuess((prev) => {
       const current = prev[tileId] ?? { slot: 0, rotation: 0 };
       const next = {
@@ -145,7 +145,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     }
 
     if (isBoardOwner) return;
-
     setGuess((prev) => {
       const next = removeTileFromMap(prev, tileId);
       void submitSharedCloverGuess(roomCode, currentOwner, next);
@@ -153,7 +152,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     });
   };
 
-  const handleDragStart = (event: DragEvent<HTMLElement>, tileId: string) => {
+  const handleDragStart = (event: React.DragEvent<HTMLElement>, tileId: string) => {
     event.dataTransfer.setData("text/plain", tileId);
     event.dataTransfer.effectAllowed = "move";
   };
@@ -161,6 +160,13 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const handleSubmitGuess = async () => {
     if (!uid || !currentBoard || isBoardOwner) return;
     if (Object.keys(guess).length !== 4) return;
+
+    const currentAttempts = Number((currentBoard as any).guessAttempts ?? 0);
+
+    if (currentAttempts < 2) {
+      await lockSharedCloverGuess(roomCode, currentOwner, guess);
+      return;
+    }
 
     await lockSharedCloverGuess(roomCode, currentOwner, guess);
   };
@@ -234,7 +240,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     return (
       <div
         key={tile.id}
-        draggable
+        draggable={!isBoardOwner}
         onDragStart={(event) => handleDragStart(event, tile.id)}
         className={`clover-square-tile ${isInTray ? "clover-hand-tile" : ""}`}
       >
@@ -302,7 +308,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
                       return (
                         <div
-                          draggable
+                          draggable={!isBoardOwner}
                           onDragStart={(event) => handleDragStart(event, tileId)}
                           className="clover-placed-tile"
                         >
@@ -419,7 +425,9 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
           <div className="clover-panel">
             <h3>Board resolved</h3>
-            <p>{game.lastAction ?? "Board resolved."}</p>
+            <p>
+              {game.lastAction ?? "Board resolved."}
+            </p>
             <p>
               {nextOwner
                 ? `Ready for the next board: ${room.players[nextOwner]?.name ?? "next player"}`
@@ -490,7 +498,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             <h3>
               {isBoardOwner
                 ? `Viewing ${room.players[currentOwner]?.name ?? "the owner"}'s board`
-                : `Guessing ${room.players[currentOwner]?.name ?? "the owner"}'s board`}
+                : `Guessing ${room.players[currentOwner]?.name ?? "the owner"}'s board`} 
             </h3>
 
             <p>
