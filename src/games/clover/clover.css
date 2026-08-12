@@ -210,6 +210,7 @@
 
 .clover-rotate-button:hover {
   background-color: color-mix(in srgb, var(--accent-primary) 80%, white);
+  transform: translate(-50%, -50%);
 }
 
 .clover-edge-inputs {
@@ -258,7 +259,7 @@
 }
 
 .clover-edge-field--right {
-  right: -2.2rem;
+  right: 10rem;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -270,7 +271,7 @@
 }
 
 .clover-edge-field--left {
-  left: -5rem;
+  left: -10rem;
   top: 50%;
   transform: translateY(-50%);
 }
