@@ -2,7 +2,6 @@ import "./clover.css";
 import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
-import { shuffled } from "../../utils/shuffle";
 import {
   advanceCloverBoard,
   getCloverScoreSummary,
@@ -335,7 +334,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     const base = [...(currentBoard.tiles ?? [])];
     const decoy = currentBoard.decoyTile ? { ...currentBoard.decoyTile } : null;
     if (decoy) base.push(decoy);
-    return shuffled(base);
+    return shuffle(base);
   }, [currentBoard]);
 
   const renderTileTray = ({
