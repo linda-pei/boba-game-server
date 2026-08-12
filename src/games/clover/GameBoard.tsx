@@ -118,7 +118,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     event.dataTransfer.effectAllowed = "move";
   };
 
-  const renderTileCard = ({
+  const renderSquareTile = ({
     tile,
     onRotate,
     onClear,
@@ -129,16 +129,60 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     onClear?: (tileId: string) => void;
     isPlaced?: boolean;
   }) => {
+    const rotation = placements[tile.id]?.rotation ?? 0;
+
     return (
       <div
         key={tile.id}
         draggable
         onDragStart={(event) => handleDragStart(event, tile.id)}
-        className="clover-tile-card"
+        className="clover-square-tile"
       >
-        <div className="clover-tile-top">
-          <span className="clover-tile-id">{tile.id}</span>
+        <div
+          className="clover-word-layer"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+          }}
+        >
+          <div className="clover-word clover-word--top">{tile.edges[0]}</div>
+          <div className="clover-word clover-word--right">{tile.edges[1]}</div>
+          <div className="clover-word clover-word--bottom">{tile.edges[2]}</div>
+          <div className="clover-word clover-word--left">{tile.edges[3]}</div>
+        </div>
 
+        <div className="clover-input clover-input--top">
+          <input
+            value={edgeWords[0]}
+            onChange={(e) => handleBoardWordChange(0, e.target.value)}
+            aria-label="Top edge association"
+          />
+        </div>
+
+        <div className="clover-input clover-input--right">
+          <input
+            value={edgeWords[1]}
+            onChange={(e) => handleBoardWordChange(1, e.target.value)}
+            aria-label="Right edge association"
+          />
+        </div>
+
+        <div className="clover-input clover-input--bottom">
+          <input
+            value={edgeWords[2]}
+            onChange={(e) => handleBoardWordChange(2, e.target.value)}
+            aria-label="Bottom edge association"
+          />
+        </div>
+
+        <div className="clover-input clover-input--left">
+          <input
+            value={edgeWords[3]}
+            onChange={(e) => handleBoardWordChange(3, e.target.value)}
+            aria-label="Left edge association"
+          />
+        </div>
+
+        <div className="clover-square-tile__actions">
           {onClear && (
             <button
               type="button"
@@ -151,23 +195,15 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               Clear
             </button>
           )}
-        </div>
 
-        <div className="clover-tile-edges">
-          {tile.edges.map((edge, index) => (
-            <span key={`${tile.id}-${index}`} className="clover-edge-chip">
-              {edge}
-            </span>
-          ))}
+          <button
+            type="button"
+            className="btn btn--secondary btn--sm"
+            onClick={() => onRotate(tile.id)}
+          >
+            Rotate
+          </button>
         </div>
-
-        <button
-          type="button"
-          className="btn btn--secondary btn--sm clover-rotate-btn"
-          onClick={() => onRotate(tile.id)}
-        >
-          {isPlaced ? "Rotate tile" : "Rotate"}
-        </button>
       </div>
     );
   };
@@ -222,7 +258,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                       className="clover-placed-tile"
                       style={rotateStyle}
                     >
-                      {renderTileCard({
+                      {renderSquareTile({
                         tile,
                         onRotate: onRotateTile,
                         onClear: onClearTile,
@@ -347,20 +383,11 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               onClearTile: handleBoardRemoveTile,
             })}
 
-            <div className="clover-edge-words">
-              {edgeWords.map((word, index) => (
-                <label key={index}>
-                  Edge {index + 1}
-                  <input value={word} onChange={(e) => handleBoardWordChange(index, e.target.value)} />
-                </label>
-              ))}
-            </div>
-
             <div className="clover-tile-list">
               {myBoard.tiles
                 .filter((tile) => !placements[tile.id])
                 .map((tile) =>
-                  renderTileCard({
+                  renderSquareTile({
                     tile,
                     onRotate: handleBoardRotateTile,
                     onClear: undefined,
@@ -402,7 +429,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               {currentBoard.tiles
                 .filter((tile) => !guess[tile.id])
                 .map((tile) =>
-                  renderTileCard({
+                  renderSquareTile({
                     tile,
                     onRotate: handleRotateGuessTile,
                     onClear: undefined,

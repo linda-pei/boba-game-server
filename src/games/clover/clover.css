@@ -48,13 +48,15 @@
 
 .clover-board-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
   gap: 0.75rem;
   margin: 1rem 0;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
 }
 
 .clover-slot {
-  min-height: 170px;
+  min-height: 160px;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -98,83 +100,126 @@
   padding: 0;
 }
 
-.clover-tile-card {
+.clover-square-tile {
+  position: relative;
   width: 100%;
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border-strong);
   border-radius: var(--r-3);
   box-shadow: var(--shadow-sticker);
-  padding: 0.8rem;
-  text-align: left;
-  transition: transform 0.18s var(--ease-spring), box-shadow 0.18s;
+  overflow: hidden;
 }
 
-.clover-tile-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 4px 4px 0 var(--border-strong);
+.clover-word-layer {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  transition: transform 0.2s ease;
 }
 
-.clover-tile-top {
+.clover-word {
+  position: absolute;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.clover-tile-id {
-  display: inline-block;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.72rem;
+  justify-content: center;
+  text-align: center;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--ink-soft);
+  font-size: 0.76rem;
+  line-height: 1.1;
+  color: var(--ink);
+  padding: 0.12rem 0.3rem;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.clover-tile-edges {
+.clover-word--top,
+.clover-word--bottom {
+  left: 20%;
+  right: 20%;
+  height: 22%;
+}
+
+.clover-word--top {
+  top: 0;
+}
+
+.clover-word--bottom {
+  bottom: 0;
+}
+
+.clover-word--left,
+.clover-word--right {
+  top: 20%;
+  bottom: 20%;
+  width: 22%;
+}
+
+.clover-word--left {
+  left: 0;
+}
+
+.clover-word--right {
+  right: 0;
+}
+
+.clover-input {
+  position: absolute;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
 }
 
-.clover-edge-chip {
-  background: var(--surface-2);
+.clover-input input {
+  width: 100%;
+  min-width: 70px;
+  height: 2rem;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 0.25rem 0.55rem;
-  font-weight: 600;
-  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.7);
   color: var(--ink);
+  text-align: center;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  outline: none;
 }
 
-.clover-rotate-btn {
-  margin-top: auto;
+.clover-input--top {
+  left: 50%;
+  top: 26%;
+  transform: translateX(-50%);
+  width: 30%;
 }
 
-.clover-edge-words {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
+.clover-input--bottom {
+  left: 50%;
+  bottom: 26%;
+  transform: translateX(-50%);
+  width: 30%;
 }
 
-.clover-edge-words label {
+.clover-input--left {
+  left: 26%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30%;
+}
+
+.clover-input--right {
+  right: 26%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30%;
+}
+
+.clover-square-tile__actions {
+  position: absolute;
+  left: 50%;
+  bottom: 0.5rem;
+  transform: translateX(-50%);
   display: flex;
-  flex-direction: column;
   gap: 0.35rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-  text-align: left;
-}
-
-.clover-edge-words input {
-  width: 100%;
+  z-index: 3;
 }
 
 .clover-tile-list {
@@ -185,8 +230,7 @@
 }
 
 @media (max-width: 620px) {
-  .clover-board-grid,
-  .clover-edge-words {
+  .clover-board-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -196,8 +240,7 @@
 }
 
 @media (max-width: 420px) {
-  .clover-board-grid,
-  .clover-edge-words {
+  .clover-board-grid {
     grid-template-columns: 1fr;
   }
 
@@ -206,19 +249,15 @@
   }
 }
 
-/* Dark mode override for Clover */
+/* Dark mode */
 [data-theme="dark"] .screen.clover-screen {
   --clover-bg: #17110d;
-  --clover-surface: #201914;
-  --clover-surface-2: #2a1f18;
   --clover-panel: #271e17;
   --clover-border: #4d3929;
   --clover-border-strong: #8d6a46;
   --clover-ink: #f3e6cb;
   --clover-ink-soft: #d7be8c;
-  --clover-chip-bg: #35281d;
   --clover-slot-bg: #241b15;
-  --clover-slot-shadow: rgba(0, 0, 0, 0.26);
   background: var(--clover-bg);
   color: var(--clover-ink);
 }
@@ -242,64 +281,27 @@
 [data-theme="dark"] .clover-status-box {
   background: rgba(236, 124, 90, 0.12);
   border-color: rgba(236, 124, 90, 0.45);
-  color: var(--clover-ink);
 }
 
 [data-theme="dark"] .clover-slot {
   background: var(--clover-slot-bg);
   border-color: var(--clover-border);
   color: var(--clover-ink-soft);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 1px 8px var(--clover-slot-shadow);
 }
 
-[data-theme="dark"] .clover-slot-empty {
-  color: var(--clover-ink-soft);
-}
-
-[data-theme="dark"] .clover-tile-card {
+[data-theme="dark"] .clover-square-tile {
   background: linear-gradient(180deg, #2d2119 0%, #1d1713 100%);
   border-color: var(--clover-border-strong);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.26);
   color: var(--clover-ink);
 }
 
-[data-theme="dark"] .clover-tile-id,
-[data-theme="dark"] .clover-edge-chip {
-  background: var(--clover-chip-bg);
+[data-theme="dark"] .clover-word {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--clover-ink);
+}
+
+[data-theme="dark"] .clover-input input {
+  background: rgba(255, 255, 255, 0.06);
   border-color: var(--clover-border);
-  color: var(--clover-ink);
-}
-
-[data-theme="dark"] .clover-edge-words label {
-  color: var(--clover-ink-soft);
-}
-
-[data-theme="dark"] .clover-edge-words input {
-  background: var(--clover-surface-2);
-  color: var(--clover-ink);
-  border: 1px solid var(--clover-border);
-  border-radius: var(--r-2);
-}
-
-[data-theme="dark"] .clover-slot:hover {
-  border-color: var(--accent-primary);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(236, 124, 90, 0.18);
-}
-
-[data-theme="dark"] .clover-tile-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.32);
-}
-
-[data-theme="dark"] .btn.btn--secondary,
-[data-theme="dark"] .btn.btn--ghost,
-[data-theme="dark"] .btn.btn--primary {
-  color: #fff9f0;
-}
-
-[data-theme="dark"] .clover-tile-card .btn--secondary,
-[data-theme="dark"] .clover-tile-card .btn--ghost {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--clover-border);
   color: var(--clover-ink);
 }
