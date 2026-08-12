@@ -537,3 +537,45 @@ export interface StartupsGame {
 export interface StartupsHand {
   cards: StartupsCard[];
 }
+
+// ---- Clover types ----
+
+export interface CloverTile {
+  id: string;
+  edges: [string, string, string, string];
+}
+
+export interface CloverPlacement {
+  slot: number;
+  rotation: number;
+}
+
+export interface CloverBoard {
+  ownerUid: string;
+  tiles: CloverTile[];
+  placements: Record<string, CloverPlacement>;
+  edgeWords: [string, string, string, string];
+  locked: boolean;
+  scored: boolean;
+
+  // first try for this board
+  firstGuess?: Record<string, CloverPlacement> | null;
+
+  // second try for this board
+  secondGuess?: Record<string, CloverPlacement> | null;
+}
+
+export interface CloverGame {
+  gameType: "clover";
+  status: "board-lock" | "guessing" | "round-end" | "finished";
+  round: number;
+  turnOrder: string[];
+  currentBoardOwner: string | null;
+  boards: Record<string, CloverBoard>;
+  boardOrder: string[];
+  teamScore: number;
+  winner: string | null;
+  lastBoardOwner: string | null;
+  lastBoardScore: number | null;
+  lastAction: string | null;
+}

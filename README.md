@@ -9,6 +9,7 @@ Fun server for game time! Current games:
 * Take Time
 * Fruit Boss
 * Startups
+* Clover
 
 
 ## Prerequisites

@@ -11,6 +11,7 @@ import { startDeepSeaGame } from "../games/deep-sea/useDeepSeaGame";
 import { startTakeTimeGame } from "../games/take-time/useTakeTimeGame";
 import { startFruitBossGame } from "../games/fruit-boss/useFruitBossGame";
 import { startStartupsGame } from "../games/startups/useStartupsGame";
+import { startCloverGame } from "../games/clover/useCloverGame";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
@@ -67,6 +68,7 @@ export default function Lobby() {
   const isTakeTime = gameType === "take-time";
   const isFruitBoss = gameType === "fruit-boss";
   const isStartups = gameType === "startups";
+  const isClover = gameType === "clover";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -96,7 +98,12 @@ export default function Lobby() {
   // Startups-specific
   const canStartStartups = players.length >= 3 && players.length <= 6;
 
-  const canStart = isStartups
+  // Clover-specific
+  const canStartClover = players.length >= 3 && players.length <= 6;
+
+  const canStart = isClover
+    ? canStartClover 
+    : isStartups
     ? canStartStartups
     : isFruitBoss
     ? canStartFruitBoss
@@ -107,10 +114,10 @@ export default function Lobby() {
     : isScout
     ? canStartScout
     : isWerewords
-      ? canStartWerewords
-      : isOrderOverload
-        ? canStartOrderOverload
-        : canStartTIR;
+    ? canStartWerewords
+    : isOrderOverload
+    ? canStartOrderOverload
+    : canStartTIR;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -142,7 +149,9 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isStartups) {
+      if (isClover) {
+        await startCloverGame(roomCode, room);
+      } else if (isStartups) {
         await startStartupsGame(roomCode, room);
       } else if (isFruitBoss) {
         await startFruitBossGame(roomCode, room);
@@ -204,7 +213,7 @@ export default function Lobby() {
         <div className="game-selector">
           <label className="game-selector-label">Game</label>
           <div className="game-sticker-grid">
-            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups"] as const).map((id) => (
+            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover"] as const).map((id) => (
               <GameSticker
                 key={id}
                 game={GAME_ID_TO_KEY[id]}

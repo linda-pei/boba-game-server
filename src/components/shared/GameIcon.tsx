@@ -1,4 +1,4 @@
-export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su";
+export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover";
 
 export const GAME_META: Record<
   GameKey,
@@ -60,6 +60,13 @@ export const GAME_META: Record<
     players: "3–6 players",
     badge: "share holding",
   },
+  clover: {
+    id: "clover",
+    name: "Clover",
+    tagline: "Co-op word association. Rebuild the hidden pattern.",
+    players: "3–6 players",
+    badge: "co-op puzzle",
+  }
 };
 
 export const GAME_ID_TO_KEY: Record<string, GameKey> = {
@@ -71,6 +78,7 @@ export const GAME_ID_TO_KEY: Record<string, GameKey> = {
   "take-time": "tt",
   "fruit-boss": "fb",
   startups: "su",
+  clover: "clover",
 };
 
 interface Props {
@@ -240,6 +248,15 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <path d="M30 48 L30 70 M40 48 L40 70 M50 48 L50 70" fill="none" strokeWidth="1.8" />
           {/* Basket rim */}
           <path d="M12 48 L68 48 L66 52 L14 52 Z" fill="var(--syrup-500)" />
+        </svg>
+      );
+      case "clover":
+      return (
+        <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          <rect x="16" y="16" width="20" height="20" rx="4" fill="var(--accent-primary)" opacity="0.9" />
+          <rect x="44" y="16" width="20" height="20" rx="4" fill="var(--accent-secondary)" opacity="0.9" />
+          <rect x="16" y="44" width="20" height="20" rx="4" fill="var(--accent-danger)" opacity="0.9" />
+          <rect x="44" y="44" width="20" height="20" rx="4" fill="var(--accent-primary)" opacity="0.8" />
         </svg>
       );
   }

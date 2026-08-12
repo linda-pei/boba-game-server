@@ -9,6 +9,7 @@ import DeepSeaGameBoard from "../games/deep-sea/GameBoard";
 import TakeTimeGameBoard from "../games/take-time/GameBoard";
 import FruitBossGameBoard from "../games/fruit-boss/GameBoard";
 import StartupsGameBoard from "../games/startups/GameBoard";
+import CloverGameBoard from "../games/clover/GameBoard";
 import EmoteBar from "./shared/EmoteBar";
 import EmoteOverlay from "./shared/EmoteOverlay";
 import "./shared/emotes.css";
@@ -37,6 +38,8 @@ export default function GameRouter() {
     gameBoard = <FruitBossGameBoard roomCode={roomCode} />;
   } else if (room?.gameType === "startups") {
     gameBoard = <StartupsGameBoard roomCode={roomCode} />;
+  } else if (room?.gameType === "clover") {
+    gameBoard = <CloverGameBoard roomCode={roomCode} />;
   } else {
     gameBoard = <GameBoard roomCode={roomCode} />;
   }
