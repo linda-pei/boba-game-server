@@ -64,7 +64,7 @@ export const GAME_META: Record<
     id: "clover",
     name: "Clover",
     tagline: "Co-op word association. Rebuild the hidden pattern.",
-    players: "3–6 players",
+    players: "2–6 players",
     badge: "co-op puzzle",
   }
 };
