@@ -15,6 +15,19 @@ import ResignButton from "../../components/shared/ResignButton";
 
 const SLOT_ORDER = [0, 1, 2, 3];
 
+function rotateEdgeWordsClockwise(edges: string[]) {
+  return [edges[3], edges[0], edges[1], edges[2]];
+}
+
+function getDisplayedEdges(edges: string[], rotation: number) {
+  const turns = ((rotation % 360) / 90 + 4) % 4;
+  let next = [...edges];
+  for (let i = 0; i < turns; i += 1) {
+    next = rotateEdgeWordsClockwise(next);
+  }
+  return next as [string, string, string, string];
+}
+
 export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const { uid } = useAuthContext();
   const { room } = useRoom(roomCode);
@@ -111,6 +124,21 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     event.dataTransfer.effectAllowed = "move";
   };
 
+  const handleSubmitGuess = async () => {
+    if (!uid || !currentBoard) return;
+    if (Object.keys(guess).length !== 4) return;
+
+    if (attempt === "first") {
+      await submitCloverFirstGuess(roomCode, currentOwner, guess);
+      setAttempt("second");
+      return;
+    }
+
+    await submitCloverSecondGuess(roomCode, currentOwner, guess);
+    setAttempt("first");
+    setGuess({});
+  };
+
   const renderBoardEdgeInputs = () => (
     <div className="clover-edge-inputs">
       <label className="clover-edge-field clover-edge-field--top">
@@ -151,32 +179,31 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     </div>
   );
 
-  const renderSquareTile = ({
+  const renderTileBody = ({
     tile,
-    rotation = 0,
+    rotation,
     onRotate,
+    isInTray = false,
   }: {
     tile: { id: string; edges: string[] };
-    rotation?: number;
+    rotation: number;
     onRotate: (tileId: string) => void;
+    isInTray?: boolean;
   }) => {
+    const displayed = getDisplayedEdges(tile.edges, rotation);
+
     return (
       <div
         key={tile.id}
         draggable
         onDragStart={(event) => handleDragStart(event, tile.id)}
-        className="clover-square-tile clover-hand-tile"
+        className={`clover-square-tile ${isInTray ? "clover-hand-tile" : ""}`}
       >
-        <div
-          className="clover-word-layer"
-          style={{
-            transform: `rotate(${rotation}deg)`,
-          }}
-        >
-          <div className="clover-word clover-word--top">{tile.edges[0]}</div>
-          <div className="clover-word clover-word--right">{tile.edges[1]}</div>
-          <div className="clover-word clover-word--bottom">{tile.edges[2]}</div>
-          <div className="clover-word clover-word--left">{tile.edges[3]}</div>
+        <div className="clover-word-layer">
+          <div className="clover-word clover-word--top">{displayed[0]}</div>
+          <div className="clover-word clover-word--right">{displayed[1]}</div>
+          <div className="clover-word clover-word--bottom">{displayed[2]}</div>
+          <div className="clover-word clover-word--left">{displayed[3]}</div>
         </div>
 
         <div className="clover-square-tile__actions">
@@ -238,7 +265,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                           onClick={() => onRotateTile(tileId)}
                           className="clover-placed-tile"
                         >
-                          {renderSquareTile({
+                          {renderTileBody({
                             tile,
                             rotation,
                             onRotate: onRotateTile,
@@ -260,19 +287,37 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     );
   };
 
-  const handleSubmitGuess = async () => {
-    if (!uid || !currentBoard) return;
-    if (Object.keys(guess).length !== 4) return;
+  const renderTileTray = ({
+    tiles,
+    onRotate,
+  }: {
+    tiles: { id: string; edges: string[] }[];
+    onRotate: (tileId: string) => void;
+  }) => {
+    return (
+      <div className="clover-return-tray">
+        <div className="clover-return-tray__label">Tile tray</div>
+        <div className="clover-return-grid">
+          {tiles.map((tile) => {
+            const rotation = placements[tile.id]?.rotation ?? 0;
 
-    if (attempt === "first") {
-      await submitCloverFirstGuess(roomCode, currentOwner, guess);
-      setAttempt("second");
-      return;
-    }
-
-    await submitCloverSecondGuess(roomCode, currentOwner, guess);
-    setAttempt("first");
-    setGuess({});
+            return (
+              <div key={tile.id} className="clover-return-slot">
+                {renderTileBody({
+                  tile,
+                  rotation,
+                  onRotate,
+                  isInTray: true,
+                })}
+              </div>
+            );
+          })}
+          {Array.from({ length: Math.max(0, 5 - tiles.length) }).map((_, index) => (
+            <div key={`empty-${index}`} className="clover-return-slot clover-return-slot--empty" />
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (game.status === "finished") {
@@ -365,16 +410,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               onRotateTile: handleBoardRotateTile,
             })}
 
-            <div className="clover-tile-list">
-              {myBoard.tiles
-                .filter((tile) => !placements[tile.id])
-                .map((tile) =>
-                  renderSquareTile({
-                    tile,
-                    onRotate: handleBoardRotateTile,
-                  })
-                )}
-            </div>
+            {renderTileTray({
+              tiles: myBoard.tiles.filter((tile) => !placements[tile.id]),
+              onRotate: handleBoardRotateTile,
+            })}
 
             <div style={{ marginTop: "1rem" }}>
               <button
@@ -404,16 +443,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               onRotateTile: handleRotateGuessTile,
             })}
 
-            <div className="clover-tile-list">
-              {currentBoard.tiles
-                .filter((tile) => !guess[tile.id])
-                .map((tile) =>
-                  renderSquareTile({
-                    tile,
-                    onRotate: handleRotateGuessTile,
-                  })
-                )}
-            </div>
+            {renderTileTray({
+              tiles: currentBoard.tiles.filter((tile) => !guess[tile.id]),
+              onRotate: handleRotateGuessTile,
+            })}
 
             <div style={{ marginTop: "1rem" }}>
               <button className="btn btn--primary" onClick={handleSubmitGuess}>
