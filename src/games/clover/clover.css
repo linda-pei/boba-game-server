@@ -206,11 +206,23 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  z-index: 3;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.4rem 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.15s ease;
 }
 
 .clover-rotate-button:hover {
   background-color: color-mix(in srgb, var(--accent-primary) 80%, white);
-  transform: translate(-50%, -50%);
+  transform: none;
 }
 
 .clover-edge-inputs {
@@ -259,14 +271,14 @@
 }
 
 .clover-edge-field--right {
-  right: 10rem;
+  right: -20rem;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-edge-field--bottom {
   left: 50%;
-  bottom: -5rem;
+  bottom: -2rem;
   transform: translateX(-50%);
 }
 
