@@ -28,6 +28,36 @@ function getDisplayedEdges(edges: string[], rotation: number) {
   return next as [string, string, string, string];
 }
 
+function moveTileToSlot(
+  map: Record<string, { slot: number; rotation: number }>,
+  tileId: string,
+  slot: number
+) {
+  const next = { ...map };
+
+  const currentOccupant = Object.entries(next).find(([, value]) => value.slot === slot)?.[0];
+  if (currentOccupant && currentOccupant !== tileId) {
+    delete next[currentOccupant];
+  }
+
+  const existing = next[tileId];
+  next[tileId] = {
+    slot,
+    rotation: existing?.rotation ?? 0,
+  };
+
+  return next;
+}
+
+function removeTileFromMap(
+  map: Record<string, { slot: number; rotation: number }>,
+  tileId: string
+) {
+  const next = { ...map };
+  delete next[tileId];
+  return next;
+}
+
 export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const { uid } = useAuthContext();
   const { room } = useRoom(roomCode);
@@ -52,14 +82,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   ) => Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
 
   const handleBoardPlaceTile = (tileId: string, slot: number) => {
-    if (Object.values(placements).some((value) => value.slot === slot)) return;
-    setPlacements((prev) => ({
-      ...prev,
-      [tileId]: {
-        slot,
-        rotation: prev[tileId]?.rotation ?? 0,
-      },
-    }));
+    setPlacements((prev) => moveTileToSlot(prev, tileId, slot));
   };
 
   const handleBoardRotateTile = (tileId: string) => {
@@ -73,6 +96,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
         },
       };
     });
+  };
+
+  const handleBoardRemoveTile = (tileId: string) => {
+    setPlacements((prev) => removeTileFromMap(prev, tileId));
   };
 
   const handleBoardWordChange = (index: number, value: string) => {
@@ -90,14 +117,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   };
 
   const handlePlaceGuessTile = (tileId: string, slot: number) => {
-    if (Object.values(guess).some((value) => value.slot === slot)) return;
-    setGuess((prev) => ({
-      ...prev,
-      [tileId]: {
-        slot,
-        rotation: prev[tileId]?.rotation ?? 0,
-      },
-    }));
+    setGuess((prev) => moveTileToSlot(prev, tileId, slot));
   };
 
   const handleRotateGuessTile = (tileId: string) => {
@@ -114,11 +134,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   };
 
   const handleRemoveGuessTile = (tileId: string) => {
-    setGuess((prev) => {
-      const next = { ...prev };
-      delete next[tileId];
-      return next;
-    });
+    setGuess((prev) => removeTileFromMap(prev, tileId));
   };
 
   const handleDragStart = (event: React.DragEvent<HTMLElement>, tileId: string) => {
@@ -139,6 +155,15 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     await submitCloverSecondGuess(roomCode, currentOwner, guess);
     setAttempt("first");
     setGuess({});
+  };
+
+  const handleReturnToTray = (tileId: string, mode: "board" | "guess") => {
+    if (mode === "board") {
+      setPlacements((prev) => removeTileFromMap(prev, tileId));
+      return;
+    }
+
+    setGuess((prev) => removeTileFromMap(prev, tileId));
   };
 
   const renderBoardEdgeInputs = () => (
@@ -208,15 +233,13 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           <div className="clover-word clover-word--left">{displayed[3]}</div>
         </div>
 
-        <div className="clover-square-tile__actions">
-          <button
-            type="button"
-            className="btn btn--secondary btn--sm"
-            onClick={() => onRotate(tile.id)}
-          >
-            Rotate
-          </button>
-        </div>
+        <button
+          type="button"
+          className="clover-rotate-button"
+          onClick={() => onRotate(tile.id)}
+        >
+          Rotate
+        </button>
       </div>
     );
   };
@@ -225,10 +248,12 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     placedMap,
     onDropTile,
     onRotateTile,
+    mode,
   }: {
     placedMap: Record<string, { slot: number; rotation: number }>;
     onDropTile: (tileId: string, slot: number) => void;
     onRotateTile: (tileId: string) => void;
+    mode: "board" | "guess";
   }) => {
     return (
       <div className="clover-board-stage">
@@ -246,7 +271,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                     event.preventDefault();
                     const droppedId = event.dataTransfer.getData("text/plain");
                     if (!droppedId) return;
-                    if (Object.values(placedMap).some((value) => value.slot === slot)) return;
                     onDropTile(droppedId, slot);
                   }}
                 >
@@ -283,7 +307,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             })}
           </div>
 
-          {onDropTile === handleBoardPlaceTile && renderBoardEdgeInputs()}
+          {mode === "board" && renderBoardEdgeInputs()}
         </div>
       </div>
     );
@@ -292,16 +316,27 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const renderTileTray = ({
     tiles,
     onRotate,
+    mode,
   }: {
     tiles: { id: string; edges: string[] }[];
     onRotate: (tileId: string) => void;
+    mode: "board" | "guess";
   }) => {
     return (
-      <div className="clover-return-tray">
+      <div
+        className="clover-return-tray"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const droppedId = event.dataTransfer.getData("text/plain");
+          if (!droppedId) return;
+          handleReturnToTray(droppedId, mode);
+        }}
+      >
         <div className="clover-return-tray__label">Tile tray</div>
         <div className="clover-return-grid">
           {tiles.map((tile) => {
-            const rotation = placements[tile.id]?.rotation ?? 0;
+            const rotation = (mode === "board" ? placements[tile.id]?.rotation : guess[tile.id]?.rotation) ?? 0;
 
             return (
               <div key={tile.id} className="clover-return-slot">
@@ -314,6 +349,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               </div>
             );
           })}
+
           {Array.from({ length: Math.max(0, 5 - tiles.length) }).map((_, index) => (
             <div key={`empty-${index}`} className="clover-return-slot clover-return-slot--empty" />
           ))}
@@ -410,11 +446,13 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               placedMap: placements,
               onDropTile: handleBoardPlaceTile,
               onRotateTile: handleBoardRotateTile,
+              mode: "board",
             })}
 
             {renderTileTray({
               tiles: myBoard.tiles.filter((tile) => !placements[tile.id]),
               onRotate: handleBoardRotateTile,
+              mode: "board",
             })}
 
             <div style={{ marginTop: "1rem" }}>
@@ -443,11 +481,13 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               placedMap: guess,
               onDropTile: handlePlaceGuessTile,
               onRotateTile: handleRotateGuessTile,
+              mode: "guess",
             })}
 
             {renderTileTray({
               tiles: currentBoard.tiles.filter((tile) => !guess[tile.id]),
               onRotate: handleRotateGuessTile,
+              mode: "guess",
             })}
 
             <div style={{ marginTop: "1rem" }}>
