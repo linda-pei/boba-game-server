@@ -17,18 +17,10 @@ import { CLOVER_WORD_BANK } from "./words";
 type CloverPlacement = { slot: number; rotation: number };
 type CloverPlacementMap = Record<string, CloverPlacement>;
 
-function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
 function makeDecoyTile(excludedWords: string[]) {
   const available = CLOVER_WORD_BANK.filter((word) => !excludedWords.includes(word));
   const word = available[Math.floor(Math.random() * available.length)] ?? "mystery";
+
   return {
     id: `decoy-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     edges: [
@@ -116,7 +108,10 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
     });
   }
 
-  await updateDoc(doc(db, "rooms", roomCode), { status: "in-progress" });
+  await updateDoc(doc(db, "rooms", roomCode), {
+    gameType: "clover",
+    status: "in-progress",
+  });
 }
 
 export async function submitCloverBoard(
@@ -390,7 +385,7 @@ export function getCloverScoreSummary(playerCount: number, score: number) {
 
 export async function resetCloverGame(roomCode: string) {
   const handsSnap = await getDocs(collection(db, "games", roomCode, "hands"));
-  await Promise.all(handsSnap.docs.map((handDoc: { ref: any }) => deleteDoc(handDoc.ref)));
+  await Promise.all(handsSnap.docs.map((handDoc) => deleteDoc(handDoc.ref)));
 
   await deleteDoc(doc(db, "games", roomCode));
   await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
