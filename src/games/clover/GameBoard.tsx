@@ -484,12 +484,21 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           </div>
         )}
 
+        {game.status === "board-lock" && !myBoard && (
+          <div className="clover-panel">
+            <h3>Waiting for board setup</h3>
+            <p>
+              {room.players[currentOwner]?.name ?? "The board owner"} is building their Clover board.
+            </p>
+          </div>
+        )}
+
         {game.status === "guessing" && currentBoard && (
           <div className="clover-panel">
             <h3>
               {isBoardOwner
                 ? `Viewing ${room.players[currentOwner]?.name ?? "the owner"}'s board`
-                : `Guessing ${room.players[currentOwner]?.name ?? "the owner"}'s board`}
+                : `Guessing ${room.players[currentOwner]?.name ?? "the owner"}'s board`} 
             </h3>
 
             <p>
