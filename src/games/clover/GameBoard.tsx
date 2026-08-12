@@ -33,9 +33,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const currentBoard = game.boards[currentOwner];
   const myBoard = uid ? game.boards[uid] : undefined;
 
-  const getTileForSlot = (slotMap: Record<string, { slot: number; rotation: number }>, slot: number) => {
-    return Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
-  };
+  const getTileForSlot = (
+    slotMap: Record<string, { slot: number; rotation: number }>,
+    slot: number
+  ) => Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
 
   const handleBoardPlaceTile = (tileId: string, slot: number) => {
     setPlacements((prev) => ({
@@ -57,14 +58,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           rotation: (current.rotation + 90) % 360,
         },
       };
-    });
-  };
-
-  const handleBoardRemoveTile = (tileId: string) => {
-    setPlacements((prev) => {
-      const next = { ...prev };
-      delete next[tileId];
-      return next;
     });
   };
 
@@ -118,25 +111,61 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     event.dataTransfer.effectAllowed = "move";
   };
 
+  const renderBoardEdgeInputs = () => (
+    <div className="clover-edge-inputs">
+      <label className="clover-edge-field clover-edge-field--top">
+        <span>Top</span>
+        <input
+          value={edgeWords[0]}
+          onChange={(e) => handleBoardWordChange(0, e.target.value)}
+          aria-label="Top edge association"
+        />
+      </label>
+
+      <label className="clover-edge-field clover-edge-field--right">
+        <span>Right</span>
+        <input
+          value={edgeWords[1]}
+          onChange={(e) => handleBoardWordChange(1, e.target.value)}
+          aria-label="Right edge association"
+        />
+      </label>
+
+      <label className="clover-edge-field clover-edge-field--bottom">
+        <span>Bottom</span>
+        <input
+          value={edgeWords[2]}
+          onChange={(e) => handleBoardWordChange(2, e.target.value)}
+          aria-label="Bottom edge association"
+        />
+      </label>
+
+      <label className="clover-edge-field clover-edge-field--left">
+        <span>Left</span>
+        <input
+          value={edgeWords[3]}
+          onChange={(e) => handleBoardWordChange(3, e.target.value)}
+          aria-label="Left edge association"
+        />
+      </label>
+    </div>
+  );
+
   const renderSquareTile = ({
     tile,
+    rotation = 0,
     onRotate,
-    onClear,
-    isPlaced = false,
   }: {
     tile: { id: string; edges: string[] };
+    rotation?: number;
     onRotate: (tileId: string) => void;
-    onClear?: (tileId: string) => void;
-    isPlaced?: boolean;
   }) => {
-    const rotation = placements[tile.id]?.rotation ?? 0;
-
     return (
       <div
         key={tile.id}
         draggable
         onDragStart={(event) => handleDragStart(event, tile.id)}
-        className="clover-square-tile"
+        className="clover-square-tile clover-hand-tile"
       >
         <div
           className="clover-word-layer"
@@ -150,52 +179,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           <div className="clover-word clover-word--left">{tile.edges[3]}</div>
         </div>
 
-        <div className="clover-input clover-input--top">
-          <input
-            value={edgeWords[0]}
-            onChange={(e) => handleBoardWordChange(0, e.target.value)}
-            aria-label="Top edge association"
-          />
-        </div>
-
-        <div className="clover-input clover-input--right">
-          <input
-            value={edgeWords[1]}
-            onChange={(e) => handleBoardWordChange(1, e.target.value)}
-            aria-label="Right edge association"
-          />
-        </div>
-
-        <div className="clover-input clover-input--bottom">
-          <input
-            value={edgeWords[2]}
-            onChange={(e) => handleBoardWordChange(2, e.target.value)}
-            aria-label="Bottom edge association"
-          />
-        </div>
-
-        <div className="clover-input clover-input--left">
-          <input
-            value={edgeWords[3]}
-            onChange={(e) => handleBoardWordChange(3, e.target.value)}
-            aria-label="Left edge association"
-          />
-        </div>
-
         <div className="clover-square-tile__actions">
-          {onClear && (
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={(event) => {
-                event.stopPropagation();
-                onClear(tile.id);
-              }}
-            >
-              Clear
-            </button>
-          )}
-
           <button
             type="button"
             className="btn btn--secondary btn--sm"
@@ -212,67 +196,66 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     placedMap,
     onDropTile,
     onRotateTile,
-    onClearTile,
   }: {
     placedMap: Record<string, { slot: number; rotation: number }>;
     onDropTile: (tileId: string, slot: number) => void;
     onRotateTile: (tileId: string) => void;
-    onClearTile: (tileId: string) => void;
   }) => {
     return (
-      <div className="clover-board-grid">
-        {SLOT_ORDER.map((slot) => {
-          const tileId = getTileForSlot(placedMap, slot);
+      <div className="clover-board-stage">
+        <div className="clover-board-grid-wrap">
+          <div className="clover-board-grid">
+            {SLOT_ORDER.map((slot) => {
+              const tileId = getTileForSlot(placedMap, slot);
 
-          return (
-            <div
-              key={slot}
-              className="clover-slot"
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                event.preventDefault();
-                const droppedId = event.dataTransfer.getData("text/plain");
-                if (droppedId) {
-                  onDropTile(droppedId, slot);
-                }
-              }}
-            >
-              {tileId ? (
-                (() => {
-                  const tile =
-                    (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ?? null;
+              return (
+                <div
+                  key={slot}
+                  className="clover-slot"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const droppedId = event.dataTransfer.getData("text/plain");
+                    if (droppedId) {
+                      onDropTile(droppedId, slot);
+                    }
+                  }}
+                >
+                  {tileId ? (
+                    (() => {
+                      const tile =
+                        (myBoard?.tiles ?? currentBoard?.tiles ?? []).find((item) => item.id === tileId) ??
+                        null;
 
-                  if (!tile) return null;
+                      if (!tile) return null;
 
-                  const placement = placedMap[tileId];
-                  const rotateStyle: React.CSSProperties = {
-                    transform: `rotate(${placement.rotation}deg)`,
-                    transition: "transform 0.18s ease",
-                  };
+                      const rotation = placedMap[tileId]?.rotation ?? 0;
 
-                  return (
-                    <div
-                      draggable
-                      onDragStart={(event) => handleDragStart(event, tileId)}
-                      onClick={() => onRotateTile(tileId)}
-                      className="clover-placed-tile"
-                      style={rotateStyle}
-                    >
-                      {renderSquareTile({
-                        tile,
-                        onRotate: onRotateTile,
-                        onClear: onClearTile,
-                        isPlaced: true,
-                      })}
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className="clover-slot-empty">Drop tile here</div>
-              )}
-            </div>
-          );
-        })}
+                      return (
+                        <div
+                          draggable
+                          onDragStart={(event) => handleDragStart(event, tileId)}
+                          onClick={() => onRotateTile(tileId)}
+                          className="clover-placed-tile"
+                        >
+                          {renderSquareTile({
+                            tile,
+                            rotation,
+                            onRotate: onRotateTile,
+                          })}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="clover-slot-empty">Drop tile here</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {onDropTile === handleBoardPlaceTile && renderBoardEdgeInputs()}
+        </div>
       </div>
     );
   };
@@ -380,7 +363,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               placedMap: placements,
               onDropTile: handleBoardPlaceTile,
               onRotateTile: handleBoardRotateTile,
-              onClearTile: handleBoardRemoveTile,
             })}
 
             <div className="clover-tile-list">
@@ -390,8 +372,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                   renderSquareTile({
                     tile,
                     onRotate: handleBoardRotateTile,
-                    onClear: undefined,
-                    isPlaced: false,
                   })
                 )}
             </div>
@@ -422,7 +402,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               placedMap: guess,
               onDropTile: handlePlaceGuessTile,
               onRotateTile: handleRotateGuessTile,
-              onClearTile: handleRemoveGuessTile,
             })}
 
             <div className="clover-tile-list">
@@ -432,8 +411,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                   renderSquareTile({
                     tile,
                     onRotate: handleRotateGuessTile,
-                    onClear: undefined,
-                    isPlaced: false,
                   })
                 )}
             </div>

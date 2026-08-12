@@ -1,9 +1,14 @@
+:root {
+  --clover-tile-size: 170px;
+}
+
 #root:has(.clover-screen) {
-  max-width: 1100px;
+  max-width: 1200px;
 }
 
 .screen.clover-screen {
-  max-width: 1100px;
+  max-width: 1200px;
+  margin: 0 auto;
   font-family: var(--font-body);
 }
 
@@ -46,17 +51,35 @@
   color: var(--ink);
 }
 
-.clover-board-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(160px, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0;
-  width: min(100%, 420px);
+.clover-board-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0 1rem;
+}
+
+.clover-board-grid-wrap {
+  position: relative;
+  width: min(80vw, 520px);
   aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.clover-board-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
 }
 
 .clover-slot {
-  min-height: 160px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -103,12 +126,21 @@
 .clover-square-tile {
   position: relative;
   width: 100%;
+  max-width: var(--clover-tile-size);
+  height: var(--clover-tile-size);
   aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border-strong);
   border-radius: var(--r-3);
   box-shadow: var(--shadow-sticker);
   overflow: hidden;
+  flex: none;
+}
+
+.clover-hand-tile {
+  width: var(--clover-tile-size);
+  max-width: var(--clover-tile-size);
+  height: var(--clover-tile-size);
 }
 
 .clover-word-layer {
@@ -162,21 +194,47 @@
   right: 0;
 }
 
-.clover-input {
+.clover-square-tile__actions {
   position: absolute;
+  left: 50%;
+  bottom: 0.45rem;
+  transform: translateX(-50%);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
+  gap: 0.35rem;
+  z-index: 3;
 }
 
-.clover-input input {
+.clover-edge-inputs {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.clover-edge-field {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 116px;
+  pointer-events: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.clover-edge-field span {
+  display: inline-block;
+}
+
+.clover-edge-field input {
   width: 100%;
   min-width: 70px;
   height: 2rem;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
   color: var(--ink);
   text-align: center;
   font-size: 0.7rem;
@@ -184,68 +242,68 @@
   outline: none;
 }
 
-.clover-input--top {
+.clover-edge-field--top {
   left: 50%;
-  top: 26%;
+  top: -0.9rem;
   transform: translateX(-50%);
-  width: 30%;
 }
 
-.clover-input--bottom {
-  left: 50%;
-  bottom: 26%;
-  transform: translateX(-50%);
-  width: 30%;
-}
-
-.clover-input--left {
-  left: 26%;
+.clover-edge-field--right {
+  right: -1.2rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 30%;
 }
 
-.clover-input--right {
-  right: 26%;
+.clover-edge-field--bottom {
+  left: 50%;
+  bottom: -0.9rem;
+  transform: translateX(-50%);
+}
+
+.clover-edge-field--left {
+  left: -1.2rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 30%;
-}
-
-.clover-square-tile__actions {
-  position: absolute;
-  left: 50%;
-  bottom: 0.5rem;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.35rem;
-  z-index: 3;
 }
 
 .clover-tile-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--clover-tile-size), 1fr));
   gap: 0.85rem;
   margin-top: 1rem;
+  justify-items: center;
 }
 
 @media (max-width: 620px) {
+  .clover-board-grid-wrap {
+    width: min(88vw, 420px);
+  }
+
   .clover-board-grid {
-    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
 
   .clover-slot {
-    min-height: 140px;
+    padding: 0.35rem;
+  }
+
+  .clover-edge-field {
+    width: 90px;
   }
 }
 
 @media (max-width: 420px) {
-  .clover-board-grid {
-    grid-template-columns: 1fr;
+  .clover-board-grid-wrap {
+    width: min(92vw, 360px);
   }
 
-  .clover-slot {
-    min-height: 120px;
+  .clover-edge-field {
+    width: 75px;
+    font-size: 0.64rem;
+  }
+
+  .clover-edge-field input {
+    font-size: 0.62rem;
   }
 }
 
@@ -300,7 +358,7 @@
   color: var(--clover-ink);
 }
 
-[data-theme="dark"] .clover-input input {
+[data-theme="dark"] .clover-edge-field input {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--clover-border);
   color: var(--clover-ink);
