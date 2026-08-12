@@ -1,7 +1,7 @@
 :root {
-  --clover-board-size: 500px;
-  --clover-tile-size: 150px;
-  --clover-tray-slot-size: 170px;
+  --clover-board-size: 560px;
+  --clover-tile-size: 184px;
+  --clover-tray-slot-size: 180px;
 }
 
 #root:has(.clover-screen) {
@@ -67,8 +67,8 @@
   height: var(--clover-board-size);
   max-width: 100%;
   margin: 0 auto;
+  padding: 3.2rem 3.8rem;
   box-sizing: border-box;
-  padding: 3.1rem 3.6rem;
 }
 
 .clover-board-grid {
@@ -76,7 +76,7 @@
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.9rem;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -86,11 +86,10 @@
 .clover-slot {
   width: 100%;
   height: 100%;
-  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem;
+  padding: 0.65rem;
   background: var(--surface-2);
   border: 2px dashed var(--border);
   border-radius: var(--r-2);
@@ -138,7 +137,7 @@
   border: 2px solid var(--border-strong);
   border-radius: var(--r-3);
   box-shadow: var(--shadow-sticker);
-  overflow: hidden;
+  overflow: visible;
   flex: none;
   box-sizing: border-box;
   margin: auto;
@@ -162,11 +161,13 @@
   justify-content: center;
   text-align: center;
   font-weight: 700;
-  font-size: 0.76rem;
-  line-height: 1.1;
+  font-size: 0.8rem;
+  line-height: 1.15;
   color: var(--ink);
-  padding: 0.12rem 0.3rem;
   background: rgba(255, 255, 255, 0.08);
+  padding: 0.12rem 0.28rem;
+  word-break: break-word;
+  overflow: visible;
 }
 
 .clover-word--top,
@@ -208,13 +209,19 @@
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   background: var(--accent-primary);
-  color: white;
+  color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.38rem 0.6rem;
+  padding: 0.4rem 0.7rem;
   line-height: 1;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.15s ease, filter 0.15s ease;
+}
+
+.clover-rotate-button:hover {
+  background-color: color-mix(in srgb, var(--accent-primary) 80%, white);
+  transform: translate(-50%, -50%);
 }
 
 .clover-edge-inputs {
@@ -230,7 +237,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  width: 150px;
+  width: 170px;
   pointer-events: auto;
   font-size: 0.72rem;
   font-weight: 700;
@@ -244,38 +251,38 @@
 
 .clover-edge-field input {
   width: 100%;
-  height: 2.2rem;
+  height: 2.3rem;
   border: 2px solid rgba(84, 58, 36, 0.55);
   border-radius: 999px;
   background: rgba(255, 245, 235, 0.96);
   color: var(--ink);
   text-align: center;
   font-size: 0.72rem;
-  padding: 0.15rem 0.85rem;
+  padding: 0.15rem 0.9rem;
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
 .clover-edge-field--top {
   left: 50%;
-  top: 0;
+  top: -1.4rem;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--right {
-  right: 0;
+  right: -1.7rem;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-edge-field--bottom {
   left: 50%;
-  bottom: 0;
+  bottom: -1.4rem;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--left {
-  left: 0;
+  left: -1.7rem;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -326,41 +333,41 @@
 
 @media (max-width: 620px) {
   :root {
-    --clover-board-size: 360px;
-    --clover-tile-size: 120px;
-    --clover-tray-slot-size: 122px;
+    --clover-board-size: 390px;
+    --clover-tile-size: 136px;
+    --clover-tray-slot-size: 136px;
   }
 
   .clover-board-grid-wrap {
-    padding: 2.4rem 2.8rem;
+    padding: 2.8rem 3.2rem;
   }
 
   .clover-board-grid {
-    gap: 0.6rem;
+    gap: 0.7rem;
   }
 
   .clover-slot {
-    padding: 0.35rem;
+    padding: 0.45rem;
   }
 
   .clover-edge-field {
-    width: 110px;
+    width: 130px;
   }
 }
 
 @media (max-width: 420px) {
   :root {
     --clover-board-size: 300px;
-    --clover-tile-size: 102px;
-    --clover-tray-slot-size: 110px;
+    --clover-tile-size: 116px;
+    --clover-tray-slot-size: 118px;
   }
 
   .clover-board-grid-wrap {
-    padding: 2.1rem 2.4rem;
+    padding: 2.3rem 2.7rem;
   }
 
   .clover-edge-field {
-    width: 90px;
+    width: 100px;
     font-size: 0.64rem;
   }
 
