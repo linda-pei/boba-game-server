@@ -238,6 +238,13 @@ export async function advanceCloverBoard(roomCode: string) {
 
 export function getCloverScoreSummary(playerCount: number, score: number) {
   const thresholds: Record<number, Array<{ min: number; max: number | null; label: string }>> = {
+    2: [
+      { min: 12, max: 12, label: "PERFECT SCORE" },
+      { min: 10,  max: 11, label: "LEGENDARY" },
+      { min: 8, max: 9, label: "GREAT GAME" },
+      { min: 6, max: 7, label: "AVERAGE" },
+      { min: 0, max: 5, label: "ROOM FOR GROWTH" },
+    ],
     3: [
       { min: 18, max: 18, label: "PERFECT SCORE" },
       { min: 15, max: 17, label: "LEGENDARY" },

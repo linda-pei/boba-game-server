@@ -99,7 +99,7 @@ export default function Lobby() {
   const canStartStartups = players.length >= 3 && players.length <= 6;
 
   // Clover-specific
-  const canStartClover = players.length >= 3 && players.length <= 6;
+  const canStartClover = players.length >= 2 && players.length <= 6;
 
   const canStart = isClover
     ? canStartClover 
@@ -404,7 +404,11 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                {isStartups
+                { isClover
+                  ? players.length < 2
+                    ? "Need at least 2 players for Clover"
+                    : "Too many players (max 6 for Clover)"
+                  : isStartups
                   ? players.length < 3
                     ? "Need at least 3 players for Startups"
                     : "Too many players (max 6 for Startups)"
