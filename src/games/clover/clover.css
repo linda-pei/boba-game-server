@@ -1,5 +1,8 @@
 :root {
-  --clover-tile-size: 170px;
+  --clover-board-size: 420px;
+  --clover-slot-size: 178px;
+  --clover-tile-size: 140px;
+  --clover-tray-slot-size: 150px;
 }
 
 #root:has(.clover-screen) {
@@ -56,14 +59,17 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 0.5rem 0 1rem;
+  padding: 0.75rem 0 0.5rem;
 }
 
 .clover-board-grid-wrap {
   position: relative;
-  width: min(80vw, 520px);
-  aspect-ratio: 1;
+  width: var(--clover-board-size);
+  height: var(--clover-board-size);
+  max-width: 100%;
   margin: 0 auto;
+  padding: 2.6rem 2.9rem;
+  box-sizing: border-box;
 }
 
 .clover-board-grid {
@@ -74,6 +80,8 @@
   gap: 0.75rem;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
+  background: transparent;
 }
 
 .clover-slot {
@@ -81,7 +89,7 @@
   height: 100%;
   min-height: 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   padding: 0.5rem;
   background: var(--surface-2);
@@ -115,8 +123,8 @@
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: stretch;
-  justify-content: stretch;
+  align-items: center;
+  justify-content: center;
   cursor: grab;
   border: none;
   background: transparent;
@@ -125,21 +133,20 @@
 
 .clover-square-tile {
   position: relative;
-  width: 100%;
-  max-width: var(--clover-tile-size);
+  width: var(--clover-tile-size);
   height: var(--clover-tile-size);
-  aspect-ratio: 1;
   background: var(--surface);
   border: 2px solid var(--border-strong);
   border-radius: var(--r-3);
   box-shadow: var(--shadow-sticker);
   overflow: hidden;
   flex: none;
+  box-sizing: border-box;
+  margin: auto;
 }
 
 .clover-hand-tile {
   width: var(--clover-tile-size);
-  max-width: var(--clover-tile-size);
   height: var(--clover-tile-size);
 }
 
@@ -157,7 +164,7 @@
   justify-content: center;
   text-align: center;
   font-weight: 700;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   line-height: 1.1;
   color: var(--ink);
   padding: 0.12rem 0.3rem;
@@ -217,7 +224,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  width: 116px;
+  width: 130px;
   pointer-events: auto;
   font-size: 0.72rem;
   font-weight: 700;
@@ -226,44 +233,89 @@
 
 .clover-edge-field span {
   display: inline-block;
+  color: var(--ink-soft);
 }
 
 .clover-edge-field input {
   width: 100%;
-  min-width: 70px;
-  height: 2rem;
-  border: 1px solid var(--border);
+  height: 2.1rem;
+  border: 2px solid rgba(84, 58, 36, 0.55);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 245, 235, 0.96);
   color: var(--ink);
   text-align: center;
-  font-size: 0.7rem;
-  padding: 0.15rem 0.45rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.7rem;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 
 .clover-edge-field--top {
   left: 50%;
-  top: -0.9rem;
+  top: -1.05rem;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--right {
-  right: -1.2rem;
+  right: -1.3rem;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .clover-edge-field--bottom {
   left: 50%;
-  bottom: -0.9rem;
+  bottom: -1.05rem;
   transform: translateX(-50%);
 }
 
 .clover-edge-field--left {
-  left: -1.2rem;
+  left: -1.3rem;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.clover-return-tray {
+  width: min(100%, 680px);
+  margin: 1rem auto 0;
+  padding: 0.9rem;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+
+.clover-return-tray__label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.7rem;
+  text-align: center;
+}
+
+.clover-return-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: calc(var(--clover-tray-slot-size) + 1rem);
+}
+
+.clover-return-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--clover-tray-slot-size);
+  height: var(--clover-tray-slot-size);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.clover-return-slot--empty {
+  visibility: hidden;
 }
 
 .clover-tile-list {
@@ -275,8 +327,15 @@
 }
 
 @media (max-width: 620px) {
+  :root {
+    --clover-board-size: 300px;
+    --clover-slot-size: 126px;
+    --clover-tile-size: 114px;
+    --clover-tray-slot-size: 122px;
+  }
+
   .clover-board-grid-wrap {
-    width: min(88vw, 420px);
+    padding: 2.1rem 2.2rem;
   }
 
   .clover-board-grid {
@@ -288,22 +347,26 @@
   }
 
   .clover-edge-field {
-    width: 90px;
+    width: 92px;
   }
 }
 
 @media (max-width: 420px) {
-  .clover-board-grid-wrap {
-    width: min(92vw, 360px);
+  :root {
+    --clover-board-size: 260px;
+    --clover-slot-size: 108px;
+    --clover-tile-size: 94px;
+    --clover-tray-slot-size: 102px;
   }
 
   .clover-edge-field {
-    width: 75px;
+    width: 78px;
     font-size: 0.64rem;
   }
 
   .clover-edge-field input {
     font-size: 0.62rem;
+    padding: 0.15rem 0.45rem;
   }
 }
 

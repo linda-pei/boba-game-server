@@ -52,6 +52,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   ) => Object.entries(slotMap).find(([, value]) => value.slot === slot)?.[0] ?? null;
 
   const handleBoardPlaceTile = (tileId: string, slot: number) => {
+    if (Object.values(placements).some((value) => value.slot === slot)) return;
     setPlacements((prev) => ({
       ...prev,
       [tileId]: {
@@ -89,6 +90,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   };
 
   const handlePlaceGuessTile = (tileId: string, slot: number) => {
+    if (Object.values(guess).some((value) => value.slot === slot)) return;
     setGuess((prev) => ({
       ...prev,
       [tileId]: {
@@ -243,9 +245,9 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                   onDrop={(event) => {
                     event.preventDefault();
                     const droppedId = event.dataTransfer.getData("text/plain");
-                    if (droppedId) {
-                      onDropTile(droppedId, slot);
-                    }
+                    if (!droppedId) return;
+                    if (Object.values(placedMap).some((value) => value.slot === slot)) return;
+                    onDropTile(droppedId, slot);
                   }}
                 >
                   {tileId ? (
