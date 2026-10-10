@@ -49,3 +49,33 @@ Prompt:
 
 The loop is optional — the picker works without it, entries just accumulate.
 Nothing in the build or test path depends on either file.
+
+## Production dev mode
+
+The same overlay can run on the deployed site for allowlisted accounts, storing
+notes in Firestore instead of the local files.
+
+| Piece | Where | Role |
+| --- | --- | --- |
+| Gate | `src/components/dev-feedback/DevModeGate.tsx`, mounted in `src/App.tsx` for production builds | Visit any page with `?dev` to get a **Dev sign-in** button; it links a Google account to your anonymous player (keeping your uid). Allowlisted accounts get the overlay, lazy-loaded so other players never download it |
+| Allowlist | Firestore doc `config/devAccess` → `{ emails: ["you@example.com"] }` | Edited by hand in the Firebase console; `firestore.rules` only lets verified emails on this list read it or touch `devFeedback` |
+| Queue | Firestore `devFeedback/{id}` (`status: "pending" \| "resolved"`), screenshots in `devFeedback/{id}/images/{n}` | Screenshots are re-encoded to fit Firestore's 1 MiB document limit (no Cloud Storage needed) |
+| Sync | `npm run feedback:sync` (`scripts/feedback-sync.mjs`) | Marks ledger ids `resolved` in Firestore (dismissing them in the prod overlay), then pulls new pending entries into `dev-feedback.json` + `dev-feedback-images/` with `"source": "production"` |
+
+### One-time setup
+
+1. Firebase console → Authentication → Sign-in method → enable **Google**.
+2. Firestore → create `config/devAccess` with field `emails` (array) containing your Google email.
+3. Deploy the rules: `firebase deploy --only firestore:rules`.
+4. Give the sync script credentials: `gcloud auth application-default login`
+   (or set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account key stored outside the repo).
+
+### Running the agent side against production
+
+Prefix the loop prompt with the sync so it pulls new notes and pushes resolutions:
+
+```
+/loop 1m Run `npm run feedback:sync`, then <the prompt above>. After resolving entries, run `npm run feedback:sync` again.
+```
+
+Fixes still ship through your normal deploy; review them locally first.

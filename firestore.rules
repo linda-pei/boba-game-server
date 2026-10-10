@@ -21,6 +21,26 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/games/$(roomCode)).data.gameType == "clover";
     }
 
+    // Production dev-feedback mode: only verified emails listed in config/devAccess.emails.
+    // That doc is edited by hand in the Firebase console; nobody can write it from the client.
+    function isDev() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in get(/databases/$(database)/documents/config/devAccess).data.emails;
+    }
+
+    match /config/devAccess {
+      allow read: if isDev();
+    }
+
+    match /devFeedback/{feedbackId} {
+      allow read, create, update, delete: if isDev();
+
+      match /images/{imageId} {
+        allow read, create, delete: if isDev();
+      }
+    }
+
     // Existing lobby behavior permits signed-in players to discover and join rooms.
     match /rooms/{roomCode} {
       allow read, create, update, delete: if signedIn();

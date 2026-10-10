@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuthContext } from "./hooks/AuthContext";
 import SetUsername from "./components/SetUsername";
@@ -6,8 +7,11 @@ import Lobby from "./components/Lobby";
 import GameRouter from "./components/GameRouter";
 import JoinRedirect from "./components/JoinRedirect";
 import ThemeToggle from "./components/shared/ThemeToggle";
-import DevFeedbackOverlay from "./components/dev-feedback/DevFeedbackOverlay";
+import DevModeGate from "./components/dev-feedback/DevModeGate";
 import "./App.css";
+
+// Lazy so the dev overlay (and its CSS) stays out of the production bundle.
+const DevFeedbackOverlay = lazy(() => import("./components/dev-feedback/DevFeedbackOverlay"));
 
 function AppContent() {
   const { uid, username, setUsername, loading } = useAuthContext();
@@ -36,7 +40,7 @@ function App() {
       <AuthProvider>
         <ThemeToggle />
         <AppContent />
-        {import.meta.env.DEV && <DevFeedbackOverlay />}
+        {import.meta.env.DEV ? <Suspense fallback={null}><DevFeedbackOverlay /></Suspense> : <DevModeGate />}
       </AuthProvider>
     </BrowserRouter>
   );
