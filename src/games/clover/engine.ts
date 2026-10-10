@@ -41,6 +41,15 @@ export function rotateCloverWords(
   return rotated as CloverCard["words"];
 }
 
+export function randomCloverRotations(
+  cards: CloverCard[],
+  random: () => number = Math.random,
+): Record<string, CloverRotation> {
+  return Object.fromEntries(
+    cards.map((card) => [card.id, ROTATIONS[Math.floor(random() * ROTATIONS.length)]]),
+  );
+}
+
 export function getCloverCardById(cards: CloverCard[], cardId: string): CloverCard | null {
   return cards.find((card) => card.id === cardId) ?? null;
 }
@@ -105,6 +114,17 @@ export function isValidCloverClue(clue: string): boolean {
   return normalized.length > 0 && normalized.length <= 40 && !/\s/.test(normalized);
 }
 
+/** Inline warning for a clue draft, or null when it looks fine (empty drafts aren't flagged). */
+export function getCloverClueWarning(clue: string, keywords: string[] = []): string | null {
+  const normalized = clue.trim();
+  if (!normalized) return null;
+  if (/\s/.test(normalized)) return "One word only";
+  if (keywords.some((keyword) => keyword.toLowerCase() === normalized.toLowerCase())) {
+    return "Can't use a keyword from this pair";
+  }
+  return null;
+}
+
 export function hasValidCloverClues(clues: Record<CloverClueZone, string>): boolean {
   return CLOVER_CLUE_ZONES.every((zone) => isValidCloverClue(clues[zone] ?? ""));
 }
@@ -137,4 +157,35 @@ export function getNextCloverPlayer(playerOrder: string[], uid: string): string 
   const currentIndex = playerOrder.indexOf(uid);
   if (currentIndex === -1 || playerOrder.length < 2) return null;
   return playerOrder[(currentIndex + 1) % playerOrder.length] ?? null;
+}
+
+export interface CloverRank {
+  name: string;
+  description: string;
+}
+
+const CLOVER_RANKS: CloverRank[] = [
+  { name: "Small Sprout", description: "A tiny peek above the soil." },
+  { name: "Growth", description: "Bit by bit, an average pace." },
+  { name: "First bud", description: "You're starting to bloom." },
+  { name: "Blossom", description: "A beautiful score!" },
+  { name: "Four-leaf clover", description: "Rare and perfect!" },
+];
+
+// Minimum team score for each rank above, keyed by player count (from the rulebook).
+const CLOVER_RANK_THRESHOLDS: Record<number, number[]> = {
+  3: [0, 7, 11, 15, 18],
+  4: [0, 9, 19, 20, 24],
+  5: [0, 11, 19, 25, 30],
+  6: [0, 13, 23, 30, 36],
+};
+
+export function getCloverRank(score: number, playerCount: number): CloverRank {
+  const clamped = Math.min(Math.max(playerCount, 3), 6);
+  const thresholds = CLOVER_RANK_THRESHOLDS[clamped];
+  let rankIndex = 0;
+  thresholds.forEach((minimum, index) => {
+    if (score >= minimum) rankIndex = index;
+  });
+  return CLOVER_RANKS[rankIndex];
 }

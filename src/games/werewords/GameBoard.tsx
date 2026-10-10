@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import {
@@ -26,13 +24,6 @@ export default function WerewordsGameBoard({
   const { room } = useRoom(roomCode);
   const { game, loading } = useWerewordsGame(roomCode);
   const hand = useWerewordsHand(roomCode, uid);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (room?.status === "lobby") {
-      navigate(`/lobby/${roomCode}`);
-    }
-  }, [room?.status, roomCode, navigate]);
 
   if (loading) return <p>Loading game...</p>;
   if (!game || !room) return <p>Game not found.</p>;
@@ -48,7 +39,6 @@ export default function WerewordsGameBoard({
     "in-progress": "discussion",
     "werewolf-guess": "wolf's guess",
     voting: "voting",
-    finished: "finished",
   };
 
   return (

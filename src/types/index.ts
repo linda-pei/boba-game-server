@@ -575,12 +575,15 @@ export interface CloverPublishedRound {
   spectatorUid: string;
   clues: Record<CloverClueZone, string>;
   candidateCards: CloverCard[];
+  /** Shared starting rotation for each candidate card while it sits in the tray. */
+  trayRotations?: Record<string, CloverRotation>;
 }
 
 export interface CloverSharedRound {
   spectatorUid: string;
   clues: Record<CloverClueZone, string>;
   candidateCards: CloverCard[];
+  trayRotations?: Record<string, CloverRotation>;
   sharedPlacement: Record<string, CloverPlacement>;
   lockedCorrectCardIds: string[];
   attempt: 1 | 2;

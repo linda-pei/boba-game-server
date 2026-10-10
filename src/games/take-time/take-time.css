@@ -29,6 +29,16 @@
     width: 340px;
     transform: translateX(calc(100% + 1.5rem));
   }
+
+  /* Align the sidebar with the top of the clock face, which sits 15% into the
+     square board container (see .tt-clock-container inset). Falls back to the
+     fixed offset above where anchor positioning isn't supported. */
+  @supports (anchor-name: --tt-board) {
+    .tt-board-container { anchor-name: --tt-board; }
+    .tt-board-sidebar {
+      top: calc(anchor(--tt-board top) + anchor-size(--tt-board width) * 0.15);
+    }
+  }
 }
 
 /* ---- Board container (clock + card slots + glyphs) ---- */

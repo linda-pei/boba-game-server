@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../hooks/AuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import { useStartupsGame, useStartupsHand } from "./useStartupsGame";
@@ -15,13 +13,6 @@ export default function StartupsGameBoard({ roomCode }: { roomCode: string }) {
   const { room } = useRoom(roomCode);
   const { game, loading } = useStartupsGame(roomCode);
   const hand = useStartupsHand(roomCode, uid);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (room?.status === "lobby") {
-      navigate(`/lobby/${roomCode}`);
-    }
-  }, [room?.status, roomCode, navigate]);
 
   if (loading) return <p>Loading game...</p>;
   if (!game || !room) return <p>Game not found.</p>;

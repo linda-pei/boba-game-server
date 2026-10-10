@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 import type { CloverCard, CloverPlacement } from "../../types";
 import {
   evaluateCloverGuess,
+  getCloverClueWarning,
+  getCloverRank,
   getCloverScore,
   getNextCloverPlayer,
   getOuterKeywordPairs,
   hasValidCloverClues,
   isCompleteCloverPlacement,
+  randomCloverRotations,
   rotateCloverWords,
 } from "./engine";
 
@@ -71,5 +74,32 @@ describe("Clover engine", () => {
     expect(hasValidCloverClues({ top: "orbit", right: "ship", bottom: "sail", left: "anchor" })).toBe(true);
     expect(hasValidCloverClues({ top: "two words", right: "ship", bottom: "sail", left: "anchor" })).toBe(false);
     expect(getNextCloverPlayer(["a", "b", "c"], "c")).toBe("a");
+  });
+
+  it("assigns a valid random rotation to every card", () => {
+    const rolls = [0, 0.3, 0.6, 0.9, 0.99];
+    let call = 0;
+    expect(randomCloverRotations(cards, () => rolls[call++])).toEqual({
+      a: 0, b: 90, c: 180, d: 270, decoy: 270,
+    });
+  });
+
+  it("ranks the team score by player count", () => {
+    expect(getCloverRank(0, 3).name).toBe("Small Sprout");
+    expect(getCloverRank(10, 3).name).toBe("Growth");
+    expect(getCloverRank(11, 3).name).toBe("First bud");
+    expect(getCloverRank(17, 3).name).toBe("Blossom");
+    expect(getCloverRank(18, 3).name).toBe("Four-leaf clover");
+    expect(getCloverRank(9, 4).name).toBe("Growth");
+    expect(getCloverRank(24, 5).name).toBe("First bud");
+    expect(getCloverRank(29, 6).name).toBe("First bud");
+    expect(getCloverRank(36, 6).name).toBe("Four-leaf clover");
+  });
+
+  it("warns about multi-word or keyword clues", () => {
+    expect(getCloverClueWarning("")).toBeNull();
+    expect(getCloverClueWarning("sunset")).toBeNull();
+    expect(getCloverClueWarning("ice cream")).toBe("One word only");
+    expect(getCloverClueWarning("Ocean", ["ocean", "tree"])).toBe("Can't use a keyword from this pair");
   });
 });

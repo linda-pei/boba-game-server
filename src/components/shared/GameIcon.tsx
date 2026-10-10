@@ -102,18 +102,29 @@ export default function GameIcon({ game, size = 44 }: Props) {
     case "scout":
       return (
         <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          {/* Fan of two-tone Scout cards, numbers at opposite corners like the real deck */}
           <g transform="translate(40 44)">
-            <g transform="rotate(-22)">
-              <rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-2)" />
+            <g transform="rotate(-32)">
+              <rect x="-14.0" y="-19" width="28" height="38" rx="3.5" fill="var(--scout-card-body)" />
+              <rect x="-12.5" y="-17.5" width="25" height="17.5" rx="2.5" className="nostroke" fill="var(--scout-card-2)" />
+              <rect x="-12.5" y="0.0" width="25" height="17.5" rx="2.5" className="nostroke" fill="var(--scout-card-9)" />
             </g>
-            <g transform="rotate(-7)">
-              <rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-5)" />
+            <g transform="rotate(-11)">
+              <rect x="-14.0" y="-21" width="28" height="40" rx="3.5" fill="var(--scout-card-body)" />
+              <rect x="-12.5" y="-19.5" width="25" height="18.5" rx="2.5" className="nostroke" fill="var(--scout-card-5)" />
+              <rect x="-12.5" y="-1.0" width="25" height="18.5" rx="2.5" className="nostroke" fill="var(--scout-card-8)" />
             </g>
-            <g transform="rotate(8)">
-              <rect x="-10" y="-24" width="20" height="42" rx="3" fill="var(--scout-card-7)" />
+            <g transform="rotate(11)">
+              <rect x="-14.0" y="-21" width="28" height="40" rx="3.5" fill="var(--scout-card-body)" />
+              <rect x="-12.5" y="-19.5" width="25" height="18.5" rx="2.5" className="nostroke" fill="var(--scout-card-10)" />
+              <rect x="-12.5" y="-1.0" width="25" height="18.5" rx="2.5" className="nostroke" fill="var(--scout-card-4)" />
             </g>
-            <g transform="rotate(22)">
-              <rect x="-10" y="-22" width="20" height="40" rx="3" fill="var(--scout-card-9)" />
+            <g transform="rotate(32)">
+              <rect x="-14.0" y="-19" width="28" height="38" rx="3.5" fill="var(--scout-card-body)" />
+              <rect x="-12.5" y="-17.5" width="25" height="17.5" rx="2.5" className="nostroke" fill="var(--scout-card-7)" />
+              <rect x="-12.5" y="0.0" width="25" height="17.5" rx="2.5" className="nostroke" fill="var(--scout-card-3)" />
+              <text x="-7.0" y="-10" className="scout-icon-num">7</text>
+              <text x="7.0" y="10" className="scout-icon-num" transform="rotate(180 7.0 10)">3</text>
             </g>
           </g>
         </svg>
@@ -157,21 +168,30 @@ export default function GameIcon({ game, size = 44 }: Props) {
     case "tt":
       return (
         <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
-          <circle cx="40" cy="40" r="26" fill="var(--tt-cream)" />
-          <path d="M40 40 L40 14 A26 26 0 0 1 62.52 27 Z" className="nostroke" fill="var(--tt-lunar)" />
-          <path d="M40 40 L62.52 53 A26 26 0 0 1 40 66 Z" className="nostroke" fill="var(--tt-lunar)" />
-          <path d="M40 40 L17.48 27 A26 26 0 0 1 40 14 Z" className="nostroke" fill="var(--tt-lunar)" />
-          <g stroke="var(--ink)" strokeWidth="2" fill="none">
-            <line x1="40" y1="40" x2="40" y2="14" />
-            <line x1="40" y1="40" x2="62.52" y2="27" />
-            <line x1="40" y1="40" x2="62.52" y2="53" />
-            <line x1="40" y1="40" x2="40" y2="66" />
-            <line x1="40" y1="40" x2="17.48" y2="53" />
-            <line x1="40" y1="40" x2="17.48" y2="27" />
+          {/* Watch crown */}
+          <rect x="35" y="5" width="10" height="6" rx="1.5" fill="var(--tt-lunar)" />
+          {/* Bezel + face */}
+          <circle cx="40" cy="42" r="30" fill="var(--tt-lunar)" />
+          <circle cx="40" cy="42" r="25" fill="var(--tt-cream)" />
+          {/* Hour ticks — heavier at 12/3/6/9 */}
+          <g transform="translate(0 2)">
+            <line x1="40.00" y1="21.00" x2="40.00" y2="16.00" className="tt-tick tt-tick--major" />
+            <line x1="50.50" y1="21.81" x2="52.00" y2="19.22" className="tt-tick" />
+            <line x1="58.19" y1="29.50" x2="60.78" y2="28.00" className="tt-tick" />
+            <line x1="59.00" y1="40.00" x2="64.00" y2="40.00" className="tt-tick tt-tick--major" />
+            <line x1="58.19" y1="50.50" x2="60.78" y2="52.00" className="tt-tick" />
+            <line x1="50.50" y1="58.19" x2="52.00" y2="60.78" className="tt-tick" />
+            <line x1="40.00" y1="59.00" x2="40.00" y2="64.00" className="tt-tick tt-tick--major" />
+            <line x1="29.50" y1="58.19" x2="28.00" y2="60.78" className="tt-tick" />
+            <line x1="21.81" y1="50.50" x2="19.22" y2="52.00" className="tt-tick" />
+            <line x1="21.00" y1="40.00" x2="16.00" y2="40.00" className="tt-tick tt-tick--major" />
+            <line x1="21.81" y1="29.50" x2="19.22" y2="28.00" className="tt-tick" />
+            <line x1="29.50" y1="21.81" x2="28.00" y2="19.22" className="tt-tick" />
           </g>
-          <circle cx="40" cy="40" r="26" fill="none" />
-          <line x1="40" y1="40" x2="27" y2="23" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" />
-          <circle cx="40" cy="40" r="2.5" className="nostroke" fill="var(--ink)" />
+          {/* Hands: hour → ~10, minute → ~2 */}
+          <line x1="40" y1="42" x2="30" y2="35" className="tt-hand tt-hand--hour" />
+          <line x1="40" y1="42" x2="54" y2="27" className="tt-hand" />
+          <circle cx="40" cy="42" r="3" className="nostroke" fill="var(--tt-lunar)" />
         </svg>
       );
     case "su":
@@ -244,8 +264,8 @@ export default function GameIcon({ game, size = 44 }: Props) {
             d="M14 48 L66 48 L60 70 L20 70 Z"
             fill="var(--syrup-300)"
           />
-          <path d="M22 54 L58 54 M22 60 L58 60 M22 66 L58 66" fill="none" strokeWidth="1.8" />
-          <path d="M30 48 L30 70 M40 48 L40 70 M50 48 L50 70" fill="none" strokeWidth="1.8" />
+          <path d="M22 54 L58 54 M22 60 L58 60 M22 66 L58 66" fill="none" className="tt-tick" />
+          <path d="M30 48 L30 70 M40 48 L40 70 M50 48 L50 70" fill="none" className="tt-tick" />
           {/* Basket rim */}
           <path d="M12 48 L68 48 L66 52 L14 52 Z" fill="var(--syrup-500)" />
         </svg>
@@ -257,7 +277,7 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <path d="M40 41 C44 25 62 19 67 31 C72 43 55 50 40 41 Z" fill="var(--jade-500)" />
           <path d="M40 41 C56 45 59 63 47 68 C35 73 28 56 40 41 Z" fill="var(--jade-300)" />
           <path d="M40 41 C34 57 16 60 12 48 C8 36 25 31 40 41 Z" fill="var(--jade-500)" />
-          <path d="M40 41 C40 51 38 59 31 66" fill="none" stroke="var(--jade-700)" strokeWidth="3" />
+          <path d="M40 41 C40 51 38 59 31 66" fill="none" stroke="var(--jade-700)" className="tt-tick tt-tick--major" />
           <circle cx="40" cy="41" r="5.5" fill="var(--honey-500)" />
         </svg>
       );

@@ -13,12 +13,31 @@
   vector-effect: non-scaling-stroke;
 }
 .gicon .nostroke { stroke: none; }
+/* Take Time clock: ticks and hands need thinner strokes than the sticker outline. */
+/* Ticks/hands sit on the cream face, so use the fixed dark lunar color (ink flips light in dark mode). */
+.gicon .tt-tick, .gicon .tt-hand { stroke: var(--tt-lunar); }
+.gicon .tt-tick { stroke-width: 1.2; }
+.gicon .tt-tick--major { stroke-width: 2; }
+.gicon .tt-hand { stroke-width: 2; }
+.gicon .tt-hand--hour { stroke-width: 3; }
 /* Scout fan: cards are tiny and overlapping — thin stroke so the
    rainbow ramp reads as cards, not a dark blob. */
 .game-sticker.scout .gicon *,
 .game-banner.scout .gicon * {
   stroke-width: 1.2;
   stroke: #2a1a12;
+}
+.game-sticker.scout .gicon .nostroke,
+.game-banner.scout .gicon .nostroke { stroke: none; }
+.gicon .scout-icon-num {
+  fill: white;
+  stroke: var(--scout-numeral-stroke);
+  stroke-width: 1.5;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
 
 /* =========================================================
