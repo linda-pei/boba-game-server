@@ -1,288 +1,339 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  collection,
-  deleteDoc,
   doc,
-  getDoc,
-  getDocs,
   onSnapshot,
-  setDoc,
-  updateDoc,
+  runTransaction,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../firebase";
-import type { CloverGame, CloverBoard, Room } from "../../types";
-import { generateCloverTiles } from "./tileDeck";
+import type {
+  CloverClueZone,
+  CloverGame,
+  CloverPlacement,
+  CloverPrivateBoard,
+  CloverSharedRound,
+  Room,
+} from "../../types";
+import { shuffled } from "../../utils/shuffle";
+import { createCloverDeck } from "./cards";
+import {
+  evaluateCloverGuess,
+  getCloverScore,
+  getNextCloverPlayer,
+  hasValidCloverClues,
+  isCompleteCloverPlacement,
+} from "./engine";
+
+const EMPTY_CLUES: Record<CloverClueZone, string> = {
+  top: "",
+  right: "",
+  bottom: "",
+  left: "",
+};
 
 export function useCloverGame(roomCode: string | undefined) {
   const [game, setGame] = useState<CloverGame | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomCode) {
+    if (!roomCode) return;
+
+    return onSnapshot(doc(db, "games", roomCode), (snapshot) => {
+      setGame(snapshot.exists() ? (snapshot.data() as CloverGame) : null);
       setLoading(false);
-      return;
-    }
-
-    const unsubscribe = onSnapshot(
-      doc(db, "games", roomCode),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setGame(snapshot.data() as CloverGame);
-        } else {
-          setGame(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    return unsubscribe;
+    });
   }, [roomCode]);
 
   return { game, loading };
 }
 
-export async function startCloverGame(roomCode: string, room: Room): Promise<void> {
-  const playerUids = Object.keys(room.players);
-  const turnOrder = [...playerUids].sort(() => Math.random() - 0.5);
+export function useCloverPrivateBoard(roomCode: string | undefined, uid: string | null) {
+  const [board, setBoard] = useState<CloverPrivateBoard | null>(null);
 
-  const boards: Record<string, CloverBoard> = {};
+  useEffect(() => {
+    if (!roomCode || !uid) return;
 
-  for (const uid of playerUids) {
-    const tiles = generateCloverTiles(4);
-
-    boards[uid] = {
-      ownerUid: uid,
-      tiles,
-      placements: {},
-      edgeWords: ["", "", "", ""],
-      locked: false,
-      scored: false,
-      firstGuess: null,
-      secondGuess: null,
-    };
-  }
-
-  const gameDoc: CloverGame = {
-    gameType: "clover",
-    status: "board-lock",
-    round: 1,
-    turnOrder,
-    currentBoardOwner: turnOrder[0] ?? null,
-    boards,
-    boardOrder: [...playerUids],
-    teamScore: 0,
-    winner: null,
-    lastBoardOwner: null,
-    lastBoardScore: null,
-    lastAction: "initial board setup created",
-  };
-
-  await setDoc(doc(db, "games", roomCode), gameDoc);
-
-  for (const uid of playerUids) {
-    await setDoc(doc(db, "games", roomCode, "hands", uid), {
-      tiles: boards[uid].tiles,
+    return onSnapshot(doc(db, "games", roomCode, "hands", uid), (snapshot) => {
+      setBoard(snapshot.exists() ? (snapshot.data() as CloverPrivateBoard) : null);
     });
-  }
+  }, [roomCode, uid]);
 
-  await updateDoc(doc(db, "rooms", roomCode), { status: "in-progress" });
+  return board;
 }
 
-export async function submitCloverBoard(
+export async function startCloverGame(roomCode: string, room: Room): Promise<void> {
+  const playerOrder = Object.entries(room.players)
+    .sort(([, first], [, second]) => first.order - second.order)
+    .map(([uid]) => uid);
+
+  if (playerOrder.length < 3 || playerOrder.length > 6) {
+    throw new Error("Clover requires 3–6 players.");
+  }
+
+  const deck = createCloverDeck(roomCode, playerOrder.length * 5);
+  const batch = writeBatch(db);
+  const game: CloverGame = {
+    gameType: "clover",
+    phase: "clue-writing",
+    playerOrder,
+    activeSpectatorUid: null,
+    activeDecisionMakerUid: null,
+    submittedClueUids: [],
+    completedSpectatorUids: [],
+    publishedRounds: {},
+    activeRound: null,
+    teamScore: 0,
+    boardResults: {},
+    lastAction: "Everyone is creating their secret Clover.",
+  };
+
+  batch.set(doc(db, "games", roomCode), game);
+
+  playerOrder.forEach((uid, index) => {
+    const candidateCards = shuffled(deck.slice(index * 5, index * 5 + 5));
+    const board: CloverPrivateBoard = {
+      ownerUid: uid,
+      sourceCards: candidateCards.slice(0, 4),
+      candidateCards,
+      answerPlacement: {},
+      clues: EMPTY_CLUES,
+      submittedAt: null,
+    };
+    batch.set(doc(db, "games", roomCode, "hands", uid), board);
+  });
+
+  batch.update(doc(db, "rooms", roomCode), { status: "in-progress" });
+  await batch.commit();
+}
+
+export async function submitCloverClues(
   roomCode: string,
   uid: string,
-  placements: Record<string, { slot: number; rotation: number }>,
-  edgeWords: [string, string, string, string]
-) {
+  placement: Record<string, CloverPlacement>,
+  clues: Record<CloverClueZone, string>,
+): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
+  const boardRef = doc(db, "games", roomCode, "hands", uid);
 
-  await updateDoc(gameRef, {
-    [`boards.${uid}.placements`]: placements,
-    [`boards.${uid}.edgeWords`]: edgeWords,
-    [`boards.${uid}.locked`]: true,
-    [`boards.${uid}.firstGuess`]: null,
-    [`boards.${uid}.secondGuess`]: null,
-    lastAction: `${uid} locked their Clover board`,
-  });
+  await runTransaction(db, async (transaction) => {
+    const [gameSnapshot, boardSnapshot] = await Promise.all([
+      transaction.get(gameRef),
+      transaction.get(boardRef),
+    ]);
+    if (!gameSnapshot.exists() || !boardSnapshot.exists()) throw new Error("Clover game not found.");
 
-  const snap = await getDoc(gameRef);
-  if (!snap.exists()) return;
-
-  const game = snap.data() as CloverGame;
-  const allLocked = Object.values(game.boards).every((board) => board.locked);
-
-  if (allLocked) {
-    const firstBoardOwner = game.boardOrder[0] ?? null;
-
-    await updateDoc(gameRef, {
-      status: "guessing",
-      currentBoardOwner: firstBoardOwner,
-      lastAction: "All boards locked. Guessing begins.",
-    });
-  }
-}
-
-export function compareCloverGuess(
-  original: Record<string, { slot: number; rotation: number }>,
-  guess: Record<string, { slot: number; rotation: number }>
-): number {
-  let correct = 0;
-
-  for (const tileId of Object.keys(original)) {
-    const originalPlacement = original[tileId];
-    const guessPlacement = guess[tileId];
-
-    if (!guessPlacement) continue;
-
-    if (
-      originalPlacement.slot === guessPlacement.slot &&
-      originalPlacement.rotation === guessPlacement.rotation
-    ) {
-      correct += 1;
+    const game = gameSnapshot.data() as CloverGame;
+    const board = boardSnapshot.data() as CloverPrivateBoard;
+    if (game.phase !== "clue-writing") throw new Error("Clue writing is closed.");
+    if (!game.playerOrder.includes(uid)) throw new Error("You are not in this game.");
+    if (game.submittedClueUids.includes(uid)) throw new Error("Your clues are already locked.");
+    if (!isCompleteCloverPlacement(placement, board.sourceCards)) {
+      throw new Error("Place all four cards before locking your clues.");
     }
-  }
+    if (!hasValidCloverClues(clues)) {
+      throw new Error("Each clue must be one non-empty word (up to 40 characters).");
+    }
 
-  return correct;
+    const submittedClueUids = [...game.submittedClueUids, uid];
+    const publishedRounds = {
+      ...game.publishedRounds,
+      [uid]: {
+        spectatorUid: uid,
+        clues,
+        candidateCards: board.candidateCards,
+      },
+    };
+    const allSubmitted = submittedClueUids.length === game.playerOrder.length;
+    const firstSpectatorUid = game.playerOrder[0] ?? null;
+    const firstRound = firstSpectatorUid ? publishedRounds[firstSpectatorUid] : null;
+    const activeRound: CloverSharedRound | null = allSubmitted && firstRound
+      ? {
+        ...firstRound,
+        sharedPlacement: {},
+        lockedCorrectCardIds: [],
+        attempt: 1,
+        isLockedForVerification: false,
+      }
+      : null;
+
+    transaction.update(boardRef, {
+      answerPlacement: placement,
+      clues,
+      submittedAt: Date.now(),
+    });
+    transaction.update(gameRef, {
+      submittedClueUids,
+      publishedRounds,
+      phase: allSubmitted ? "solving-first" : "clue-writing",
+      activeSpectatorUid: allSubmitted ? firstSpectatorUid : null,
+      activeDecisionMakerUid: allSubmitted && firstSpectatorUid
+        ? getNextCloverPlayer(game.playerOrder, firstSpectatorUid)
+        : null,
+      activeRound,
+      lastAction: allSubmitted
+        ? "All Clovers are ready. The first resolution begins."
+        : "A player locked their clues.",
+    });
+  });
 }
 
-export async function submitCloverFirstGuess(
+export async function placeCloverGuessCard(
   roomCode: string,
-  ownerUid: string,
-  guess: Record<string, { slot: number; rotation: number }>
+  uid: string,
+  cardId: string,
+  placement: CloverPlacement | null,
 ): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
-  const snap = await getDoc(gameRef);
 
-  if (!snap.exists()) return;
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(gameRef);
+    if (!snapshot.exists()) throw new Error("Clover game not found.");
+    const game = snapshot.data() as CloverGame;
+    const round = game.activeRound;
+    if (!round || (game.phase !== "solving-first" && game.phase !== "solving-final")) {
+      throw new Error("There is no Clover board to solve.");
+    }
+    if (game.activeDecisionMakerUid !== uid) throw new Error("Only the decision-maker can move cards.");
+    if (round.isLockedForVerification) throw new Error("The spectator is verifying this guess.");
+    if (round.lockedCorrectCardIds.includes(cardId)) throw new Error("Correct cards stay locked in place.");
+    if (!round.candidateCards.some((card) => card.id === cardId)) throw new Error("This card is not a candidate.");
+    if (placement && round.lockedCorrectCardIds.some((lockedId) => round.sharedPlacement[lockedId]?.slot === placement.slot)) {
+      throw new Error("That slot is already locked.");
+    }
 
-  const game = snap.data() as CloverGame;
-  const original = game.boards[ownerUid]?.placements ?? {};
-  const correctTiles = compareCloverGuess(original, guess);
+    const sharedPlacement = { ...round.sharedPlacement };
+    delete sharedPlacement[cardId];
+    if (placement) {
+      Object.entries(sharedPlacement).forEach(([placedCardId, placedCard]) => {
+        if (placedCard.slot === placement.slot && !round.lockedCorrectCardIds.includes(placedCardId)) {
+          delete sharedPlacement[placedCardId];
+        }
+      });
+      sharedPlacement[cardId] = placement;
+    }
 
-  if (correctTiles === 4) {
-    const earned = 6;
-
-    await updateDoc(gameRef, {
-      teamScore: (game.teamScore ?? 0) + earned,
-      [`boards.${ownerUid}.firstGuess`]: guess,
-      [`boards.${ownerUid}.scored`]: true,
-      lastBoardOwner: ownerUid,
-      lastBoardScore: earned,
-      status: "round-end",
-      lastAction: `Perfect match: +${earned} for ${ownerUid}`,
+    transaction.update(gameRef, {
+      "activeRound.sharedPlacement": sharedPlacement,
+      lastAction: "The shared Clover board changed.",
     });
-    return;
-  }
-
-  await updateDoc(gameRef, {
-    [`boards.${ownerUid}.firstGuess`]: guess,
-    lastAction: `${ownerUid} missed on first try; second attempt available`,
   });
 }
 
-export async function submitCloverSecondGuess(
-  roomCode: string,
-  ownerUid: string,
-  guess: Record<string, { slot: number; rotation: number }>
-): Promise<void> {
+export async function lockCloverGuess(roomCode: string, uid: string): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
-  const snap = await getDoc(gameRef);
 
-  if (!snap.exists()) return;
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(gameRef);
+    if (!snapshot.exists()) throw new Error("Clover game not found.");
+    const game = snapshot.data() as CloverGame;
+    const round = game.activeRound;
+    if (!round || (game.phase !== "solving-first" && game.phase !== "solving-final")) {
+      throw new Error("There is no Clover board to lock.");
+    }
+    if (game.activeDecisionMakerUid !== uid) throw new Error("Only the decision-maker can lock the guess.");
+    if (!isCompleteCloverPlacement(round.sharedPlacement, round.candidateCards)) {
+      throw new Error("Place four cards before locking the guess.");
+    }
 
-  const game = snap.data() as CloverGame;
-  const original = game.boards[ownerUid]?.placements ?? {};
-  const correctTiles = compareCloverGuess(original, guess);
-
-  await updateDoc(gameRef, {
-    teamScore: (game.teamScore ?? 0) + correctTiles,
-    [`boards.${ownerUid}.secondGuess`]: guess,
-    [`boards.${ownerUid}.scored`]: true,
-    lastBoardOwner: ownerUid,
-    lastBoardScore: correctTiles,
-    status: "round-end",
-    lastAction: `${ownerUid} scored ${correctTiles} on second try`,
-  });
-}
-
-export async function advanceCloverBoard(roomCode: string) {
-  const ref = doc(db, "games", roomCode);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) return;
-
-  const game = snap.data() as CloverGame;
-
-  const nextOwner =
-    game.boardOrder.find((uid) => !game.boards[uid]?.scored) ?? null;
-
-  if (!nextOwner) {
-    await updateDoc(ref, {
-      status: "finished",
-      winner: "team",
-      lastBoardOwner: null,
-      lastBoardScore: null,
-      lastAction: "Clover game complete",
+    transaction.update(gameRef, {
+      "activeRound.isLockedForVerification": true,
+      lastAction: "The team locked its guess for verification.",
     });
-    return;
-  }
-
-  await updateDoc(ref, {
-    currentBoardOwner: nextOwner,
-    status: "guessing",
-    lastBoardOwner: null,
-    lastBoardScore: null,
-    lastAction: `Now guessing ${nextOwner}'s board`,
   });
 }
 
-export function getCloverScoreSummary(playerCount: number, score: number) {
-  const thresholds: Record<number, Array<{ min: number; max: number | null; label: string }>> = {
-    2: [
-      { min: 12, max: 12, label: "PERFECT SCORE" },
-      { min: 10,  max: 11, label: "LEGENDARY" },
-      { min: 8, max: 9, label: "GREAT GAME" },
-      { min: 6, max: 7, label: "AVERAGE" },
-      { min: 0, max: 5, label: "ROOM FOR GROWTH" },
-    ],
-    3: [
-      { min: 18, max: 18, label: "PERFECT SCORE" },
-      { min: 15, max: 17, label: "LEGENDARY" },
-      { min: 13, max: 14, label: "GREAT GAME" },
-      { min: 10, max: 12, label: "AVERAGE" },
-      { min: 0, max: 9, label: "ROOM FOR GROWTH" },
-    ],
-    4: [
-      { min: 24, max: 24, label: "PERFECT SCORE" },
-      { min: 20, max: 23, label: "LEGENDARY" },
-      { min: 17, max: 19, label: "GREAT GAME" },
-      { min: 13, max: 16, label: "AVERAGE" },
-      { min: 0, max: 12, label: "ROOM FOR GROWTH" },
-    ],
-    5: [
-      { min: 30, max: 30, label: "PERFECT SCORE" },
-      { min: 25, max: 29, label: "LEGENDARY" },
-      { min: 21, max: 24, label: "GREAT GAME" },
-      { min: 16, max: 20, label: "AVERAGE" },
-      { min: 0, max: 15, label: "ROOM FOR GROWTH" },
-    ],
-    6: [
-      { min: 36, max: 36, label: "PERFECT SCORE" },
-      { min: 30, max: 35, label: "LEGENDARY" },
-      { min: 25, max: 29, label: "GREAT GAME" },
-      { min: 20, max: 24, label: "AVERAGE" },
-      { min: 0, max: 19, label: "ROOM FOR GROWTH" },
-    ],
-  };
+export async function verifyCloverGuess(roomCode: string, spectatorUid: string): Promise<void> {
+  const gameRef = doc(db, "games", roomCode);
+  const boardRef = doc(db, "games", roomCode, "hands", spectatorUid);
 
-  const ranges = thresholds[playerCount] ?? thresholds[4];
-  return ranges.find((range) => score >= range.min && (range.max === null || score <= range.max)) ?? ranges[ranges.length - 1];
+  await runTransaction(db, async (transaction) => {
+    const [gameSnapshot, boardSnapshot] = await Promise.all([
+      transaction.get(gameRef),
+      transaction.get(boardRef),
+    ]);
+    if (!gameSnapshot.exists() || !boardSnapshot.exists()) throw new Error("Clover game not found.");
+    const game = gameSnapshot.data() as CloverGame;
+    const board = boardSnapshot.data() as CloverPrivateBoard;
+    const round = game.activeRound;
+    if (!round || game.activeSpectatorUid !== spectatorUid) throw new Error("This is not your Clover to verify.");
+    if (game.phase !== "solving-first" && game.phase !== "solving-final") throw new Error("This board is not ready to verify.");
+    if (!round.isLockedForVerification) throw new Error("The team has not locked its guess yet.");
+    if (!isCompleteCloverPlacement(round.sharedPlacement, round.candidateCards)) {
+      throw new Error("Four cards must be placed before verification.");
+    }
+
+    const evaluation = evaluateCloverGuess(board.answerPlacement, round.sharedPlacement);
+    if (game.phase === "solving-first" && !evaluation.isPerfect) {
+      const sharedPlacement = Object.fromEntries(
+        evaluation.correctCardIds.map((cardId) => [cardId, round.sharedPlacement[cardId]]),
+      );
+      transaction.update(gameRef, {
+        phase: "solving-final",
+        "activeRound.sharedPlacement": sharedPlacement,
+        "activeRound.lockedCorrectCardIds": evaluation.correctCardIds,
+        "activeRound.attempt": 2,
+        "activeRound.isLockedForVerification": false,
+        lastAction: "Incorrect cards were removed. The team has one final attempt.",
+      });
+      return;
+    }
+
+    const score = getCloverScore(evaluation, round.attempt);
+    transaction.update(gameRef, {
+      phase: "board-result",
+      teamScore: game.teamScore + score,
+      completedSpectatorUids: [...game.completedSpectatorUids, spectatorUid],
+      boardResults: {
+        ...game.boardResults,
+        [spectatorUid]: {
+          score,
+          firstAttemptPerfect: round.attempt === 1 && evaluation.isPerfect,
+          correctCardIds: evaluation.correctCardIds,
+        },
+      },
+      lastAction: round.attempt === 1 && evaluation.isPerfect
+        ? "Perfect first attempt! +6 points."
+        : `Board resolved for ${score} point${score === 1 ? "" : "s"}.`,
+    });
+  });
 }
 
-export async function resetCloverGame(roomCode: string) {
-  const handsSnap = await getDocs(collection(db, "games", roomCode, "hands"));
-  await Promise.all(handsSnap.docs.map((handDoc: { ref: any; }) => deleteDoc(handDoc.ref)));
+export async function advanceCloverRound(roomCode: string, uid: string): Promise<void> {
+  const gameRef = doc(db, "games", roomCode);
 
-  await deleteDoc(doc(db, "games", roomCode));
-  await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(gameRef);
+    if (!snapshot.exists()) throw new Error("Clover game not found.");
+    const game = snapshot.data() as CloverGame;
+    if (game.phase !== "board-result") throw new Error("The current Clover has not been resolved.");
+    if (uid !== game.activeDecisionMakerUid) throw new Error("Only the decision-maker can continue.");
+
+    const nextSpectatorUid = game.playerOrder.find((playerUid) => !game.completedSpectatorUids.includes(playerUid)) ?? null;
+    if (!nextSpectatorUid) {
+      transaction.update(gameRef, {
+        phase: "finished",
+        activeSpectatorUid: null,
+        activeDecisionMakerUid: null,
+        activeRound: null,
+        lastAction: "Every Clover has been resolved.",
+      });
+      return;
+    }
+
+    const publishedRound = game.publishedRounds[nextSpectatorUid];
+    if (!publishedRound) throw new Error("The next Clover is unavailable.");
+    transaction.update(gameRef, {
+      phase: "solving-first",
+      activeSpectatorUid: nextSpectatorUid,
+      activeDecisionMakerUid: getNextCloverPlayer(game.playerOrder, nextSpectatorUid),
+      activeRound: {
+        ...publishedRound,
+        sharedPlacement: {},
+        lockedCorrectCardIds: [],
+        attempt: 1,
+        isLockedForVerification: false,
+      },
+      lastAction: "The next Clover is ready to solve.",
+    });
+  });
 }

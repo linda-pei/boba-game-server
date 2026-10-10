@@ -282,6 +282,23 @@
 /* Fruit Boss banner: warm market gradient */
 .game-banner.fb { background: linear-gradient(110deg, #fde6c2 0%, #f1bf85 100%); }
 .game-banner.fb .banner-icon { background: #fff5dc; }
+/* Clover: a bright garden-green banner with forest text for readable play-state cues. */
+.game-banner.clover {
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--milk-50) 70%, transparent) 0 7%, transparent 7.5%),
+    radial-gradient(circle at 78% 82%, color-mix(in srgb, var(--jade-300) 45%, transparent) 0 11%, transparent 11.5%),
+    linear-gradient(120deg, color-mix(in srgb, var(--jade-300) 68%, var(--milk-50)) 0%, color-mix(in srgb, var(--jade-100) 82%, var(--milk-50)) 100%);
+  --banner-ink: var(--jade-700);
+  --banner-sub: color-mix(in srgb, var(--jade-700) 82%, var(--ink));
+}
+.game-banner.clover::before {
+  background-image: radial-gradient(color-mix(in srgb, var(--jade-700) 25%, transparent) 1.15px, transparent 1.35px);
+}
+.game-banner.clover .banner-icon {
+  background: var(--milk-50);
+  border-color: var(--jade-700);
+  box-shadow: 2px 2px 0 var(--jade-700);
+}
 /* Startups banner: clean jade-to-gold diagonal with the 6-company stripe at the base */
 .game-banner.su {
   background:
@@ -317,6 +334,19 @@
 [data-theme="dark"] .game-banner.tt .banner-title .sub { color: var(--tt-solar); opacity: 0.75; }
 [data-theme="dark"] .game-banner.fb { background: linear-gradient(110deg, #4a2818 0%, #2e1810 100%); --banner-ink: #fff; --banner-sub: #f0c8b4; }
 [data-theme="dark"] .game-banner.fb .banner-title h2 { color: #fff; }
+[data-theme="dark"] .game-banner.clover {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(143, 193, 156, 0.18) 0 7%, transparent 7.5%),
+    radial-gradient(circle at 78% 82%, rgba(78, 165, 132, 0.17) 0 11%, transparent 11.5%),
+    linear-gradient(120deg, #214d3a 0%, #143126 100%);
+  --banner-ink: #f0fbf2;
+  --banner-sub: #c8e8d0;
+}
+[data-theme="dark"] .game-banner.clover .banner-icon {
+  background: #e8f7eb;
+  border-color: var(--jade-300);
+  box-shadow: 2px 2px 0 var(--jade-300);
+}
 [data-theme="dark"] .game-banner.su {
   background:
     linear-gradient(90deg,

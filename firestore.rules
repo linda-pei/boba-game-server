@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isRoomMember(roomCode) {
+      return signedIn()
+        && get(/databases/$(database)/documents/rooms/$(roomCode)).data.players[request.auth.uid] != null;
+    }
+
+    function isRoomHost(roomCode) {
+      return signedIn()
+        && get(/databases/$(database)/documents/rooms/$(roomCode)).data.host == request.auth.uid;
+    }
+
+    function isCloverGame(roomCode) {
+      return exists(/databases/$(database)/documents/games/$(roomCode))
+        && get(/databases/$(database)/documents/games/$(roomCode)).data.gameType == "clover";
+    }
+
+    // Existing lobby behavior permits signed-in players to discover and join rooms.
+    match /rooms/{roomCode} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    match /games/{roomCode} {
+      // Game state remains collaborative in the current trusted-client architecture.
+      allow read, create, update, delete: if isRoomMember(roomCode);
+
+      match /hands/{ownerUid} {
+        // Other games currently use collaborative hand documents. Only Clover
+        // boards are private until server-authoritative actions are introduced.
+        allow read: if (!isCloverGame(roomCode) && isRoomMember(roomCode))
+          || (isCloverGame(roomCode) && (request.auth.uid == ownerUid || isRoomHost(roomCode)));
+        allow create: if (!isCloverGame(roomCode) && isRoomMember(roomCode))
+          || (isCloverGame(roomCode) && isRoomHost(roomCode));
+        allow update: if (!isCloverGame(roomCode) && isRoomMember(roomCode))
+          || (isCloverGame(roomCode) && request.auth.uid == ownerUid);
+        allow delete: if (!isCloverGame(roomCode) && isRoomMember(roomCode))
+          || (isCloverGame(roomCode) && (request.auth.uid == ownerUid || isRoomHost(roomCode)));
+      }
+    }
+  }
+}

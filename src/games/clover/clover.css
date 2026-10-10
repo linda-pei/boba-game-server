@@ -1,446 +1,228 @@
-:root {
-  --clover-board-size: 560px;
-  --clover-tile-size: 184px;
-  --clover-tray-slot-size: 180px;
+.clover-wrap {
+  --clover-green: color-mix(in srgb, var(--accent-secondary) 76%, #356448);
+  --clover-soft: color-mix(in srgb, var(--accent-secondary) 10%, var(--surface));
 }
 
-#root:has(.clover-screen) {
-  max-width: 1200px;
-}
+#root:has(.clover-wrap) { max-width: 1100px; }
 
-.screen.clover-screen {
-  max-width: 1200px;
-  margin: 0 auto;
+.game-screen-wrap.clover-wrap { max-width: min(100%, 1060px); }
+
+.clover-screen {
+  display: grid;
+  gap: 1rem;
+  max-width: 1040px;
   font-family: var(--font-body);
 }
 
-.clover-screen h1,
-.clover-screen h2,
 .clover-screen h3,
 .clover-screen h4 {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
 }
 
-.clover-board-shell {
-  display: grid;
-  gap: 1.25rem;
-  margin-top: 1rem;
-}
-
-.clover-panel {
-  background: var(--surface);
-  border: 2px solid var(--border-strong);
+.clover-scorebar,
+.clover-panel,
+.clover-verification {
+  border: 1px solid var(--border-strong);
   border-radius: var(--r-3);
-  box-shadow: var(--shadow-2);
-  padding: 1rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
 }
 
-.clover-status-box {
+.clover-scorebar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
-  background: color-mix(in srgb, var(--peach-500) 8%, var(--surface));
-  border: 2px solid color-mix(in srgb, var(--peach-500) 30%, var(--border));
-  border-radius: var(--r-3);
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-.clover-status-box strong {
-  color: var(--ink);
+.clover-scorebar strong {
+  color: var(--clover-green);
+  font-size: 1.2em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
 
-.clover-board-stage {
+.clover-panel { padding: clamp(1rem, 3vw, 1.75rem); }
+
+.clover-panel__heading {
   display: flex;
-  justify-content: center;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.clover-panel__heading h3,
+.clover-result h3 { margin: 0.1rem 0 0; font-size: 1.25rem; line-height: 1.2; }
+.clover-panel__heading > p { margin: 0; max-width: 35rem; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; }
+
+.eyebrow {
+  margin: 0;
+  color: var(--clover-green);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.clover-board-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 180px) minmax(0, 430px) minmax(150px, 180px);
+  grid-template-rows: auto auto auto;
   align-items: center;
+  justify-content: center;
+  column-gap: 1.25rem;
+  row-gap: 1rem;
   width: 100%;
-  padding: 0.75rem 0 0.5rem;
+  max-width: 920px;
+  margin: 1.5rem auto 1.25rem;
 }
 
-.clover-board-grid-wrap {
-  position: relative;
-  width: var(--clover-board-size);
-  height: var(--clover-board-size);
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 3.2rem 3.8rem;
-  box-sizing: border-box;
-}
-
-.clover-board-grid {
-  position: relative;
-  z-index: 1;
+.clover-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  background: transparent;
+  gap: 0.8rem;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  grid-column: 2;
+  grid-row: 2;
 }
 
 .clover-slot {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.65rem;
-  background: var(--surface-2);
-  border: 2px dashed var(--border);
-  border-radius: var(--r-2);
-  color: var(--ink-soft);
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(61, 38, 19, 0.04);
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.clover-slot:hover {
-  border-color: var(--accent-primary);
-  box-shadow: inset 0 0 0 1px rgba(61, 38, 19, 0.08);
-}
-
-.clover-slot-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 0.8rem;
-  text-align: center;
-  color: var(--ink-soft);
-  opacity: 0.8;
-  pointer-events: none;
-}
-
-.clover-placed-tile {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  border: none;
-  background: transparent;
+  min-height: 166px;
   padding: 0;
-}
-
-.clover-square-tile {
-  position: relative;
-  width: var(--clover-tile-size);
-  height: var(--clover-tile-size);
-  min-width: var(--clover-tile-size);
-  min-height: var(--clover-tile-size);
-  background: var(--surface);
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
-  box-shadow: var(--shadow-sticker);
-  overflow: visible;
-  flex: none;
-  box-sizing: border-box;
-  margin: auto;
-}
-
-.clover-hand-tile {
-  width: var(--clover-tile-size);
-  height: var(--clover-tile-size);
-}
-
-.clover-word-layer {
-  position: absolute;
-  inset: 0;
-}
-
-.clover-word {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  line-height: 1.15;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.12rem 0.28rem;
-  word-break: break-word;
-  overflow: visible;
-}
-
-.clover-word--top,
-.clover-word--bottom {
-  left: 20%;
-  right: 20%;
-  height: 22%;
-}
-
-.clover-word--top {
-  top: 0;
-}
-
-.clover-word--bottom {
-  bottom: 0;
-}
-
-.clover-word--left,
-.clover-word--right {
-  top: 20%;
-  bottom: 20%;
-  width: 22%;
-}
-
-.clover-word--left {
-  left: 0;
-}
-
-.clover-word--right {
-  right: 0;
-}
-
-.clover-rotate-button {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--accent-primary);
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.4rem 0.7rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
-  transition: background-color 0.15s ease;
-}
-
-.clover-rotate-button:hover {
-  background-color: color-mix(in srgb, var(--accent-primary) 80%, white);
-  transform: none;
-}
-
-.clover-edge-inputs {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.clover-edge-field {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  width: 170px;
-  pointer-events: auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
-.clover-edge-field span {
-  display: inline-block;
-  color: var(--ink-soft);
-}
-
-.clover-edge-field input {
-  width: 100%;
-  height: 2.3rem;
-  border: 2px solid rgba(84, 58, 36, 0.55);
-  border-radius: 999px;
-  background: rgba(255, 245, 235, 0.96);
-  color: var(--ink);
-  text-align: center;
-  font-size: 0.72rem;
-  padding: 0.15rem 0.9rem;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
-}
-
-.clover-edge-field--top {
-  left: 50%;
-  top: -2.2rem;
-  transform: translateX(-50%);
-}
-
-.clover-edge-field--right {
-  right: -20rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.clover-edge-field--bottom {
-  left: 50%;
-  bottom: -2rem;
-  transform: translateX(-50%);
-}
-
-.clover-edge-field--left {
-  left: -10rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.clover-return-tray {
-  width: min(100%, 720px);
-  margin: 2.25rem auto 0;
-  padding: 0.9rem;
-  border: 2px solid var(--border-strong);
-  border-radius: var(--r-3);
-  background: var(--surface);
-  box-shadow: var(--shadow-2);
-}
-
-.clover-return-tray__label {
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin-bottom: 0.7rem;
-  text-align: center;
-}
-
-.clover-return-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  min-height: calc(var(--clover-tray-slot-size) + 1rem);
-}
-
-.clover-return-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--clover-tray-slot-size);
-  height: var(--clover-tray-slot-size);
-  border: 1px solid var(--border);
+  overflow: hidden;
+  border: 2px dashed var(--border-strong);
   border-radius: var(--r-2);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  cursor: pointer;
 }
 
-.clover-return-slot--empty {
-  visibility: hidden;
+.clover-slot--ready { cursor: pointer; }
+.clover-slot--ready:hover { border-color: var(--accent-primary); }
+.clover-slot--drop-ready {
+  border-color: color-mix(in srgb, var(--accent-secondary) 65%, var(--border-strong));
+  background: color-mix(in srgb, var(--accent-secondary) 8%, var(--surface-2));
 }
-
-@media (max-width: 620px) {
-  :root {
-    --clover-board-size: 390px;
-    --clover-tile-size: 136px;
-    --clover-tray-slot-size: 136px;
-  }
-
-  .clover-board-grid-wrap {
-    padding: 2.8rem 3.2rem;
-  }
-
-  .clover-board-grid {
-    gap: 0.7rem;
-  }
-
-  .clover-slot {
-    padding: 0.45rem;
-  }
-
-  .clover-edge-field {
-    width: 130px;
-  }
-}
-
-@media (max-width: 420px) {
-  :root {
-    --clover-board-size: 300px;
-    --clover-tile-size: 116px;
-    --clover-tray-slot-size: 118px;
-  }
-
-  .clover-board-grid-wrap {
-    padding: 2.3rem 2.7rem;
-  }
-
-  .clover-edge-field {
-    width: 100px;
-    font-size: 0.64rem;
-  }
-
-  .clover-edge-field input {
-    font-size: 0.62rem;
-    padding: 0.15rem 0.45rem;
-  }
-}
-
-/* Dark mode */
-[data-theme="dark"] .screen.clover-screen {
-  --clover-bg: #17110d;
-  --clover-panel: #271e17;
-  --clover-border: #4d3929;
-  --clover-border-strong: #8d6a46;
-  --clover-ink: #f3e6cb;
-  --clover-ink-soft: #d7be8c;
-  --clover-slot-bg: #241b15;
-  background: var(--clover-bg);
-  color: var(--clover-ink);
-}
-
-[data-theme="dark"] .clover-screen h1,
-[data-theme="dark"] .clover-screen h2,
-[data-theme="dark"] .clover-screen h3,
-[data-theme="dark"] .clover-screen h4,
-[data-theme="dark"] .clover-screen p,
-[data-theme="dark"] .clover-screen label,
-[data-theme="dark"] .clover-screen strong {
-  color: var(--clover-ink);
-}
-
-[data-theme="dark"] .clover-panel {
-  background: var(--clover-panel);
-  border-color: var(--clover-border-strong);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
-}
-
-[data-theme="dark"] .clover-status-box {
-  background: rgba(236, 124, 90, 0.12);
-  border-color: rgba(236, 124, 90, 0.45);
-}
-
-[data-theme="dark"] .clover-slot {
-  background: var(--clover-slot-bg);
-  border-color: var(--clover-border);
-  color: var(--clover-ink-soft);
-}
-
-[data-theme="dark"] .clover-square-tile {
-  background: linear-gradient(180deg, #2d2119 0%, #1d1713 100%);
-  border-color: var(--clover-border-strong);
-  color: var(--clover-ink);
-}
-
-[data-theme="dark"] .clover-word {
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--clover-ink);
-}
-
-[data-theme="dark"] .clover-edge-field input {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--clover-border);
-  color: var(--clover-ink);
-}
-
-.clover-board-grid-wrap {
+.clover-slot--drop-target {
   position: relative;
-  width: var(--clover-board-size);
-  height: var(--clover-board-size);
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 4rem 4.4rem 4.8rem;
-  box-sizing: border-box;
+  z-index: 3;
+  border-color: var(--accent-primary);
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  outline-offset: 3px;
+}
+.clover-slot__empty { display: grid; place-items: center; min-height: 166px; padding: 0.75rem; }
+
+.clover-card.game-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 145px;
+  min-height: 166px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  box-shadow: none;
+  cursor: pointer;
+}
+.clover-card.game-card[draggable="true"] { cursor: grab; }
+.clover-card.game-card[draggable="true"]:active { cursor: grabbing; }
+
+.clover-card.game-card.selected { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
+.clover-card--locked { border-color: var(--clover-green) !important; cursor: default !important; }
+
+.clover-card__word {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  max-width: 44%;
+  padding: 0.2rem;
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.clover-card__word--top { top: 0.45rem; left: 50%; transform: translateX(-50%); }
+.clover-card__word--right { top: 50%; right: 0.2rem; writing-mode: vertical-rl; transform: translateY(-50%); }
+.clover-card__word--bottom { bottom: 0.45rem; left: 50%; transform: translateX(-50%); }
+.clover-card__word--left { top: 50%; left: 0.2rem; writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg); }
+
+.clover-card__rotate { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
+.clover-card__rotate.btn:hover { transform: translate(-50%, -50%) translate(-1px, -1px); }
+.clover-card__rotate.btn:active { transform: translate(-50%, -50%) translate(2px, 2px); }
+.clover-card__locked-label { position: absolute; inset: 44% 12% auto; padding: 0.2rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+
+.clover-clues { display: contents; }
+.clover-clue {
+  z-index: 2;
+  display: grid;
+  gap: 0.15rem;
+  width: 100%;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.clover-clue small { font-weight: 600; }
+.clover-clue strong { color: var(--ink); font-size: 0.92rem; overflow-wrap: anywhere; }
+.clover-clue input { width: 100%; box-sizing: border-box; border: 1px solid var(--border-strong); border-radius: var(--r-2); background: var(--surface); color: var(--ink); padding: 0.45rem 0.55rem; text-align: center; }
+.clover-clue--top { grid-column: 2; grid-row: 1; justify-self: center; max-width: 250px; }
+.clover-clue--right { grid-column: 3; grid-row: 2; }
+.clover-clue--bottom { grid-column: 2; grid-row: 3; justify-self: center; max-width: 250px; }
+.clover-clue--left { grid-column: 1; grid-row: 2; }
+
+.clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.clover-tray h4 { margin: 0 0 0.75rem; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.35; }
+.clover-tray__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.65rem; }
+.clover-tray .clover-card { min-height: 130px; }
+.clover-lock-clues { margin-top: 1.25rem; }
+
+.clover-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin-top: 1rem; }
+.clover-verification { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: 0.8rem 1rem; background: var(--clover-soft); }
+.clover-waiting, .clover-result { text-align: center; }
+.clover-progress { height: 0.6rem; margin: 1.25rem auto 0.75rem; max-width: 420px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
+.clover-progress span { display: block; height: 100%; border-radius: inherit; background: var(--clover-green); transition: width 180ms ease; }
+.clover-results-list { display: grid; gap: 0.5rem; max-width: 400px; margin: 1.25rem auto; text-align: left; }
+.clover-results-list div { display: flex; justify-content: space-between; padding: 0.55rem 0.75rem; border-radius: var(--r-2); background: var(--surface-2); }
+
+@media (max-width: 760px) {
+  .clover-panel__heading, .clover-verification { align-items: stretch; flex-direction: column; }
+  .clover-board-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto auto;
+    column-gap: 0.75rem;
+    row-gap: 0.85rem;
+    max-width: 460px;
+  }
+  .clover-grid { grid-column: 1 / -1; grid-row: 2; }
+  .clover-clue { font-size: 0.68rem; }
+  .clover-clue--top { grid-column: 1 / -1; grid-row: 1; }
+  .clover-clue--left { grid-column: 1; grid-row: 3; }
+  .clover-clue--right { grid-column: 2; grid-row: 3; }
+  .clover-clue--bottom { grid-column: 1 / -1; grid-row: 4; }
+  .clover-card.game-card, .clover-slot, .clover-slot__empty { min-height: 132px; min-width: 0; }
+  .clover-card__word { font-size: 0.62rem; }
+}
+
+@media (max-width: 440px) {
+  .clover-scorebar { font-size: 0.8rem; }
+  .clover-board-layout { width: 100%; }
+  .clover-clue { width: 100%; }
+  .clover-clue input { padding: 0.35rem 0.15rem; font-size: 0.68rem; }
+  .clover-card.game-card, .clover-slot, .clover-slot__empty { min-height: 105px; }
+  .clover-card__word { font-size: 0.53rem; }
+  .clover-card__rotate { font-size: 0.58rem; }
 }
