@@ -63,10 +63,10 @@ export const GAME_META: Record<
   clover: {
     id: "clover",
     name: "Clover",
-    tagline: "Co-op word association. Rebuild the hidden pattern.",
-    players: "2–6 players",
-    badge: "co-op puzzle",
-  }
+    tagline: "Write the link. Rebuild the Clover.",
+    players: "3–6 players",
+    badge: "co-op word play",
+  },
 };
 
 export const GAME_ID_TO_KEY: Record<string, GameKey> = {
@@ -250,13 +250,15 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <path d="M12 48 L68 48 L66 52 L14 52 Z" fill="var(--syrup-500)" />
         </svg>
       );
-      case "clover":
+    case "clover":
       return (
         <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
-          <rect x="16" y="16" width="20" height="20" rx="4" fill="var(--accent-primary)" opacity="0.9" />
-          <rect x="44" y="16" width="20" height="20" rx="4" fill="var(--accent-secondary)" opacity="0.9" />
-          <rect x="16" y="44" width="20" height="20" rx="4" fill="var(--accent-danger)" opacity="0.9" />
-          <rect x="44" y="44" width="20" height="20" rx="4" fill="var(--accent-primary)" opacity="0.8" />
+          <path d="M40 41 C24 36 21 16 34 13 C44 11 49 22 40 41 Z" fill="var(--jade-300)" />
+          <path d="M40 41 C44 25 62 19 67 31 C72 43 55 50 40 41 Z" fill="var(--jade-500)" />
+          <path d="M40 41 C56 45 59 63 47 68 C35 73 28 56 40 41 Z" fill="var(--jade-300)" />
+          <path d="M40 41 C34 57 16 60 12 48 C8 36 25 31 40 41 Z" fill="var(--jade-500)" />
+          <path d="M40 41 C40 51 38 59 31 66" fill="none" stroke="var(--jade-700)" strokeWidth="3" />
+          <circle cx="40" cy="41" r="5.5" fill="var(--honey-500)" />
         </svg>
       );
   }

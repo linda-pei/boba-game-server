@@ -540,42 +540,70 @@ export interface StartupsHand {
 
 // ---- Clover types ----
 
-export interface CloverTile {
+export type CloverPhase =
+  | "clue-writing"
+  | "waiting-for-clues"
+  | "solving-first"
+  | "solving-final"
+  | "board-result"
+  | "finished";
+
+export type CloverSlot = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+export type CloverRotation = 0 | 90 | 180 | 270;
+export type CloverClueZone = "top" | "right" | "bottom" | "left";
+
+export interface CloverCard {
   id: string;
-  edges: [string, string, string, string];
+  words: [string, string, string, string];
 }
 
 export interface CloverPlacement {
-  slot: number;
-  rotation: number;
+  slot: CloverSlot;
+  rotation: CloverRotation;
 }
 
-export interface CloverBoard {
+export interface CloverPrivateBoard {
   ownerUid: string;
-  tiles: CloverTile[];
-  placements: Record<string, CloverPlacement>;
-  edgeWords: [string, string, string, string];
-  locked: boolean;
-  scored: boolean;
+  sourceCards: CloverCard[];
+  candidateCards: CloverCard[];
+  answerPlacement: Record<string, CloverPlacement>;
+  clues: Record<CloverClueZone, string>;
+  submittedAt: number | null;
+}
 
-  // first try for this board
-  firstGuess?: Record<string, CloverPlacement> | null;
+export interface CloverPublishedRound {
+  spectatorUid: string;
+  clues: Record<CloverClueZone, string>;
+  candidateCards: CloverCard[];
+}
 
-  // second try for this board
-  secondGuess?: Record<string, CloverPlacement> | null;
+export interface CloverSharedRound {
+  spectatorUid: string;
+  clues: Record<CloverClueZone, string>;
+  candidateCards: CloverCard[];
+  sharedPlacement: Record<string, CloverPlacement>;
+  lockedCorrectCardIds: string[];
+  attempt: 1 | 2;
+  isLockedForVerification: boolean;
+}
+
+export interface CloverBoardResult {
+  score: number;
+  firstAttemptPerfect: boolean;
+  correctCardIds: string[];
 }
 
 export interface CloverGame {
   gameType: "clover";
-  status: "board-lock" | "guessing" | "round-end" | "finished";
-  round: number;
-  turnOrder: string[];
-  currentBoardOwner: string | null;
-  boards: Record<string, CloverBoard>;
-  boardOrder: string[];
+  phase: CloverPhase;
+  playerOrder: string[];
+  activeSpectatorUid: string | null;
+  activeDecisionMakerUid: string | null;
+  submittedClueUids: string[];
+  completedSpectatorUids: string[];
+  publishedRounds: Record<string, CloverPublishedRound>;
+  activeRound: CloverSharedRound | null;
   teamScore: number;
-  winner: string | null;
-  lastBoardOwner: string | null;
-  lastBoardScore: number | null;
+  boardResults: Record<string, CloverBoardResult>;
   lastAction: string | null;
 }
