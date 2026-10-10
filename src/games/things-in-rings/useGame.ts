@@ -4,7 +4,6 @@ import {
   setDoc,
   updateDoc,
   onSnapshot,
-  deleteField,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { NOUN_CARDS, CONTEXT_CLUES, ATTRIBUTE_CLUES, WORD_CLUES, shuffled } from "./deck";

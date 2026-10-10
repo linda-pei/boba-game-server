@@ -18,7 +18,7 @@ interface Props {
  * Fans cards horizontally outside a clock segment.
  * Each card is offset enough to be fully visible.
  */
-export default function CardSlot({ cards, angle, revealed, playerNames, uid }: Props) {
+export default function CardSlot({ cards, playerNames, uid }: Props) {
   const N = Math.min(cards.length, 4);
   if (N === 0) return null;
 

@@ -14,7 +14,7 @@ interface Props {
 
 const REVEAL_SECONDS = 5;
 
-export default function WordReveal({ roomCode, game, hand, uid, room }: Props) {
+export default function WordReveal({ roomCode, game, hand, uid }: Props) {
   const needsToConfirm = uid in game.wordRevealed;
   const hasConfirmed = game.wordRevealed[uid] === true;
   const firedRef = useRef(false);

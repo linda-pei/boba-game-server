@@ -36,8 +36,6 @@ const R = 180;       // outer dial radius
 const RINNER = 56;   // hub radius
 const RRIM = R + 14; // outer rim band
 
-const SEGMENT_COUNT = 6;
-const ANGLE_STEP = (2 * Math.PI) / SEGMENT_COUNT;
 
 function getWedgePath(i: number): string {
   const a0 = (i * 60 - 90) * Math.PI / 180;
@@ -54,8 +52,6 @@ export default function ClockDisplay({
   segmentRules,
   clockRotation,
   clockRule,
-  chapter,
-  test,
   specialRules,
   highlightSegment,
   revealedUpTo,

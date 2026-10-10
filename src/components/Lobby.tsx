@@ -130,11 +130,6 @@ export default function Lobby() {
     updateRoomSettings(roomCode, { knower: playerId });
   };
 
-  const handleSetRings = (numRings: number) => {
-    if (!roomCode) return;
-    updateRoomSettings(roomCode, { numRings });
-  };
-
   const handleSetMode = (newMode: "competitive" | "coop") => {
     if (!roomCode) return;
     updateRoomSettings(roomCode, { mode: newMode });

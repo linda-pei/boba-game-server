@@ -13,6 +13,7 @@ import type {
   FruitCard,
   FruitStack,
   FruitSuit,
+  FruitScoreBreakdown,
 } from "../../types";
 import {
   buildDeck,

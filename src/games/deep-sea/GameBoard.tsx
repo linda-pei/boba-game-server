@@ -41,7 +41,6 @@ export default function DeepSeaGameBoard({
     rolling: "rolling",
     "treasure-action": "treasure",
     "round-end": "round end",
-    finished: "finished",
   };
 
   return (

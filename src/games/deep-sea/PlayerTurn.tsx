@@ -48,7 +48,6 @@ function SpaceShapePreview({ space }: { space: PathSpace }) {
 export default function PlayerTurn({
   roomCode,
   game,
-  hand,
   uid,
   room,
 }: Props) {

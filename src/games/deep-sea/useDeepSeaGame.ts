@@ -6,10 +6,8 @@ import type {
   DeepSeaHand,
   DeepSeaDiver,
   TreasureChip,
-  PathSpace,
   Room,
 } from "../../types";
-import { shuffled } from "../../utils/shuffle";
 import {
   generateTreasureChips,
   buildInitialPath,

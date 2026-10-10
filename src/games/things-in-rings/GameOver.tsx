@@ -12,7 +12,7 @@ interface Props {
   roomCode: string;
 }
 
-export default function GameOver({ game, room, roomCode }: Props) {
+export default function GameOver({ game, room }: Props) {
   const { uid } = useAuthContext();
   const isHost = room?.host === uid;
 

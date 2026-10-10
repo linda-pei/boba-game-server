@@ -371,7 +371,6 @@ export async function submitWerewolfGuess(
 
 export async function submitVote(
   roomCode: string,
-  game: WerewordsGame,
   uid: string,
   voteFor: string
 ): Promise<void> {

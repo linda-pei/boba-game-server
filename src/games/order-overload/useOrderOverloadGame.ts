@@ -129,8 +129,7 @@ function getEmptiedToWin(playerCount: number): number {
 function findNextActiveTurn(
   turnOrder: string[],
   currentIndex: number,
-  eliminatedPlayers: string[],
-  emptiedPlayers: string[]
+  eliminatedPlayers: string[]
 ): number {
   const count = turnOrder.length;
   for (let offset = 1; offset <= count; offset++) {
@@ -352,8 +351,7 @@ export async function respondToGuess(
     const nextTurn = findNextActiveTurn(
       game.turnOrder,
       game.turnOrder.indexOf(game.guessingPlayer!),
-      game.eliminatedPlayers,
-      newEmptied
+      game.eliminatedPlayers
     );
 
     await updateDoc(doc(db, "games", roomCode), {
@@ -378,7 +376,6 @@ export async function respondToGuess(
     // Nobody had it — guesser is eliminated
     const guesser = game.guessingPlayer!;
     const newEliminated = [...game.eliminatedPlayers, guesser];
-    const newEmptied = game.emptiedPlayers;
 
     // Check if all players are eliminated
     const activeRemaining = game.turnOrder.filter(
@@ -406,8 +403,7 @@ export async function respondToGuess(
     const nextTurn = findNextActiveTurn(
       game.turnOrder,
       game.turnOrder.indexOf(guesser),
-      newEliminated,
-      newEmptied
+      newEliminated
     );
 
     await updateDoc(doc(db, "games", roomCode), {
