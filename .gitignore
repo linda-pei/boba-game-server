@@ -13,6 +13,11 @@ dist-ssr
 *.local
 .env
 
+# Local visual-feedback queue for the Codex development loop
+.codex/dev-feedback.json
+.codex/dev-feedback-resolved.json
+.codex/dev-feedback-images/
+
 # Firebase local cache
 .firebase/
 

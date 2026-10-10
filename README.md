@@ -58,6 +58,10 @@ npm run dev
 
 Open http://localhost:5173 in your browser. You should see a green "Firebase connected" message with a uid if everything is configured correctly.
 
+The dev server also mounts a visual-feedback picker for leaving UI notes by
+clicking on the page, optionally drained by a polling agent. See
+[`.codex/README.md`](.codex/README.md).
+
 ## Building for Production
 
 ```bash

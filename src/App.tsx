@@ -6,6 +6,7 @@ import Lobby from "./components/Lobby";
 import GameRouter from "./components/GameRouter";
 import JoinRedirect from "./components/JoinRedirect";
 import ThemeToggle from "./components/shared/ThemeToggle";
+import DevFeedbackOverlay from "./components/dev-feedback/DevFeedbackOverlay";
 import "./App.css";
 
 function AppContent() {
@@ -35,6 +36,7 @@ function App() {
       <AuthProvider>
         <ThemeToggle />
         <AppContent />
+        {import.meta.env.DEV && <DevFeedbackOverlay />}
       </AuthProvider>
     </BrowserRouter>
   );
