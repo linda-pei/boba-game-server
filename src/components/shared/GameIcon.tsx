@@ -218,5 +218,19 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <rect x="47.5" y="49" width="7" height="8" rx="1.5" className="nostroke" fill="var(--rt-d)" />
         </svg>
       );
+    case "bb":
+      return (
+        <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          {/* A round bomb with a lit fuse, and three wires: blue, yellow, red */}
+          <path d="M52 22 Q60 12 68 14" fill="none" />
+          <circle cx="69" cy="13" r="4" className="nostroke" fill="var(--bb-spark)" />
+          <rect x="44" y="20" width="12" height="9" rx="2" fill="var(--bb-shell-dark)" transform="rotate(30 50 24)" />
+          <circle cx="38" cy="46" r="24" fill="var(--bb-shell)" />
+          <circle cx="30" cy="38" r="5" className="nostroke" fill="rgba(255,255,255,0.35)" />
+          <path d="M20 54 C30 46 44 62 56 50" fill="none" className="bb-wire bb-wire--blue" />
+          <path d="M18 46 C30 40 42 52 58 42" fill="none" className="bb-wire bb-wire--yellow" />
+          <path d="M22 62 C32 56 44 68 54 58" fill="none" className="bb-wire bb-wire--red" />
+        </svg>
+      );
   }
 }

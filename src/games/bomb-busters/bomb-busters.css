@@ -1,0 +1,265 @@
+/* Bomb Busters: banner and screen card share one width, like the other games. */
+#root:has(.bb-wrap) { max-width: 100%; }
+.game-screen-wrap.bb-wrap { max-width: min(100%, 1040px); }
+
+.screen.bb-screen {
+  display: grid;
+  gap: 1rem;
+  max-width: none;
+  font-family: var(--font-body);
+}
+.bb-screen h3 { margin: 0; font-family: var(--font-display); }
+
+.bb-muted { color: var(--ink-soft); font-size: 0.85rem; }
+.bb-label {
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bb-tag {
+  padding: 1px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.bb-tag--used { opacity: 0.45; text-decoration: line-through; }
+
+.bb-board,
+.bb-player,
+.bb-me,
+.bb-result {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  padding: 0.85rem 1rem;
+}
+
+/* ---- Board ---- */
+.bb-board { display: grid; gap: 0.75rem; }
+.bb-mission { display: grid; gap: 0.1rem; }
+.bb-mission__id { color: var(--ink-soft); font-size: 0.75rem; font-weight: 700; }
+
+.bb-dial { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.bb-dial__track { display: flex; gap: 0.3rem; }
+.bb-dial__step {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+}
+.bb-dial__step--skull { border-color: var(--rose-500); }
+.bb-dial__step--hit { background: var(--rose-500); border-color: var(--rose-500); color: #fff; }
+
+.bb-markers { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+.bb-marker {
+  padding: 1px 7px;
+  border-radius: var(--r-1);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.bb-marker--red { background: var(--bb-red); }
+.bb-marker--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+
+.bb-validation { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.bb-validation__value {
+  display: grid;
+  justify-items: center;
+  min-width: 2.1rem;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-1);
+  background: var(--surface-2);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+.bb-validation__value small { color: var(--ink-soft); font-size: 0.6rem; font-weight: 600; }
+.bb-validation__value--done { border-color: var(--accent-secondary); background: color-mix(in srgb, var(--accent-secondary) 18%, var(--surface-2)); }
+.bb-validation__value .bb-validation__check { color: var(--accent-secondary); font-size: 0.8rem; font-weight: 900; }
+
+.bb-equipment { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; }
+.bb-equipment__card {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.5rem 0.6rem 0.5rem 2.1rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+.bb-equipment__card--unlocked { border-style: solid; border-color: var(--accent-secondary); opacity: 1; }
+.bb-equipment__card--used { opacity: 0.4; text-decoration: line-through; }
+.bb-equipment__number {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.55rem;
+  display: grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--bb-shell);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+/* ---- Stands ---- */
+.bb-teammates { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
+.bb-player--turn { border-color: var(--accent-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
+.bb-player__header { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+
+.bb-stand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.35rem;
+  border-radius: var(--r-2);
+  background: color-mix(in srgb, var(--bb-shell) 10%, var(--surface-2));
+}
+.bb-stand + .bb-stand { margin-top: 0.4rem; }
+.bb-slot { display: grid; justify-items: center; gap: 0.2rem; }
+
+.bb-wire {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid var(--bb-shell-dark);
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  box-shadow: none;
+}
+.bb-wire--blue { background: var(--bb-blue); }
+.bb-wire--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+.bb-wire--red { background: var(--bb-red); }
+.bb-wire--back { background: var(--bb-shell); color: color-mix(in srgb, #fff 55%, transparent); font-size: 0.65rem; cursor: pointer; }
+.bb-wire--back:disabled { cursor: default; }
+.bb-wire--back:not(:disabled):hover { outline: 2px solid var(--accent-primary); }
+.bb-wire--selected { outline: 3px solid var(--accent-primary); outline-offset: 2px; }
+/* Keep each wire's own color on hover (the global button:hover would turn it orange). */
+button.bb-wire--back:hover:not(:disabled) { background-color: var(--bb-shell); transform: translateY(-2px); }
+button.bb-wire--blue:hover:not(:disabled) { background-color: var(--bb-blue); }
+button.bb-wire--yellow:hover:not(:disabled) { background-color: var(--bb-yellow); }
+button.bb-wire--red:hover:not(:disabled) { background-color: var(--bb-red); }
+/* A teammate's wire you've pointed at: filled, raised, and marked "?". */
+button.bb-wire--back.bb-wire--selected,
+button.bb-wire--back.bb-wire--selected:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--accent-primary) 45%, transparent);
+}
+button.bb-wire--back.bb-wire--selected::after { content: "?"; font-size: 1rem; font-weight: 900; }
+/* Your own wires you've selected (Solo Cut, or a choice prompt): raised with a strong glow. */
+button.bb-wire--blue.bb-wire--selected,
+button.bb-wire--yellow.bb-wire--selected,
+button.bb-wire--red.bb-wire--selected {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+}
+/* These wires can be solo cut: a light hint, stronger once selected. */
+.bb-wire--solo { outline: 2px dashed var(--accent-secondary); outline-offset: 2px; }
+.bb-wire--cut { opacity: 0.35; text-decoration: line-through; }
+button.bb-wire:disabled { opacity: 1; }
+button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
+
+.bb-info {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.bb-info--empty { visibility: hidden; }
+.bb-info--blue { background: var(--surface-2); border: 1px solid var(--bb-blue); color: var(--bb-blue); }
+.bb-info--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+
+/* ---- Actions ---- */
+.bb-cut { display: grid; gap: 0.6rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
+.bb-cut__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+.bb-values { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+/* The Solo Cut / Reveal Red row sits centered under the value buttons. */
+.bb-cut__row--actions { justify-content: center; }
+.bb-solo-hint { margin-left: auto; color: var(--accent-secondary); font-size: 0.82rem; font-weight: 700; }
+.bb-value--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+.bb-detector { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 600; }
+.bb-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 0.75rem; }
+
+.bb-result { text-align: center; }
+
+
+@media (max-width: 600px) {
+  .bb-wire { width: 26px; height: 38px; font-size: 0.85rem; }
+  .bb-teammates { grid-template-columns: 1fr; }
+}
+
+/* ---- Equipment in play ---- */
+.bb-equipment__card .btn { justify-self: center; margin-top: 0.25rem; }
+.bb-tag--on { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+.bb-radar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.bb-equip-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-secondary);
+  border-radius: var(--r-3);
+  background: color-mix(in srgb, var(--accent-secondary) 8%, var(--surface));
+  font-size: 0.9rem;
+}
+/* ≠ / = label: a bracket spanning a wire and its right neighbour (slots are 30px apart by a 0.3rem gap). */
+.bb-slot { position: relative; }
+.bb-stand--labeled { padding-bottom: 1.35rem; }
+.bb-label-mark {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 15px;
+  width: calc(100% + 0.3rem);
+  height: 6px;
+  border: 2px solid var(--ink-soft);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+}
+.bb-label-mark__symbol {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 3px;
+  background: color-mix(in srgb, var(--bb-shell) 10%, var(--surface-2));
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* One-line "last action" under the validation track. */
+.bb-last-action { margin: 0; color: var(--ink-soft); font-size: 0.85rem; text-align: left; }
+.bb-setup-note { margin: 0.5rem 0 0; color: var(--ink-soft); font-size: 0.82rem; text-align: left; }
+/* Match the surrounding controls: same font, size and weight as the small buttons. */
+.bb-select { padding: 0.35em 2.2em 0.35em 0.7em; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; }
+/* The "is it…" prompt sits under the teammate's stand you're pointing at. */
+.bb-cut-prompt { display: grid; justify-items: center; gap: 0.45rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+/* Red/yellow wires show a decimal (e.g. 11.5): a touch smaller so it fits the tile. */
+.bb-wire--decimal { font-size: 0.7rem; letter-spacing: -0.02em; }

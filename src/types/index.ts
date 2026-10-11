@@ -22,6 +22,10 @@ export interface RoomSettings {
   robotrickMoreHangars?: boolean;
   /** Robotrick: reuse round 1's AI card for all three rounds. */
   robotrickFixedAiCard?: boolean;
+  /** Bomb Busters: mission to play next (1–8). */
+  bombBustersMission?: number;
+  /** Bomb Busters: missions this room has won. */
+  bombBustersCompleted?: number[];
 }
 
 export interface Room {
@@ -685,4 +689,136 @@ export interface RobotrickHand {
   passOut: RobotrickCard[] | null;
   /** Cards passed to this player; merged into `cards` on their first play. */
   incoming: RobotrickCard[];
+}
+
+// ---- Bomb Busters types ----
+
+export type BBColor = "blue" | "red" | "yellow";
+
+/** One wire tile. Blue sortKey = its value (1–12); red is n.5, yellow n.1 (used only for sorting). */
+export interface BBWire {
+  id: string;
+  color: BBColor;
+  sortKey: number;
+}
+
+/** A wire in a player's hand; positions never change, cut wires stay in place face up. */
+export interface BBHandWire extends BBWire {
+  cut: boolean;
+}
+
+/** What a Dual Cut names: a blue value 1–12, or "yellow". Red is never named. */
+export type BBDeclared = number | "yellow";
+
+export interface BBInfoToken {
+  color: "blue" | "yellow";
+  /** Blue value shown on the token (undefined for a yellow token). */
+  value?: number;
+}
+
+/** Public view of one slot on someone's stand. */
+export interface BBPublicSlot {
+  cut: boolean;
+  /** Set once the wire is cut (or revealed). */
+  revealed?: { color: BBColor; sortKey: number };
+  info?: BBInfoToken;
+}
+
+export interface BBWireDraw {
+  count: number;
+  /** "count out of outOf": outOf candidates are revealed, count go into play unseen. */
+  outOf?: number;
+  /** Limit candidates to this sortKey range (e.g. 1.5–9.5). */
+  from?: number;
+  to?: number;
+}
+
+export interface BBMission {
+  id: number;
+  name: string;
+  subtitle: string;
+  blue: { from: number; to: number };
+  red: BBWireDraw;
+  yellow: BBWireDraw;
+  equipment: { count: "players" | 0; exclude?: number[] };
+  twoPlayer?: { red?: BBWireDraw; yellow?: BBWireDraw };
+  rules: string[];
+}
+
+/** A red/yellow marker on the board: a value that is (or might be) in play. */
+export interface BBMarker {
+  color: "red" | "yellow";
+  sortKey: number;
+  /** True for "N out of M" candidates: this value might not be in play. */
+  uncertain: boolean;
+}
+
+/** Double = character card; Triple (#3) and Super (#5) are equipment. */
+export type BBDetector = "none" | "double" | "triple" | "super";
+
+/** A ≠ (#1) or = (#12) label between two adjacent wires of one player (`at` = left wire's flat index). */
+export interface BBLabel {
+  uid: string;
+  at: number;
+  kind: "neq" | "eq";
+}
+
+export type BBPhase = "setup-info" | "playing" | "resolving" | "mission-won" | "mission-lost";
+
+/**
+ * A Dual Cut in progress. Stands are owner-only, so it resolves in two steps:
+ * the target's client checks the pointed wire(s) ("dual-cut"); on success the active
+ * player's client turns up their own matching wire ("own-cut").
+ */
+export type BBPendingAction =
+  | {
+      kind: "dual-cut";
+      by: string;
+      target: string;
+      /** Flat slot indices across the target's stands: 1, or 2/3/all with a detector. */
+      slots: number[];
+      declared: BBDeclared;
+      /** Second value from the X or Y Ray (#10). */
+      alsoDeclared?: BBDeclared;
+      detector: BBDetector;
+    }
+  | { kind: "own-cut"; by: string; declared: BBDeclared };
+
+export interface BBGame {
+  gameType: "bomb-busters";
+  missionId: number;
+  phase: BBPhase;
+  /** Clockwise from the captain. */
+  playerOrder: string[];
+  captain: string;
+  /** Per player, one entry per stand (wrapped: Firestore can't store nested arrays). */
+  stands: Record<string, { slots: BBPublicSlot[] }[]>;
+  turn: string;
+  /** Players who have placed their setup info token (everyone places at once). */
+  setupDone: string[];
+  dial: { wrongGuesses: number; limit: number };
+  markers: BBMarker[];
+  wireTotals: { blue: Record<string, number>; red: number; yellow: number };
+  cutCounts: { blue: Record<string, number>; red: number; yellow: number };
+  validated: number[];
+  equipment: { id: number; unlocked: boolean; used: boolean }[];
+  characters: Record<string, { used: boolean }>;
+  pendingAction: BBPendingAction | null;
+  labels: BBLabel[];
+  /** General Radar (#8) in progress: each player's client answers from its own stand. */
+  radar: { by: string; value: number; answers: Record<string, boolean | null> } | null;
+  /** Stabilizer (#9) is active for the current player's Dual Cut. */
+  stabilized: boolean;
+  /** Walkie-Talkies (#2): `by` has handed a wire to `to`, who must hand one back. */
+  pendingSwap: { by: string; to: string; fromSlot: number; stage: "await-target" | "await-return" } | null;
+  log: { at: number; text: string }[];
+  result: { outcome: "won" | "lost"; reason: string } | null;
+}
+
+export interface BBHand {
+  ownerUid: string;
+  /** One entry per stand, sorted ascending by sortKey; mirrors the public slots. */
+  stands: { wires: BBHandWire[] }[];
+  /** Walkie-Talkies: a wire handed to this player, merged into their stand by their own client. */
+  incoming?: BBWire[];
 }

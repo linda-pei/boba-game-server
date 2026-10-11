@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { doc, updateDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
+import { clearGameData } from "../../hooks/clearGameData";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { leaveRoom } from "../../hooks/useRoom";
 
@@ -17,12 +16,7 @@ export default function GameEndButtons({ isHost }: Props) {
 
   const handleBackToLobby = async () => {
     if (!roomCode) return;
-    // Delete hands subcollection
-    const handsSnap = await getDocs(collection(db, "games", roomCode, "hands"));
-    await Promise.all(handsSnap.docs.map((d) => deleteDoc(d.ref)));
-    // Delete game doc
-    await deleteDoc(doc(db, "games", roomCode));
-    await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
+    await clearGameData(roomCode);
     navigate(`/lobby/${roomCode}`);
   };
 

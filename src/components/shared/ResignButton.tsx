@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { doc, updateDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
+import { clearGameData } from "../../hooks/clearGameData";
 
 /**
  * Two-click "Resign" button for use during an active game.
@@ -31,11 +30,7 @@ export default function ResignButton() {
     if (!roomCode || busy) return;
     setBusy(true);
     try {
-      // Clean up game data
-      const handsSnap = await getDocs(collection(db, "games", roomCode, "hands"));
-      await Promise.all(handsSnap.docs.map((d) => deleteDoc(d.ref)));
-      await deleteDoc(doc(db, "games", roomCode));
-      await updateDoc(doc(db, "rooms", roomCode), { status: "lobby" });
+      await clearGameData(roomCode);
       navigate(`/lobby/${roomCode}`);
     } catch (err) {
       console.error("Failed to resign:", err);

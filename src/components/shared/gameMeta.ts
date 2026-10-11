@@ -1,5 +1,5 @@
 /** Game identity shared by icons, stickers, banners and the lobby. */
-export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover" | "rt";
+export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover" | "rt" | "bb";
 
 export type GameMode = "co-op" | "competitive";
 
@@ -116,6 +116,16 @@ export const GAME_META: Record<GameKey, GameMetaEntry> = {
     minPlayers: 3,
     maxPlayers: 3,
   },
+  bb: {
+    id: "bomb-busters",
+    name: "Bomb Busters",
+    tagline: "Cut the right wires. Together.",
+    players: "2–5 players",
+    badge: "co-op deduction",
+    modes: ["co-op"],
+    minPlayers: 2,
+    maxPlayers: 5,
+  },
 };
 
 export const GAME_ID_TO_KEY: Record<string, GameKey> = {
@@ -129,4 +139,5 @@ export const GAME_ID_TO_KEY: Record<string, GameKey> = {
   startups: "su",
   clover: "clover",
   robotrick: "rt",
+  "bomb-busters": "bb",
 };

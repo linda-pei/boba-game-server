@@ -11,6 +11,7 @@ Fun server for game time! Current games:
 * Startups
 * Clover
 * Robotrick
+* Bomb Busters
 
 
 ## Prerequisites

@@ -134,7 +134,7 @@
 .lobby select {
   font-family: var(--font-body);
   font-size: 0.85rem;
-  padding: 4px 8px;
+  padding: 4px 2.2em 4px 10px;
   border: 2px solid var(--border-strong);
   border-radius: var(--r-2);
   background: var(--surface);

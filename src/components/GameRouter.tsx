@@ -12,6 +12,7 @@ import FruitBossGameBoard from "../games/fruit-boss/GameBoard";
 import StartupsGameBoard from "../games/startups/GameBoard";
 import CloverGameBoard from "../games/clover/GameBoard";
 import RobotrickGameBoard from "../games/robotrick/GameBoard";
+import BombBustersGameBoard from "../games/bomb-busters/GameBoard";
 import EmoteBar from "./shared/EmoteBar";
 import EmoteOverlay from "./shared/EmoteOverlay";
 import "./shared/emotes.css";
@@ -52,6 +53,8 @@ export default function GameRouter() {
     gameBoard = <CloverGameBoard roomCode={roomCode} />;
   } else if (room?.gameType === "robotrick") {
     gameBoard = <RobotrickGameBoard roomCode={roomCode} />;
+  } else if (room?.gameType === "bomb-busters") {
+    gameBoard = <BombBustersGameBoard roomCode={roomCode} />;
   } else {
     gameBoard = <GameBoard roomCode={roomCode} />;
   }
