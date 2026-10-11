@@ -248,8 +248,18 @@ export function hasUncutWires(stands: BBPublicSlot[][]): boolean {
   return flatWires(stands).some((slot) => !slot.cut);
 }
 
+/** Public stands per player as plain nested arrays (the engine's shape; Firestore wraps each stand). */
+export type PublicStands = Record<string, BBPublicSlot[][]>;
+
+export const unwrapPublic = (stands: BBGame["stands"]): PublicStands =>
+  Object.fromEntries(Object.entries(stands).map(([uid, list]) => [uid, list.map((stand) => stand.slots)]));
+export const wrapPublic = (stands: PublicStands): BBGame["stands"] =>
+  Object.fromEntries(Object.entries(stands).map(([uid, list]) => [uid, list.map((slots) => ({ slots }))]));
+export const unwrapHand = (stands: { wires: BBHandWire[] }[]): BBHandWire[][] => stands.map((stand) => stand.wires);
+export const wrapHand = (stands: BBHandWire[][]): { wires: BBHandWire[] }[] => stands.map((wires) => ({ wires }));
+
 /** Next player clockwise who still has uncut wires (players with empty stands are skipped). */
-export function nextTurn(playerOrder: string[], current: string, stands: BBGame["stands"]): string {
+export function nextTurn(playerOrder: string[], current: string, stands: PublicStands): string {
   const start = playerOrder.indexOf(current);
   for (let step = 1; step <= playerOrder.length; step += 1) {
     const uid = playerOrder[(start + step) % playerOrder.length];
@@ -258,7 +268,7 @@ export function nextTurn(playerOrder: string[], current: string, stands: BBGame[
   return current;
 }
 
-export function isMissionWon(stands: BBGame["stands"]): boolean {
+export function isMissionWon(stands: PublicStands): boolean {
   return Object.values(stands).every((playerStands) => !hasUncutWires(playerStands));
 }
 
@@ -267,3 +277,94 @@ export function nextCaptainOrder(playerOrder: string[]): string[] {
   return [...playerOrder.slice(1), playerOrder[0]];
 }
 
+
+// ---- Applying outcomes to the public game state ----
+
+function updateSlot(game: BBGame, uid: string, flatIndex: number, update: (slot: BBPublicSlot) => BBPublicSlot): BBGame {
+  const stands = unwrapPublic(game.stands);
+  const { stand, position } = locateSlot(stands[uid], flatIndex);
+  stands[uid] = stands[uid].map((slots, standIndex) =>
+    standIndex === stand ? slots.map((slot, index) => (index === position ? update(slot) : slot)) : slots,
+  );
+  return { ...game, stands: wrapPublic(stands) };
+}
+
+/** Turn a wire face up in place, count it, and refresh validation and equipment. */
+export function applyCutToGame(game: BBGame, uid: string, flatIndex: number, wire: BBWire): BBGame {
+  const next = updateSlot(game, uid, flatIndex, (slot) => ({
+    cut: true,
+    revealed: { color: wire.color, sortKey: wire.sortKey },
+    ...(slot.info ? { info: slot.info } : {}),
+  }));
+  const cutCounts = recordCut(next.cutCounts, wire.color, wire.sortKey);
+  return {
+    ...next,
+    cutCounts,
+    validated: validatedValues(next.wireTotals, cutCounts),
+    equipment: refreshEquipment(next.equipment, cutCounts),
+  };
+}
+
+export function placeInfoToken(game: BBGame, uid: string, flatIndex: number, token: BBInfoToken): BBGame {
+  return updateSlot(game, uid, flatIndex, (slot) => ({ ...slot, info: token }));
+}
+
+export function addLog(game: BBGame, text: string, at: number = Date.now()): BBGame {
+  return { ...game, log: [...game.log, { at, text }].slice(-40) };
+}
+
+export function loseMission(game: BBGame, reason: string): BBGame {
+  return { ...game, phase: "mission-lost", pendingAction: null, result: { outcome: "lost", reason } };
+}
+
+/** A wrong (non-red) guess: the dial advances, and the bomb explodes at the limit. */
+export function advanceDial(game: BBGame): BBGame {
+  const dial = { ...game.dial, wrongGuesses: game.dial.wrongGuesses + 1 };
+  const next = { ...game, dial };
+  return isDialExploded(dial) ? loseMission(next, "The detonator dial reached the skull.") : next;
+}
+
+/** After an action resolves: win if every stand is empty, otherwise pass the turn on. */
+export function finishTurn(game: BBGame, actor: string): BBGame {
+  if (game.phase === "mission-lost") return game;
+  const stands = unwrapPublic(game.stands);
+  if (isMissionWon(stands)) {
+    return { ...game, phase: "mission-won", pendingAction: null, result: { outcome: "won", reason: "Every wire is cut." } };
+  }
+  return { ...game, phase: "playing", pendingAction: null, turn: nextTurn(game.playerOrder, actor, stands) };
+}
+
+// ---- Building a mission ----
+
+export interface BuiltMission {
+  game: BBGame;
+  hands: Record<string, BBHandWire[][]>;
+}
+
+/** Fresh mission state. `playerOrder` starts with the captain and runs clockwise. */
+export function buildMission(playerOrder: string[], mission: BBMission, random: () => number = Math.random): BuiltMission {
+  const { pool, markers, totals } = buildWirePool(mission, playerOrder.length, random);
+  const hands = dealStands(pool, playerOrder, random);
+  const captain = playerOrder[0];
+  const game: BBGame = {
+    gameType: "bomb-busters",
+    missionId: mission.id,
+    phase: "setup-info",
+    playerOrder,
+    captain,
+    stands: wrapPublic(Object.fromEntries(playerOrder.map((uid) => [uid, publicStandsFor(hands[uid])]))),
+    turn: captain,
+    setupTurn: captain,
+    dial: { wrongGuesses: 0, limit: dialLimit(playerOrder.length) },
+    markers,
+    wireTotals: totals,
+    cutCounts: { blue: {}, red: 0, yellow: 0 },
+    validated: [],
+    equipment: drawEquipment(mission, playerOrder.length, random).map((id) => ({ id, unlocked: false, used: false })),
+    characters: Object.fromEntries(playerOrder.map((uid) => [uid, { used: false }])),
+    pendingAction: null,
+    log: [],
+    result: null,
+  };
+  return { game, hands };
+}

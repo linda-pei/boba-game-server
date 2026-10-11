@@ -751,15 +751,22 @@ export interface BBMarker {
 
 export type BBPhase = "setup-info" | "playing" | "resolving" | "mission-won" | "mission-lost";
 
-export interface BBPendingAction {
-  kind: "dual-cut";
-  by: string;
-  target: string;
-  /** Flat slot indices across the target's stands (1 normally; 2 with the Double Detector). */
-  slots: number[];
-  declared: BBDeclared;
-  detector: "none" | "double";
-}
+/**
+ * A Dual Cut in progress. Stands are owner-only, so it resolves in two steps:
+ * the target's client checks the pointed wire(s) ("dual-cut"); on success the active
+ * player's client turns up their own matching wire ("own-cut").
+ */
+export type BBPendingAction =
+  | {
+      kind: "dual-cut";
+      by: string;
+      target: string;
+      /** Flat slot indices across the target's stands (1 normally; 2 with the Double Detector). */
+      slots: number[];
+      declared: BBDeclared;
+      detector: "none" | "double";
+    }
+  | { kind: "own-cut"; by: string; declared: BBDeclared };
 
 export interface BBGame {
   gameType: "bomb-busters";
@@ -768,8 +775,8 @@ export interface BBGame {
   /** Clockwise from the captain. */
   playerOrder: string[];
   captain: string;
-  /** Per player, one array of slots per stand. */
-  stands: Record<string, BBPublicSlot[][]>;
+  /** Per player, one entry per stand (wrapped: Firestore can't store nested arrays). */
+  stands: Record<string, { slots: BBPublicSlot[] }[]>;
   turn: string;
   /** Next player still to place their setup info token (setup-info phase). */
   setupTurn: string | null;
@@ -787,6 +794,6 @@ export interface BBGame {
 
 export interface BBHand {
   ownerUid: string;
-  /** One array per stand, sorted ascending by sortKey; mirrors the public slots. */
-  stands: BBHandWire[][];
+  /** One entry per stand, sorted ascending by sortKey; mirrors the public slots. */
+  stands: { wires: BBHandWire[] }[];
 }

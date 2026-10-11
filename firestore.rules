@@ -26,9 +26,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/games/$(roomCode)).data.gameType == "robotrick";
     }
 
-    // Games whose hands are secret: only the owner (and the host, for setup/cleanup) may read them.
+    function isBombBustersGame(roomCode) {
+      return exists(/databases/$(database)/documents/games/$(roomCode))
+        && get(/databases/$(database)/documents/games/$(roomCode)).data.gameType == "bomb-busters";
+    }
+
+    // Games whose hands are secret: only the owner (and, except Bomb Busters, the host) may read them.
     function hasPrivateHands(roomCode) {
-      return isCloverGame(roomCode) || isRobotrickGame(roomCode);
+      return isCloverGame(roomCode) || isRobotrickGame(roomCode) || isBombBustersGame(roomCode);
     }
 
     // Production dev-feedback mode: only verified emails listed in config/devAccess.emails.
@@ -63,14 +68,17 @@ service cloud.firestore {
       match /hands/{ownerUid} {
         // Other games currently use collaborative hand documents. Clover boards and Robotrick
         // hands stay private until server-authoritative actions are introduced.
+        // Bomb Busters stands are owner-only, even for the host: each cut is resolved by the target's own client.
         allow read: if (!hasPrivateHands(roomCode) && isRoomMember(roomCode))
-          || (hasPrivateHands(roomCode) && (request.auth.uid == ownerUid || isRoomHost(roomCode)));
+          || (hasPrivateHands(roomCode) && request.auth.uid == ownerUid)
+          || (hasPrivateHands(roomCode) && !isBombBustersGame(roomCode) && isRoomHost(roomCode));
         allow create: if (!hasPrivateHands(roomCode) && isRoomMember(roomCode))
           || (hasPrivateHands(roomCode) && isRoomHost(roomCode));
         allow update: if (!hasPrivateHands(roomCode) && isRoomMember(roomCode))
           || (hasPrivateHands(roomCode) && request.auth.uid == ownerUid)
-          // Robotrick: the host deals new rounds; any player may deliver a pass, touching only `incoming`.
-          || (isRobotrickGame(roomCode) && isRoomHost(roomCode))
+          // Robotrick / Bomb Busters: the host deals new rounds or missions (a blind overwrite).
+          || ((isRobotrickGame(roomCode) || isBombBustersGame(roomCode)) && isRoomHost(roomCode))
+          // Robotrick: any player may deliver a pass, touching only `incoming`.
           || (isRobotrickGame(roomCode) && isRoomMember(roomCode)
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["incoming"]));
         allow delete: if (!hasPrivateHands(roomCode) && isRoomMember(roomCode))

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { BBHandWire, BBWire } from "../../types";
+import type { BBGame, BBHandWire, BBWire } from "../../types";
 import {
+  advanceDial,
+  applyCutToGame,
+  buildMission,
+  finishTurn,
+  placeInfoToken,
+  unwrapPublic,
   buildWirePool,
   canDeclare,
   canRevealRed,
@@ -199,5 +205,100 @@ describe("turns and mission end", () => {
     expect(isMissionWon(stands)).toBe(false);
     expect(isMissionWon({ a: [[{ cut: true }]], b: [[{ cut: true }]] })).toBe(true);
     expect(nextCaptainOrder(["a", "b", "c"])).toEqual(["b", "c", "a"]);
+  });
+});
+
+describe("public state transitions", () => {
+  const base = () => buildMission(["cap", "b", "c"], getMission(4), seeded(11));
+
+  it("builds a mission waiting for setup info tokens from the captain", () => {
+    const { game, hands } = base();
+    expect(game.phase).toBe("setup-info");
+    expect(game.setupTurn).toBe("cap");
+    expect(game.dial).toEqual({ wrongGuesses: 0, limit: 3 });
+    expect(game.equipment).toHaveLength(3);
+    expect(unwrapPublic(game.stands).cap).toHaveLength(2);
+    expect(Object.values(hands).flat(2)).toHaveLength(53);
+  });
+
+  it("cuts a wire in place and counts it", () => {
+    const { game, hands } = base();
+    const wire = hands.b[0][0];
+    const next = applyCutToGame(game, "b", 0, wire);
+    expect(unwrapPublic(next.stands).b[0][0]).toEqual({ cut: true, revealed: { color: wire.color, sortKey: wire.sortKey } });
+    expect(next.cutCounts).not.toEqual(game.cutCounts);
+  });
+
+  it("places info tokens and loses at the dial limit", () => {
+    const { game } = base();
+    expect(unwrapPublic(placeInfoToken(game, "c", 1, { color: "blue", value: 7 }).stands).c[0][1].info).toEqual({ color: "blue", value: 7 });
+    const once = advanceDial(advanceDial(game));
+    expect(once.phase).toBe("setup-info");
+    const lost = advanceDial(once);
+    expect(lost.phase).toBe("mission-lost");
+    expect(finishTurn(lost, "cap").phase).toBe("mission-lost");
+  });
+});
+
+describe("full mission simulation", () => {
+  // An all-knowing player: Reveal Red, else Solo Cut, else a correct Dual Cut.
+  function play(missionId: number, players: string[], seed: number) {
+    const built = buildMission(players, getMission(missionId), seeded(seed));
+    const hands = built.hands;
+    let game: BBGame = { ...built.game, phase: "playing" };
+    for (let guard = 0; guard < 400 && game.phase === "playing"; guard += 1) {
+      const uid = game.turn;
+      const mine = hands[uid];
+      const flat = mine.flat();
+      if (canRevealRed(mine)) {
+        flat.forEach((wire, index) => {
+          if (!wire.cut) {
+            wire.cut = true;
+            game = applyCutToGame(game, uid, index, wire);
+          }
+        });
+        game = finishTurn(game, uid);
+        continue;
+      }
+      const declarable = [...new Set(flat.filter((w) => !w.cut && w.color !== "red").map((w) => (w.color === "yellow" ? "yellow" : w.sortKey)))];
+      const solo = declarable.map((d) => ({ d, idx: soloCutIndices(mine, d, game.wireTotals, game.cutCounts) })).find((x) => x.idx);
+      if (solo?.idx) {
+        solo.idx.forEach((index) => {
+          flat[index].cut = true;
+          game = applyCutToGame(game, uid, index, flat[index]);
+        });
+        game = finishTurn(game, uid);
+        continue;
+      }
+      let done = false;
+      for (const declared of declarable) {
+        for (const target of players.filter((p) => p !== uid)) {
+          const theirs = hands[target].flat();
+          const t = theirs.findIndex((w) => !w.cut && resolveDualCut([w], declared).result === "success");
+          if (t === -1) continue;
+          theirs[t].cut = true;
+          game = applyCutToGame(game, target, t, theirs[t]);
+          const own = flat.findIndex((w) => !w.cut && resolveDualCut([w], declared).result === "success");
+          flat[own].cut = true;
+          game = applyCutToGame(game, uid, own, flat[own]);
+          done = true;
+          break;
+        }
+        if (done) break;
+      }
+      expect(done).toBe(true);
+      game = finishTurn(game, uid);
+    }
+    return game;
+  }
+
+  it("every mission 1–8 can be won at every player count", () => {
+    for (const mission of MISSIONS) {
+      for (const players of [["a", "b"], ["a", "b", "c"], ["a", "b", "c", "d"], ["a", "b", "c", "d", "e"]]) {
+        const game = play(mission.id, players, mission.id * 7 + players.length);
+        expect(game.phase, `mission ${mission.id}, ${players.length} players`).toBe("mission-won");
+        expect(game.validated.length).toBe(mission.blue.to - mission.blue.from + 1);
+      }
+    }
   });
 });

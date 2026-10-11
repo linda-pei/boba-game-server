@@ -1,0 +1,78 @@
+For all missions after this one there is another new equipment card. It's equipment yellow. For the yellow wires the title is "False Bottom." The ability is: take two equipment cards and get them in the game with the others. 
+
+Mission number 9: Title: A Sense of Priorities. Subtitle: Today's bomb comes with unusual instructions. A formidable math scientist has tinkered with the device and several of its wires must be cut in a specific order. Just remember your training and everything will be okay. Set up:
+* 1 red, 2 yellow. They are now number cards. Number cards are 1 through 12.
+* Specifically for this setup you have to shuffle the number cards, draw 3 of them, and set them face up in a line on the table.
+* We place the sequence card, which is basically a card with an arrow going from the left to the right, above the leftmost card.
+* The 2-player setup is 2 red, 4 yellow.
+The special rule is that some wires must be cut in order, specifically the 3 number cards. If they are A, B, and C from left to right, you cannot cut any B wires until you have cut at least 2 A wires. Similarly for C, you cannot cut C until you have cut at least 2 A and B wires. The rest of the wires can be cut in any order. Once the 2 A wires have been cut, you can flip the A card face down and shift the sequence card to the next number card. Similarly do so after 2 B wires have been cut and after 2 C wires have been cut. The special rules no longer apply.
+
+Mission number 10
+
+Title: A Rough Patch
+
+Subtitle: Another exciting day in the life of a bomb disposal expert.
+
+Unfortunately today is going to be tough. Someone forgot to pick up coffee and now everyone's feeling the pressure. Keep up the team spirit, work together, and then remember to buy coffee before the next mission.
+
+Set up 1 red, 4 yellow, and then a 15-minute timer and then equipment 11 is not eligible in this mission. For two players it is a 12-minute timer. Once setup is complete we start the timer and we have to defuse the bomb before time runs out. The special rules are:
+* You do not play in clockwise order.
+* You may take turns in any order you like.
+* Once the bomb disposal expert says "snip" they become the active player and take a turn.
+* The same bomb disposal expert cannot take two consecutive turns in a row except when playing with two players.
+
+Mission #11: Title: Blue on Red Looks Like We Are Dead. Subtitle: You're asking me to cut the blue wire, Captain, but remember I'm colorblind. The setup is:
+* 2 yellow
+* Draw a random numbered card and set it face up on the card.
+* For 2 players it's 4 yellow.
+* The Captain does not play an info token in front of their tile stand.
+ The special rules are: we treat the four wires matching the value of the number card below like red wires. Cutting a wire with this value will detonate the bomb and end the mission in failure. To reveal these wires on your turn, they must be the only wire or wires remaining in your hand. Basically the same process as revealing red wires 
+
+Mission #12: Wrapped in Red Tape. Subtitle: 27B/6 form. Never heard of it. Uh-oh. What do you mean we can't check out any bomb disposal equipment without that form? What do we do now?
+
+The setup is 1 red, 4 yellow, and for each equipment card in play we put 1 number card on top of it. You still leave the equipment card numbers visible along the top edge but you cover the rest of the card with the number. The setup for 2 players is 2 red, 4 yellow. Special rules are: for equipment cards to become usable you must cut two pairs of wires. You have to cut the ones on the number card and the equipment card. When the number card is cut we discard that number card. 
+
+Mission number 13: Red Alert. The formidable mad scientist strikes again. Ever since you foiled his earlier plans, he's been seeing red, so much so that his latest destructive device is stuffed with a total of three red wires. Red Alert: set up three red wires so we do not shuffle the three red wires with the other wires. You deal one to each player face down, starting with the captain. If there are only two players the captain receives two and puts one on each tile stand. Then deal out blue wires as usual.
+
+Instead of choosing your info tokens each player takes one at random and places it in front of their tile stand, pointing at a matching tile as usual. If they don't have a wire matching the value, set it face up next to their tile stand. If a yellow info token is drawn, don't use it and draw a replacement token.
+
+Set up two players. During setup the captain does not put an info token in their hand. Special rules: On their turn a bomb disposal expert can do a new special action for this mission: cut the three red wires at the same time. The bomb disposal expert must indicate the three red wires among all the wires that have not been cut yet. If at least one of the wires is not red, the bomb explodes. With four to five bomb experts this action is possible even with a bomb disposal expert with no red wires in hand. If a bomb disposal has only red wires in hand, they must perform their special action and cannot take a reveal red wires action. 
+
+Mission number 14: Title: High Risk Bomb Disposal Expert, aka noob.Subtitle: We all remember having sweaty palms during our first mission. It was a real challenge so let's make sure to help the rookie. If possible leave the easy cuts to them. As always the slightest error could prove fatal.
+
+Set up: 2 red, 2 out of 3 yellow. Shuffle the character cards face down. Deal 1 each to players. Everyone reviews the card. The player with the captain card will be referred to as the rookie during this mission.
+
+2 players set up: 2 blue, 4 yellow.
+
+The special mission rules are: if the rookie fails when attempting a dual cut action, the bomb immediately explodes and the rookie cannot use equipment number 9, stabilizer. 
+
+Mission number 15, title: Mission. It's a word in Russian, hobochelnik, and it says, "Don't worry, we can't pronounce it either." Subtitle: Due to a shipping mix-up these new toolboxes are labeled in Russian, which is terrible because we all learned either French or Spanish in high school. Get ready to be surprised every time you grab a tool. Set up:
+* 1 out of 3 wires red.
+* Draw the standard number of equipment cards but set them face down.
+* Shuffle and put the deck of 12 number cards face down on the board.
+* Flip over the top card.
+For 2 players the setup is 2 out of 3 red wires. The special mission rules are:
+* When all 4 wires matching the visible number card have been cut, flip over 1 equipment card.
+* It's immediately usable regardless of the number so slide it up then flip over the next number card, etc.
+* If a number card is ever revealed but the 4 matching wires have already been cut, discard and replace that number card without gaining any equipment.
+
+Mission number 16, title: Time to Reprioritize (Is This Déjà Vu?)
+
+Subtitle: Days blur into next and sometimes it feels like living in the moment... but it's the exact same moment. Do we blame it on science or a certain mad scientist? The rules are basically the same as, I think, mission number 9. Setup 1: red 2, out of 3 yellow, and then 2-player setup is 2 red, 4 yellow. Okay it looks like it's a harder version of mission number 9, where for the wires A, B, and C, it needs to cut all 4 A wires before B, all 4 A and B wires before C, and so on. The rest can be cut in any order. 
+
+Mission number 17, title: Red Herring's, subtitled "The Truth."
+
+Set up 2 out of 3 red wires. Shuffle the character cards and deal one face down to each player. Each player reveals their card. The player with the Captain card will be referred to as Red Herring's during this mission.
+
+Instead of playing one info token in front of their hand at the start of the mission, Red Herring's will choose and place two. These info tokens will be fake, meaning the two tokens must not match the two wires they point to. They also cannot be placed in front of a red wire. In two players the setup is 3 red wires.
+
+The mission rules are that all of Red Herring's info tokens are fake. When they put an info token in front of their hand, it means the wire does not match this rule. When a dual cut and Rhett Herring's hand is a failure, Rhett places an info token matching the status value in front of the chosen wire, which of course is false because this does not result in a successful cut. Rhett cannot use equipment cards but can participate in the effects of equipment 2 and 8. 
+
+Mission number 18: Title, Bat Helping Hand. Subtitle for this mission: There is no equipment. Luckily our favorite vigilante and cowed crusader has loaned us his high-tech bat radar. Set up:
+* 2 red cards, 12 number cards face down
+* Equipment 8 on the board but do not put any other equipment cards on the board
+* Do not put any info tokens in front of the tile stands
+* 2-player setup: 3 red wires
+For this mission the general radar is always usable. On their turn the active bomb disposal expert reviews the top number card of the deck and uses equipment number 8, general radar. The value of the number card indicates who must carry out a cut action with those wire values, including themselves. When the deck is empty shuffle the number cards to create a new deck. A number card is discarded as soon as the 4 corresponding wires have been cut. If a disposal expert has only red wires in their hand at the beginning of their turn, they must do the reveal red wires action. Reminder: As with all missions players cannot ask about what previous responses were given for the radar in previous rounds so make sure you pay attention.
+
+Mission number 19: Title - In the Belly of the Beast. Subtitle: After tremendous effort you have tracked the mad scientist to his secret base of operations, a remote and ominous cave where he has concocted all of his devious plans. There's no telling what you will find inside but there is only one way to find out. Set up 1 red, 2 out of 3 yellow, and a special audio file: https://cdn.pegasus.de/public/media/d6/e0/54/1759224869/BB-Final_Mission-19.mp3?ts=1759240277

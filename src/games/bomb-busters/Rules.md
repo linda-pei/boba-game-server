@@ -163,7 +163,9 @@ A cut has to check a **teammate's hidden wire**, but stands are private, so the 
 1. **The active player declares the cut.** It's written to the public game document as `pendingAction = { by, target, slot, value, detector? }`.
 2. **The target's client resolves it automatically.** It can read its own stand, so it checks the declared slot inside a transaction and applies the outcome: reveal or place an info token, advance the dial, end the mission. No click is needed from the target.
 3. **Choices fall back to the target.** When the rules give the target a choice, such as which of two matching wires a Double Detector cuts, the target's screen asks them.
-4. **The active player's matching wire comes from their own client.** If the cut succeeds, the active player's client reveals one of their own matching wires. A Solo Cut or Reveal Red is checked entirely against the player's own stand, so it resolves in one step.
+4. **The active player's matching wire comes from their own client.** If the cut succeeds, the pending action becomes `{ kind: "own-cut" }` and the active player's client reveals one of their own matching wires. A Solo Cut or Reveal Red is checked entirely against the player's own stand, so it resolves in one step.
+
+Firestore can't store arrays directly inside arrays, so each stand is wrapped for storage: `{ slots }` publicly and `{ wires }` in hands. The engine works with plain nested arrays and converts at the boundary.
 
 This keeps every stand readable only by its owner and avoids giving the host a peek. The cost is that a cut needs the target's client to be connected. If the target is disconnected for more than a few seconds, show "Waiting for {name}…". A Cloud Function could remove that limitation later.
 
@@ -250,7 +252,7 @@ interface BBHand {                  // games/{room}/hands/{uid}, owner-readable 
 
 - **Hands:** add `bomb-busters` to `hasPrivateHands`. Hands are readable and updatable only by their owner, and the host creates them at setup.
   - Unlike Robotrick, there's no host read: a cut never needs anyone but the target to see a hand.
-  - Back to Lobby cleanup must therefore delete hands without listing them, by deleting each known uid's hand directly.
+  - Cleanup (Resign and Back to Lobby) goes through the shared `clearGameData` helper, which deletes hands by player ID instead of listing them. This also fixes non-host resigns in Clover and Robotrick.
 - **Game document:** writable by room members, like the other games. Every action is a transaction that checks phase, turn and `pendingAction`.
 - **Emulator tests:** owner-only read, no peeking by other players or the host, and the target's resolution write.
 
