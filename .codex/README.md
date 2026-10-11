@@ -73,10 +73,34 @@ notes in Firestore instead of the local files.
 
 ### Running the agent side against production
 
-Prefix the loop prompt with the sync so it pulls new notes and pushes resolutions:
+Merging to `main` deploys automatically (`.github/workflows/deploy.yml`), so the
+production loop ships its own fixes. It only marks notes resolved once the deploy
+succeeds, so a note disappears from the overlay exactly when the fix is live.
 
 ```
-/loop 1m Run `npm run feedback:sync`, then <the prompt above>. After resolving entries, run `npm run feedback:sync` again.
+/loop 1m <the prompt below>
 ```
 
-Fixes still ship through your normal deploy; review them locally first.
+Prompt:
+
+> Run `npm run feedback:sync`. Entries in `.codex/dev-feedback.json` that already
+> have a `prUrl` are waiting on that PR: if it has since been merged and deployed,
+> resolve them as in step 5; otherwise skip them. If no other entries remain, wait
+> quietly; after 5 consecutive polls with nothing to do, stop the loop. Otherwise:
+>
+> 1. Start from a clean, up-to-date `main` and create a branch `feedback/<short-slug>`.
+> 2. For each entry, oldest first: read its screenshots and its `contextPath` file
+>    (page + game state at submit time), then implement the change in the selected
+>    UI context following AGENTS.md. Commit each entry separately.
+> 3. Run `npm run build`, `npx eslint .` and `npm test` (plus `npm run test:rules`
+>    if the Firestore emulator is up). Fix failures; if an entry's change can't be
+>    made to pass, revert it and leave that entry queued.
+> 4. Push, open a PR listing each note, and add its URL as `prUrl` on those entries.
+>    If the PR touches `firestore.rules`, sign-in/auth code, `package.json`
+>    dependencies, or anything that deletes data, stop here and leave it for review.
+>    Otherwise merge with `gh pr merge --merge --delete-branch` and wait for the
+>    "Deploy to Firebase Hosting" run.
+> 5. Only if the deploy succeeds: remove those entries from `dev-feedback.json`,
+>    append their ids uniquely to `dev-feedback-resolved.json`, run
+>    `npm run feedback:sync` so the notes clear in production, and return to an
+>    up-to-date `main`. If it fails, report the run URL and leave the entries queued.
