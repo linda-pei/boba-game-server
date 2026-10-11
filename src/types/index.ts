@@ -733,6 +733,12 @@ export interface BBWireDraw {
   to?: number;
 }
 
+/** A mission's special rule: a registered rule module id plus its parameters. */
+export interface BBRuleRef {
+  id: string;
+  params?: Record<string, number | string | boolean>;
+}
+
 export interface BBMission {
   id: number;
   name: string;
@@ -740,9 +746,10 @@ export interface BBMission {
   blue: { from: number; to: number };
   red: BBWireDraw;
   yellow: BBWireDraw;
-  equipment: { count: "players" | 0; exclude?: number[] };
+  /** `falseBottom` adds equipment #13 (False Bottom) to the pool (missions 9+). */
+  equipment: { count: "players" | 0; exclude?: number[]; falseBottom?: boolean };
   twoPlayer?: { red?: BBWireDraw; yellow?: BBWireDraw };
-  rules: string[];
+  rules: BBRuleRef[];
 }
 
 /** A red/yellow marker on the board: a value that is (or might be) in play. */
@@ -811,6 +818,8 @@ export interface BBGame {
   stabilized: boolean;
   /** Walkie-Talkies (#2): `by` has handed a wire to `to`, who must hand one back. */
   pendingSwap: { by: string; to: string; fromSlot: number; stage: "await-target" | "await-return" } | null;
+  /** Per-rule state, keyed by rule id; each rule module owns and types its own entry. */
+  ruleState: Record<string, unknown>;
   log: { at: number; text: string }[];
   result: { outcome: "won" | "lost"; reason: string } | null;
 }

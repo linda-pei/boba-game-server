@@ -263,3 +263,6 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 .bb-cut-prompt { display: grid; justify-items: center; gap: 0.45rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
 /* Red/yellow wires show a decimal (e.g. 11.5): a touch smaller so it fits the tile. */
 .bb-wire--decimal { font-size: 0.7rem; letter-spacing: -0.02em; }
+/* Mission special rules */
+.bb-rule-line { margin-top: 0.2rem; color: var(--ink); font-size: 0.82rem; font-weight: 600; }
+.bb-equipment__number--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }

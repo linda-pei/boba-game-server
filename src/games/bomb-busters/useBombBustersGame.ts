@@ -4,8 +4,6 @@ import { db } from "../../firebase";
 import type { BBDeclared, BBDetector, BBGame, BBHand, BBHandWire, Room } from "../../types";
 import {
   addLog,
-  applyCutToGame,
-  buildMission,
   canDeclare,
   canRevealRed,
   describeDeclared,
@@ -15,6 +13,9 @@ import {
   infoTokenFor,
   loseMission,
   matchedValue,
+  FALSE_BOTTOM,
+  drawExtraEquipment,
+  refreshEquipment,
   nextCaptainOrder,
   areAdjacent,
   sameValue,
@@ -26,8 +27,10 @@ import {
   unwrapHand,
   unwrapPublic,
   wrapHand,
+  type BuiltMission,
 } from "./engine";
 import { getMission } from "./missions";
+import { buildMissionWithRules, cutWithRules, deadlyCheck, ruleCanCut } from "./rules";
 
 /** Log entries store `@uid@` mentions; the UI swaps in player names. */
 export const mention = (uid: string) => `@${uid}@`;
@@ -60,7 +63,7 @@ export function useBombBustersHand(roomCode: string | undefined, uid: string | n
   return hand;
 }
 
-function writeMission(batch: ReturnType<typeof writeBatch>, roomCode: string, built: ReturnType<typeof buildMission>) {
+function writeMission(batch: ReturnType<typeof writeBatch>, roomCode: string, built: BuiltMission) {
   batch.set(doc(db, "games", roomCode), built.game);
   Object.entries(built.hands).forEach(([uid, stands]) => {
     const hand: BBHand = { ownerUid: uid, stands: wrapHand(stands) };
@@ -76,7 +79,7 @@ export async function startBombBustersGame(roomCode: string, room: Room, mission
   const captainIndex = Math.floor(Math.random() * joined.length);
   const playerOrder = [...joined.slice(captainIndex), ...joined.slice(0, captainIndex)];
 
-  const built = buildMission(playerOrder, getMission(missionId));
+  const built = buildMissionWithRules(playerOrder, getMission(missionId));
   const batch = writeBatch(db);
   writeMission(batch, roomCode, built);
   batch.update(doc(db, "rooms", roomCode), { status: "in-progress" });
@@ -165,6 +168,10 @@ export async function declareDualCut(
     const values = alsoDeclared === undefined ? [declared] : [declared, alsoDeclared];
     if (alsoDeclared !== undefined && alsoDeclared === declared) throw new Error("Name two different values.");
     if (!canDeclare(hand, values)) throw new Error("You can only name values you hold.");
+    for (const value of values) {
+      const objection = ruleCanCut(game, value);
+      if (objection) throw new Error(objection);
+    }
     if ((detector === "triple" || detector === "super") && values.includes("yellow")) {
       throw new Error("The Triple and Super Detectors can't name yellow.");
     }
@@ -228,7 +235,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 
     const wires = hand.flat();
     const values = pending.alsoDeclared === undefined ? [pending.declared] : [pending.declared, pending.alsoDeclared];
-    const outcome = resolveDualCut(pending.slots.map((slot) => wires[slot]), values);
+    const outcome = resolveDualCut(pending.slots.map((slot) => wires[slot]), values, deadlyCheck(game));
 
     if (outcome.result === "explode") {
       if (game.stabilized) {
@@ -246,7 +253,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
       }
       const slot = options.length > 1 ? choice! : options[0];
       transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
-      const next = applyCutToGame(game, uid, slot, wires[slot]);
+      const next = cutWithRules(game, uid, slot, wires[slot]);
       transaction.set(
         gameRef,
         addLog(
@@ -293,7 +300,7 @@ export async function completeOwnCut(roomCode: string, uid: string, choice?: num
     }
     const slot = options.length > 1 ? choice! : options[0];
     transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
-    transaction.set(gameRef, finishTurn(applyCutToGame(game, uid, slot, wires[slot]), uid));
+    transaction.set(gameRef, finishTurn(cutWithRules(game, uid, slot, wires[slot]), uid));
     return { status: "done" };
   });
 }
@@ -302,6 +309,8 @@ export async function soloCut(roomCode: string, uid: string, declared: BBDeclare
   await runTransaction(db, async (transaction) => {
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "playing" || game.turn !== uid || game.pendingAction) throw new Error("It's not your turn.");
+    const objection = ruleCanCut(game, declared);
+    if (objection) throw new Error(objection);
     const indices = soloCutIndices(hand, declared, game.wireTotals, game.cutCounts);
     if (!indices) throw new Error("You don't hold every remaining wire of that value.");
 
@@ -310,7 +319,7 @@ export async function soloCut(roomCode: string, uid: string, declared: BBDeclare
     let next = game;
     indices.forEach((slot) => {
       nextHand = cutInHand(nextHand, slot);
-      next = applyCutToGame(next, uid, slot, wires[slot]);
+      next = cutWithRules(next, uid, slot, wires[slot]);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
     transaction.set(gameRef, addLog(finishTurn(next, uid), `✂️ ${mention(uid)} solo-cut ${indices.length} × ${describeDeclared(declared)}.`));
@@ -321,7 +330,7 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
   await runTransaction(db, async (transaction) => {
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "playing" || game.turn !== uid || game.pendingAction) throw new Error("It's not your turn.");
-    if (!canRevealRed(hand)) throw new Error("You can only reveal when all your remaining wires are red.");
+    if (!canRevealRed(hand, deadlyCheck(game))) throw new Error("You can only reveal when all your remaining wires are red.");
 
     const wires = hand.flat();
     let nextHand = hand;
@@ -329,7 +338,7 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
     wires.forEach((wire, slot) => {
       if (wire.cut) return;
       nextHand = cutInHand(nextHand, slot);
-      next = applyCutToGame(next, uid, slot, wire);
+      next = cutWithRules(next, uid, slot, wire);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
     transaction.set(gameRef, addLog(finishTurn(next, uid), `🟥 ${mention(uid)} revealed their red wires.`));
@@ -340,7 +349,7 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
 export async function startNextMission(roomCode: string, uid: string, hostUid: string, game: BBGame, missionId: number): Promise<void> {
   if (uid !== hostUid) throw new Error("Only the host can start the next mission.");
   if (game.phase !== "mission-won" && game.phase !== "mission-lost") throw new Error("The mission isn't over yet.");
-  const built = buildMission(nextCaptainOrder(game.playerOrder), getMission(missionId));
+  const built = buildMissionWithRules(nextCaptainOrder(game.playerOrder), getMission(missionId));
   const batch = writeBatch(db);
   writeMission(batch, roomCode, built);
   await batch.commit();
@@ -511,5 +520,16 @@ export async function finishWalkieTalkies(roomCode: string, uid: string): Promis
     if (!swap || swap.by !== uid || swap.stage !== "await-return") return;
     const { gameRef, game } = await swapOwnWire(transaction, roomCode, uid, swap.fromSlot);
     transaction.set(gameRef, { ...game, pendingSwap: null });
+  });
+}
+
+/** #13 False Bottom: draw 2 more equipment cards from the unused pool onto the board. Any time. */
+export async function openFalseBottom(roomCode: string, uid: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    assertActive(game);
+    const next = spendEquipment(game, FALSE_BOTTOM);
+    const extra = drawExtraEquipment(getMission(game.missionId), next.equipment.map((card) => card.id), 2);
+    const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts);
+    return addLog({ ...next, equipment }, `🧰 ${mention(uid)} opened the False Bottom: ${extra.length ? extra.map((id) => `#${id}`).join(" and ") : "nothing left"} added.`);
   });
 }

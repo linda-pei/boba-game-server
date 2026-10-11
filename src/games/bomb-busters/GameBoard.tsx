@@ -10,9 +10,12 @@ import TurnStatus from "../../components/shared/TurnStatus";
 import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
+import { deadlyCheck, describeRules, ruleCanCut } from "./rules";
+import { RULE_PANELS } from "./rules/ui";
 import {
   type ResolveResult,
   activateStabilizer,
+  openFalseBottom,
   answerRadar,
   completeOwnCut,
   declareDualCut,
@@ -75,7 +78,7 @@ function LabelMark({ labels, index }: { labels: BBLabel[]; index: number }) {
   ) : null;
 }
 
-function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse: (id: number) => boolean; onUse: (id: number) => void }) {
+function Board({ game, room, uid, canUse, onUse }: { game: BBGame; room: Room; uid: string; canUse: (id: number) => boolean; onUse: (id: number) => void }) {
   const mission = getMission(game.missionId);
   return (
     <section className="bb-board" aria-label="Bomb">
@@ -83,7 +86,14 @@ function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse
         <span className="bb-mission__id">Mission {mission.id}</span>
         <strong>{mission.name}</strong>
         <span className="bb-muted">{mission.subtitle}</span>
+        {describeRules(game).map((line) => (
+          <span key={line} className="bb-rule-line">⚠️ {line}</span>
+        ))}
       </div>
+      {getMission(game.missionId).rules.map(({ id }) => {
+        const Panel = RULE_PANELS[id];
+        return Panel ? <Panel key={id} game={game} room={room} uid={uid} /> : null;
+      })}
       <div className="bb-dial" aria-label={`Detonator: ${game.dial.wrongGuesses} of ${game.dial.limit}`}>
         <span className="bb-label">Detonator</span>
         <div className="bb-dial__track">
@@ -166,10 +176,10 @@ function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse
                 className={`bb-equipment__card${card.unlocked ? " bb-equipment__card--unlocked" : ""}${card.used ? " bb-equipment__card--used" : ""}`}
                 title={info.effect}
               >
-                <span className="bb-equipment__number">{card.id}</span>
+                <span className={`bb-equipment__number${card.id === 13 ? " bb-equipment__number--yellow" : ""}`}>{card.id === 13 ? "Y" : card.id}</span>
                 <strong>{info.name}</strong>
                 {/* The full effect is on hover (title) to keep the cards compact. */}
-                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : `Unlocks at two ${card.id}s`}</span>
+                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : card.id === 13 ? "Unlocks at two yellow wires" : `Unlocks at two ${card.id}s`}</span>
                 {canUse(card.id) && (
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => onUse(card.id)}>
                     Use
@@ -386,7 +396,9 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     ...new Set(myWires.filter((wire) => !wire.cut && wire.color === "blue").map((wire) => wire.sortKey)),
   ].sort((a, b) => a - b);
   if (myWires.some((wire) => !wire.cut && wire.color === "yellow")) declarable.push("yellow");
-  const soloOptions = declarable.filter((value) => soloCutIndices(myStands, value, game.wireTotals, game.cutCounts));
+  // Values a mission rule forbids right now (e.g. out of sequence) aren't offered.
+  const allowedDeclarable = declarable.filter((value) => !ruleCanCut(game, value));
+  const soloOptions = allowedDeclarable.filter((value) => soloCutIndices(myStands, value, game.wireTotals, game.cutCounts));
   const soloIndices = (value: BBDeclared) => soloCutIndices(myStands, value, game.wireTotals, game.cutCounts) ?? [];
   const soloValueOf = (wire: BBHandWire): BBDeclared | null => {
     const value: BBDeclared = wire.color === "yellow" ? "yellow" : wire.sortKey;
@@ -414,6 +426,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     setError(null);
     if (id === 6) return void run(() => rewindDial(roomCode, uid));
     if (id === 9) return void run(() => activateStabilizer(roomCode, uid));
+    if (id === 13) return void run(() => openFalseBottom(roomCode, uid));
     const modes: Record<number, EquipMode> = { 1: "label-neq", 2: "walkie", 4: "post-it", 7: "batteries", 8: "radar", 11: "coffee", 12: "label-eq" };
     setEquipMode((current) => (current === modes[id] ? null : modes[id]));
   };
@@ -521,7 +534,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   : `${name(room, target.uid)}'s ${detector === "super" ? "stand" : target.slots.length === 1 ? "wire" : `${target.slots.length} wires`}: is it…`}
               </span>
               <div className="bb-values">
-                {declarable
+                {allowedDeclarable
                   .filter((value) => !(value === "yellow" && (detector === "triple" || detector === "super")))
                   .filter((value) => value !== xray)
                   .map((value) => (
@@ -558,7 +571,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
         <TurnStatus mood={status.mood}>{status.text}</TurnStatus>
         {error && <p className="error-message" role="alert">{error}</p>}
 
-        <Board game={game} room={room} canUse={canUseEquipment} onUse={onUseEquipment} />
+        <Board game={game} room={room} uid={uid} canUse={canUseEquipment} onUse={onUseEquipment} />
 
         {equipMode && (
           <section className="bb-equip-panel">
@@ -680,14 +693,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   </label>
                 )}
               </div>
-              {(soloReady !== undefined || canRevealRed(myStands)) && (
+              {(soloReady !== undefined || canRevealRed(myStands, deadlyCheck(game))) && (
                 <div className="bb-cut__row bb-cut__row--actions">
                   {soloReady !== undefined && (
                     <button type="button" className="btn btn--sm" disabled={busy} onClick={() => void run(() => soloCut(roomCode, uid, soloReady))}>
                       Solo Cut {soloSelected.length} × {describeDeclared(soloReady)}
                     </button>
                   )}
-                  {canRevealRed(myStands) && (
+                  {canRevealRed(myStands, deadlyCheck(game)) && (
                     <button type="button" className="btn btn--danger btn--sm" disabled={busy} onClick={() => void run(() => revealRedWires(roomCode, uid))}>
                       Reveal your red wires
                     </button>

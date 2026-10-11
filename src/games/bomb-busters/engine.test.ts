@@ -48,9 +48,9 @@ describe("components and data", () => {
     expect(wires.filter((w) => w.color === "yellow").map((w) => w.sortKey)).toContain(1.1);
   });
 
-  it("defines missions 1–8 and 12 equipment cards", () => {
+  it("defines missions 1–8 and 13 equipment cards (12 base + False Bottom)", () => {
     expect(MISSIONS.map((m) => m.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(EQUIPMENT.map((e) => e.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(EQUIPMENT.map((e) => e.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 
