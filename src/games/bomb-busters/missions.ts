@@ -122,6 +122,17 @@ export const MISSIONS: BBMission[] = [
     rules: [{ id: "redTape" }],
   },
   {
+    id: 14,
+    name: "High Risk Bomb Disposal Expert",
+    subtitle: "We all remember having sweaty palms during our first mission. Let's help the rookie: if possible, leave the easy cuts to them.",
+    blue: { from: 1, to: 12 },
+    red: { count: 2 },
+    yellow: { count: 2, outOf: 3 },
+    equipment: { count: "players", falseBottom: true },
+    twoPlayer: { yellow: { count: 4 } },
+    rules: [{ id: "rookie" }],
+  },
+  {
     id: 15,
     name: "Mission in Russian",
     subtitle: "Due to a shipping mix-up these new toolboxes are labeled in Russian. Get ready to be surprised every time you grab a tool.",
@@ -142,6 +153,17 @@ export const MISSIONS: BBMission[] = [
     equipment: { count: "players", falseBottom: true },
     twoPlayer: { red: { count: 2 }, yellow: { count: 4 } },
     rules: [{ id: "sequence", params: { cards: 3, threshold: 4 } }],
+  },
+  {
+    id: 17,
+    name: "Red Herring",
+    subtitle: "The Truth.",
+    blue: { from: 1, to: 12 },
+    red: { count: 2, outOf: 3 },
+    yellow: { count: 0 },
+    equipment: { count: "players", falseBottom: true },
+    twoPlayer: { red: { count: 3 } },
+    rules: [{ id: "redHerring" }],
   },
 ];
 

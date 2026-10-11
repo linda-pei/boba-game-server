@@ -2,7 +2,18 @@ import { describe, expect, it } from "vitest";
 import type { BBDeclared, BBGame } from "../../../types";
 import { canRevealRed, finishTurn, resolveDualCut, soloCutIndices } from "../engine";
 import { MISSIONS, getMission } from "../missions";
-import { buildMissionWithRules, cutWithRules, deadlyCheck, ruleCanCut, ruleEquipmentFaceDown } from "./index";
+import {
+  buildMissionWithRules,
+  cutWithRules,
+  deadlyCheck,
+  ruleCanCut,
+  ruleCanUseEquipment,
+  ruleEquipmentFaceDown,
+  setupInfoPolicy,
+  wrongGuessExplodes,
+  wrongGuessToken,
+} from "./index";
+import type { SecretRoleState } from "./secretRole";
 import type { DeadlyValueState } from "./deadlyValue";
 import type { RedTapeState } from "./redTape";
 import type { RussianToolboxState } from "./russianToolbox";
@@ -99,6 +110,48 @@ describe("russianToolbox (mission 15)", () => {
     expect(g.equipment[0].unlocked).toBe(true);
     expect(ruleEquipmentFaceDown(g, g.equipment[0].id)).toBe(false);
     expect(ruleEquipmentFaceDown(g, g.equipment[1].id)).toBe(true);
+  });
+});
+
+describe("secret roles (missions 14 & 17)", () => {
+  it("the random Captain-card holder takes the role and goes first", () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed < 12; seed += 1) {
+      const built = buildMissionWithRules(["a", "b", "c"], getMission(14), seeded(seed));
+      const { uid } = built.game.ruleState.rookie as SecretRoleState;
+      expect(built.game.captain).toBe(uid);
+      expect(built.game.playerOrder[0]).toBe(uid);
+      // Seats stay clockwise: the order is a rotation of a, b, c.
+      expect(["abc", "bca", "cab"]).toContain(built.game.playerOrder.join(""));
+      seen.add(uid);
+    }
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it("Rookie: a failed Dual Cut explodes, others don't; no Stabilizer for the Rookie", () => {
+    const built = buildMissionWithRules(["a", "b", "c"], getMission(14), seeded(2));
+    const rookieUid = (built.game.ruleState.rookie as SecretRoleState).uid;
+    const other = built.game.playerOrder.find((p) => p !== rookieUid)!;
+    expect(wrongGuessExplodes(built.game, rookieUid, other)).toBe(true);
+    expect(wrongGuessExplodes(built.game, other, rookieUid)).toBe(false);
+    expect(ruleCanUseEquipment(built.game, rookieUid, 9)).toMatch(/Stabilizer/);
+    expect(ruleCanUseEquipment(built.game, rookieUid, 6)).toBeNull();
+    expect(ruleCanUseEquipment(built.game, other, 9)).toBeNull();
+  });
+
+  it("Red Herring: 2 fake setup tokens, false tokens on misses, no equipment", () => {
+    const built = buildMissionWithRules(["a", "b", "c"], getMission(17), seeded(3));
+    const herring = (built.game.ruleState.redHerring as SecretRoleState).uid;
+    const other = built.game.playerOrder.find((p) => p !== herring)!;
+    expect(setupInfoPolicy(built.game, herring)).toEqual({ count: 2, fake: true });
+    expect(setupInfoPolicy(built.game, other)).toEqual({ count: 1, fake: false });
+    const wire = { id: "B5-1", color: "blue" as const, sortKey: 5 };
+    const truth = { color: "blue" as const, value: 5 };
+    expect(wrongGuessToken(built.game, wire, 8, herring, truth)).toEqual({ color: "blue", value: 8 });
+    expect(wrongGuessToken(built.game, wire, "yellow", herring, truth)).toEqual({ color: "yellow" });
+    expect(wrongGuessToken(built.game, wire, 8, other, truth)).toEqual(truth);
+    expect(ruleCanUseEquipment(built.game, herring, 2)).toMatch(/can't use equipment/);
+    expect(ruleCanUseEquipment(built.game, other, 2)).toBeNull();
   });
 });
 

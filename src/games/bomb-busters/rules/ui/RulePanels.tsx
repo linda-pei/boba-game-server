@@ -1,6 +1,7 @@
 import type { DeadlyValueState } from "../deadlyValue";
 import { coverDone, type RedTapeState } from "../redTape";
 import type { RussianToolboxState } from "../russianToolbox";
+import type { SecretRoleState } from "../secretRole";
 import type { SequenceState } from "../sequence";
 import type { RulePanelProps } from "./index";
 
@@ -65,3 +66,17 @@ export function RussianToolboxPanel({ game }: RulePanelProps) {
     </div>
   );
 }
+
+function RolePanel({ game, room, uid, ruleId, title }: RulePanelProps & { ruleId: string; title: string }) {
+  const state = game.ruleState[ruleId] as SecretRoleState | undefined;
+  if (!state) return null;
+  return (
+    <div className="bb-rule-panel">
+      <span className="bb-label">{title}</span>
+      <span className="bb-tag bb-tag--role">{state.uid === uid ? "You" : room.players[state.uid]?.name ?? "Player"}</span>
+    </div>
+  );
+}
+
+export const RookiePanel = (props: RulePanelProps) => <RolePanel {...props} ruleId="rookie" title="🔰 Rookie" />;
+export const RedHerringPanel = (props: RulePanelProps) => <RolePanel {...props} ruleId="redHerring" title="🐟 Red Herring" />;

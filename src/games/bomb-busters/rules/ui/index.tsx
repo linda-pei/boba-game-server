@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { BBGame, Room } from "../../../../types";
-import { DeadlyValuePanel, RedTapePanel, RussianToolboxPanel, SequencePanel } from "./RulePanels";
+import { DeadlyValuePanel, RedHerringPanel, RedTapePanel, RookiePanel, RussianToolboxPanel, SequencePanel } from "./RulePanels";
 
 export interface RulePanelProps {
   game: BBGame;
@@ -14,4 +14,6 @@ export const RULE_PANELS: Record<string, ComponentType<RulePanelProps>> = {
   deadlyValue: DeadlyValuePanel,
   redTape: RedTapePanel,
   russianToolbox: RussianToolboxPanel,
+  rookie: RookiePanel,
+  redHerring: RedHerringPanel,
 };

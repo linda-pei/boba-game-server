@@ -30,7 +30,17 @@ import {
   type BuiltMission,
 } from "./engine";
 import { getMission } from "./missions";
-import { buildMissionWithRules, cutWithRules, deadlyCheck, equipmentUnlockCheck, ruleCanCut } from "./rules";
+import {
+  buildMissionWithRules,
+  cutWithRules,
+  deadlyCheck,
+  equipmentUnlockCheck,
+  ruleCanCut,
+  ruleCanUseEquipment,
+  setupInfoPolicy,
+  wrongGuessExplodes,
+  wrongGuessToken,
+} from "./rules";
 
 /** Log entries store `@uid@` mentions; the UI swaps in player names. */
 export const mention = (uid: string) => `@${uid}@`;
@@ -110,28 +120,48 @@ function cutInHand(hand: BBHandWire[][], flatIndex: number): BBHandWire[][] {
   );
 }
 
-/** Setup: every player, at the same time, points an info token at one of their blue wires. */
-export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: number | null): Promise<void> {
+/**
+ * Setup: every player, at the same time, points info tokens at their wires — normally one, on a blue
+ * wire, showing its value. A rule may change that (e.g. Red Herring places 2 fake tokens, choosing a
+ * value that must not match the wire, never on red). `fakeValue` is the chosen value for fake tokens.
+ */
+export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: number | null, fakeValue?: BBDeclared): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "setup-info") throw new Error("Setup is over.");
-    if ((game.setupDone ?? []).includes(uid)) throw new Error("You've already placed your info token.");
+    const done = game.setupDone ?? [];
+    if (done.includes(uid)) throw new Error("You've already placed your info tokens.");
+    const policy = setupInfoPolicy(game, uid);
     const wires = hand.flat();
 
     let next = game;
     if (flatIndex === null) {
-      // Only allowed when you have no blue wires at all.
-      if (wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your blue wires.");
+      // Only allowed when you have no blue wires at all (real tokens).
+      if (policy.fake || wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your wires.");
       next = addLog(next, `${mention(uid)} has no blue wires to mark.`);
     } else {
       const wire = wires[flatIndex];
-      if (!wire || wire.color !== "blue") throw new Error("Setup info tokens go on a blue wire.");
-      next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
+      const slot = unwrapPublic(game.stands)[uid].flat()[flatIndex];
+      if (!wire) throw new Error("Choose one of your wires.");
+      if (slot?.info) throw new Error("That wire already has an info token.");
+      if (policy.fake) {
+        if (wire.color === "red") throw new Error("Fake info tokens can't go in front of a red wire.");
+        if (fakeValue === undefined) throw new Error("Choose the value to show.");
+        const matches = fakeValue === "yellow" ? wire.color === "yellow" : wire.color === "blue" && wire.sortKey === fakeValue;
+        if (matches) throw new Error("A fake info token must not match its wire.");
+        const token = fakeValue === "yellow" ? { color: "yellow" as const } : { color: "blue" as const, value: fakeValue };
+        next = addLog(placeInfoToken(next, uid, flatIndex, token), `${mention(uid)} placed an info token.`);
+      } else {
+        if (wire.color !== "blue") throw new Error("Setup info tokens go on a blue wire.");
+        next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
+      }
     }
 
-    const setupDone = [...(game.setupDone ?? []), uid];
-    const done = setupDone.length >= game.playerOrder.length;
-    transaction.set(gameRef, { ...next, setupDone, phase: done ? "playing" : "setup-info", turn: game.captain });
+    const placed = { ...(game.setupPlaced ?? {}), [uid]: ((game.setupPlaced ?? {})[uid] ?? 0) + 1 };
+    const finished = flatIndex === null || placed[uid] >= policy.count;
+    const setupDone = finished ? [...done, uid] : done;
+    const allDone = setupDone.length >= game.playerOrder.length;
+    transaction.set(gameRef, { ...next, setupPlaced: placed, setupDone, phase: allDone ? "playing" : "setup-info", turn: game.captain });
   });
 }
 
@@ -139,7 +169,9 @@ const DETECTOR_SLOTS: Record<Exclude<BBDetector, "super">, number> = { none: 1, 
 const DETECTOR_EQUIPMENT: Partial<Record<BBDetector, number>> = { triple: 3, super: 5 };
 const X_OR_Y_RAY = 10;
 
-function spendEquipment(game: BBGame, id: number): BBGame {
+function spendEquipment(game: BBGame, id: number, uid: string): BBGame {
+  const objection = ruleCanUseEquipment(game, uid, id);
+  if (objection) throw new Error(objection);
   const card = game.equipment.find((item) => item.id === id);
   if (!card) throw new Error("That equipment isn't on the board this mission.");
   if (!card.unlocked) throw new Error("That equipment isn't unlocked yet.");
@@ -190,8 +222,8 @@ export async function declareDualCut(
       next = { ...next, characters: { ...next.characters, [uid]: { used: true } } };
     }
     const detectorCard = DETECTOR_EQUIPMENT[detector];
-    if (detectorCard) next = spendEquipment(next, detectorCard);
-    if (alsoDeclared !== undefined) next = spendEquipment(next, X_OR_Y_RAY);
+    if (detectorCard) next = spendEquipment(next, detectorCard, uid);
+    if (alsoDeclared !== undefined) next = spendEquipment(next, X_OR_Y_RAY, uid);
 
     const where = detector === "super" ? "stand" : `wire ${pointed.map((slot) => `#${slot + 1}`).join(" / ")}`;
     const what = values.map(describeDeclared).join(" or ");
@@ -269,7 +301,12 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
       return { status: "needs-choice", choose: "info", options };
     }
     const slot = options.length > 1 ? choice! : options[0];
-    const marked = placeInfoToken(game, uid, slot, infoTokenFor(wires[slot]));
+    if (wrongGuessExplodes(game, pending.by, uid)) {
+      transaction.set(gameRef, addLog(loseMission(game, "The Rookie's cut failed."), `💥 ${mention(pending.by)} missed, and a Rookie's mistake is fatal.`));
+      return { status: "done" };
+    }
+    const token = wrongGuessToken(game, wires[slot], pending.declared, uid, infoTokenFor(wires[slot]));
+    const marked = placeInfoToken(game, uid, slot, token);
     const wrong = game.stabilized ? marked : advanceDial(marked);
     const text = game.stabilized
       ? `🛡️ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The Stabilizer kept the dial still.`
@@ -374,7 +411,7 @@ async function updateGame(roomCode: string, change: (game: BBGame) => BBGame): P
 export async function rewindDial(roomCode: string, uid: string): Promise<void> {
   await updateGame(roomCode, (game) => {
     assertActive(game);
-    const next = spendEquipment(game, 6);
+    const next = spendEquipment(game, 6, uid);
     return addLog({ ...next, dial: { ...next.dial, wrongGuesses: Math.max(0, next.dial.wrongGuesses - 1) } }, `⏪ ${mention(uid)} used the Rewinder.`);
   });
 }
@@ -385,7 +422,7 @@ export async function rechargeDetectors(roomCode: string, uid: string, players: 
     assertActive(game);
     if (players.length < 1 || players.length > 2) throw new Error("Choose 1 or 2 players.");
     if (players.some((player) => !game.characters[player]?.used)) throw new Error("Only used Double Detectors can be recharged.");
-    const next = spendEquipment(game, 7);
+    const next = spendEquipment(game, 7, uid);
     const characters = { ...next.characters };
     players.forEach((player) => {
       characters[player] = { used: false };
@@ -399,7 +436,7 @@ export async function activateStabilizer(roomCode: string, uid: string): Promise
   await updateGame(roomCode, (game) => {
     assertActive(game);
     if (game.turn !== uid) throw new Error("Use the Stabilizer at the start of your own turn.");
-    return addLog({ ...spendEquipment(game, 9), stabilized: true }, `🛡️ ${mention(uid)} switched on the Stabilizer.`);
+    return addLog({ ...spendEquipment(game, 9, uid), stabilized: true }, `🛡️ ${mention(uid)} switched on the Stabilizer.`);
   });
 }
 
@@ -410,7 +447,7 @@ export async function passTurnWithCoffee(roomCode: string, uid: string, nextPlay
     if (game.turn !== uid) throw new Error("Use the Coffee Mug on your own turn.");
     if (!game.playerOrder.includes(nextPlayer)) throw new Error("Choose a player.");
     if (!unwrapPublic(game.stands)[nextPlayer].flat().some((slot) => !slot.cut)) throw new Error("That player has no wires left.");
-    return addLog({ ...spendEquipment(game, 11), turn: nextPlayer, stabilized: false }, `☕ ${mention(uid)} passed the turn to ${mention(nextPlayer)}.`);
+    return addLog({ ...spendEquipment(game, 11, uid), turn: nextPlayer, stabilized: false }, `☕ ${mention(uid)} passed the turn to ${mention(nextPlayer)}.`);
   });
 }
 
@@ -421,7 +458,7 @@ export async function placePostIt(roomCode: string, uid: string, slot: number): 
     assertActive(game);
     const wire = hand.flat()[slot];
     if (!wire || wire.cut || wire.color !== "blue") throw new Error("The Post-it goes on one of your uncut blue wires.");
-    const next = placeInfoToken(spendEquipment(game, 4), uid, slot, infoTokenFor(wire));
+    const next = placeInfoToken(spendEquipment(game, 4, uid), uid, slot, infoTokenFor(wire));
     transaction.set(gameRef, addLog(next, `📝 ${mention(uid)} marked their wire #${slot + 1} as a ${wire.sortKey}.`));
   });
 }
@@ -436,7 +473,7 @@ export async function placeLabel(roomCode: string, uid: string, kind: "neq" | "e
     if (sameValue(a, b) !== (kind === "eq")) {
       throw new Error(kind === "eq" ? "Those wires don't have the same value." : "Those wires have the same value.");
     }
-    const next = spendEquipment(game, kind === "eq" ? 12 : 1);
+    const next = spendEquipment(game, kind === "eq" ? 12 : 1, uid);
     transaction.set(
       gameRef,
       addLog({ ...next, labels: [...next.labels, { uid, at: left, kind }] }, `🏷️ ${mention(uid)} labeled wires #${left + 1} and #${left + 2} ${kind === "eq" ? "=" : "≠"}.`),
@@ -450,7 +487,7 @@ export async function runGeneralRadar(roomCode: string, uid: string, value: numb
     assertActive(game);
     if (!Number.isInteger(value) || value < 1 || value > 12) throw new Error("Choose a number from 1 to 12.");
     const answers = Object.fromEntries(game.playerOrder.map((player) => [player, null]));
-    return addLog({ ...spendEquipment(game, 8), radar: { by: uid, value, answers } }, `📡 ${mention(uid)} ran the General Radar for ${value}.`);
+    return addLog({ ...spendEquipment(game, 8, uid), radar: { by: uid, value, answers } }, `📡 ${mention(uid)} ran the General Radar for ${value}.`);
   });
 }
 
@@ -475,7 +512,7 @@ export async function startWalkieTalkies(roomCode: string, uid: string, to: stri
     if (to === uid || !game.playerOrder.includes(to)) throw new Error("Choose a teammate.");
     const wire = hand.flat()[fromSlot];
     if (!wire || wire.cut) throw new Error("Pick one of your uncut wires.");
-    const next = spendEquipment(game, 2);
+    const next = spendEquipment(game, 2, uid);
     const given = { id: wire.id, color: wire.color, sortKey: wire.sortKey };
     transaction.update(doc(db, "games", roomCode, "hands", to), { incoming: [given] });
     transaction.set(
@@ -527,7 +564,7 @@ export async function finishWalkieTalkies(roomCode: string, uid: string): Promis
 export async function openFalseBottom(roomCode: string, uid: string): Promise<void> {
   await updateGame(roomCode, (game) => {
     assertActive(game);
-    const next = spendEquipment(game, FALSE_BOTTOM);
+    const next = spendEquipment(game, FALSE_BOTTOM, uid);
     const extra = drawExtraEquipment(getMission(game.missionId), next.equipment.map((card) => card.id), 2);
     const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts, equipmentUnlockCheck(next));
     return addLog({ ...next, equipment }, `🧰 ${mention(uid)} opened the False Bottom: ${extra.length ? extra.map((id) => `#${id}`).join(" and ") : "nothing left"} added.`);

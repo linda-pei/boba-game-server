@@ -1,8 +1,10 @@
-import type { BBDeclared, BBGame, BBMission, BBWire } from "../../../types";
+import type { BBDeclared, BBGame, BBInfoToken, BBMission, BBWire } from "../../../types";
 import { applyCutToGame, buildMission, isRed, refreshEquipment, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
 import { getMission } from "../missions";
 import { deadlyValue } from "./deadlyValue";
+import { redHerring } from "./redHerring";
 import { redTape } from "./redTape";
+import { rookie } from "./rookie";
 import { russianToolbox } from "./russianToolbox";
 import { sequence } from "./sequence";
 import type { MissionRule, RuleParams, RuleRegistry } from "./types";
@@ -13,6 +15,8 @@ export const RULES: RuleRegistry = {
   deadlyValue,
   redTape,
   russianToolbox,
+  rookie,
+  redHerring,
 } as unknown as RuleRegistry;
 
 /** Where rules and missions come from; tests pass fakes, the app uses the defaults. */
@@ -46,7 +50,11 @@ export function buildMissionWithRules(
   random: () => number = Math.random,
   env: RuleEnv = DEFAULT_RULE_ENV,
 ): BuiltMission {
-  let built = buildMission(playerOrder, mission, random);
+  let order = playerOrder;
+  for (const { rule, params } of activeRules(mission, env)) {
+    if (rule.choosePlayerOrder) order = rule.choosePlayerOrder(order, { params, random });
+  }
+  let built = buildMission(order, mission, random);
   for (const { rule, params } of activeRules(mission, env)) {
     if (!rule.setup) continue;
     const result = rule.setup(built, { mission, params, random });
@@ -102,6 +110,38 @@ export function equipmentUnlockCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_E
 /** Whether a rule keeps this equipment card face down (identity hidden). */
 export function ruleEquipmentFaceDown(game: BBGame, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
   return rulesOf(game, env).some(({ rule, params }) => rule.equipmentFaceDown?.(cardId, { game, params, state: stateOf(game, rule.id) }) ?? false);
+}
+
+/** How many setup info tokens this player places, and whether they're fake (default: 1, real). */
+export function setupInfoPolicy(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): { count: number; fake: boolean } {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const policy = rule.setupInfoPolicy?.(uid, { game, params, state: stateOf(game, rule.id) });
+    if (policy) return policy;
+  }
+  return { count: 1, fake: false };
+}
+
+/** Whether a failed Dual Cut explodes the bomb under this mission's rules. */
+export function wrongGuessExplodes(game: BBGame, by: string, target: string, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
+  return rulesOf(game, env).some(({ rule, params }) => rule.onWrongGuess?.({ game, params, state: stateOf(game, rule.id), by, target }) === "explode");
+}
+
+/** The info token a failed Dual Cut places (a rule may replace the true value, e.g. Red Herring). */
+export function wrongGuessToken(game: BBGame, wire: BBWire, declared: BBDeclared, target: string, fallback: BBInfoToken, env: RuleEnv = DEFAULT_RULE_ENV): BBInfoToken {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const token = rule.wrongGuessToken?.(wire, declared, { game, params, state: stateOf(game, rule.id), target });
+    if (token) return token;
+  }
+  return fallback;
+}
+
+/** The first rule objection to this player using this equipment card, or null. */
+export function ruleCanUseEquipment(game: BBGame, uid: string, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): string | null {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const error = rule.canUseEquipment?.(uid, cardId, { game, params, state: stateOf(game, rule.id) });
+    if (error) return error;
+  }
+  return null;
 }
 
 /** Summary lines for the mission card. */
