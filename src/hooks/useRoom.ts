@@ -111,7 +111,7 @@ export async function leaveRoom(
 
 export async function updateRoomSettings(
   roomCode: string,
-  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string; chapter?: number; testNumber?: number; roundsEnabled?: boolean; bonusTokensEnabled?: boolean; robotrickMoreHangars?: boolean; robotrickFixedAiCard?: boolean }
+  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string; chapter?: number; testNumber?: number; roundsEnabled?: boolean; bonusTokensEnabled?: boolean; robotrickMoreHangars?: boolean; robotrickFixedAiCard?: boolean; bombBustersMission?: number; bombBustersCompleted?: number[] }
 ): Promise<void> {
   const roomRef = doc(db, "rooms", roomCode);
   const updates: Record<string, unknown> = {};
@@ -160,6 +160,12 @@ export async function updateRoomSettings(
   }
   if (settings.robotrickFixedAiCard !== undefined) {
     updates["settings.robotrickFixedAiCard"] = settings.robotrickFixedAiCard;
+  }
+  if (settings.bombBustersMission !== undefined) {
+    updates["settings.bombBustersMission"] = settings.bombBustersMission;
+  }
+  if (settings.bombBustersCompleted !== undefined) {
+    updates["settings.bombBustersCompleted"] = settings.bombBustersCompleted;
   }
 
   await updateDoc(roomRef, updates);

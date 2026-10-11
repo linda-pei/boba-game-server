@@ -13,6 +13,8 @@ import { startFruitBossGame } from "../games/fruit-boss/useFruitBossGame";
 import { startStartupsGame } from "../games/startups/useStartupsGame";
 import { startCloverGame } from "../games/clover/useCloverGame";
 import { startRobotrickGame } from "../games/robotrick/useRobotrickGame";
+import { startBombBustersGame } from "../games/bomb-busters/useBombBustersGame";
+import { MISSIONS as BOMB_BUSTERS_MISSIONS } from "../games/bomb-busters/missions";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
@@ -23,7 +25,7 @@ import PlayerCountStatus from "./shared/PlayerCountStatus";
 import ConfirmButton from "./shared/ConfirmButton";
 import { PlayerChipList, PlayerChip, Badge } from "./shared/PlayerChipList";
 
-const ALL_GAME_IDS = ["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const;
+const ALL_GAME_IDS = ["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick", "bomb-busters"] as const;
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -76,6 +78,7 @@ export default function Lobby() {
   const isStartups = gameType === "startups";
   const isClover = gameType === "clover";
   const isRobotrick = gameType === "robotrick";
+  const isBombBusters = gameType === "bomb-busters";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -111,7 +114,12 @@ export default function Lobby() {
   // Robotrick: exactly 3 humans (Droco is the 4th seat)
   const canStartRobotrick = players.length === 3;
 
-  const canStart = isRobotrick
+  // Bomb Busters: 2–5 players
+  const canStartBombBusters = players.length >= 2 && players.length <= 5;
+
+  const canStart = isBombBusters
+    ? canStartBombBusters
+    : isRobotrick
     ? canStartRobotrick
     : isClover
     ? canStartClover
@@ -168,7 +176,9 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isRobotrick) {
+      if (isBombBusters) {
+        await startBombBustersGame(roomCode, room, room.settings.bombBustersMission ?? 1);
+      } else if (isRobotrick) {
         await startRobotrickGame(roomCode, room);
       } else if (isClover) {
         await startCloverGame(roomCode, room);
@@ -284,6 +294,28 @@ export default function Lobby() {
             ))}
           </div>
         </div>
+
+        {/* Bomb Busters settings */}
+        {isBombBusters && (
+          <>
+            <PlayerCountStatus gameName="Bomb Busters" count={players.length} min={2} max={5} />
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              Mission:
+              <select
+                value={room.settings.bombBustersMission ?? 1}
+                onChange={(e) => updateRoomSettings(roomCode!, { bombBustersMission: Number(e.target.value) })}
+                disabled={!isHost}
+              >
+                {BOMB_BUSTERS_MISSIONS.map((mission) => (
+                  <option key={mission.id} value={mission.id}>
+                    {(room.settings.bombBustersCompleted ?? []).includes(mission.id) ? "✓ " : ""}
+                    {mission.id}. {mission.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
 
         {/* Robotrick settings */}
         {isRobotrick && (
@@ -489,7 +521,11 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                { isRobotrick
+                { isBombBusters
+                  ? players.length < 2
+                    ? "Need at least 2 players for Bomb Busters"
+                    : "Too many players (max 5 for Bomb Busters)"
+                  : isRobotrick
                   ? players.length < 3
                     ? "Need exactly 3 players for Robotrick"
                     : "Too many players (Robotrick is exactly 3)"

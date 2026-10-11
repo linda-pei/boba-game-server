@@ -83,6 +83,14 @@
   --rt-c:          #3f9d6a;
   --rt-d:          #d99a26;
 
+  /* Bomb Busters: bomb shell and wire colors */
+  --bb-shell:      #3a3f4a;
+  --bb-shell-dark: #23262e;
+  --bb-spark:      #ffb02e;
+  --bb-blue:       #3f7fd1;
+  --bb-yellow:     #e8c22e;
+  --bb-red:        #d64545;
+
   /* Scout card color ramp (1-10) */
   --scout-card-1:  #1B3A8C;
   --scout-card-2:  #2E6BC6;

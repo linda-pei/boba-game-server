@@ -13,6 +13,11 @@
   vector-effect: non-scaling-stroke;
 }
 .gicon .nostroke { stroke: none; }
+/* Bomb Busters icon: thick colored wires. */
+.gicon .bb-wire { stroke-width: 4; }
+.gicon .bb-wire--blue { stroke: var(--bb-blue); }
+.gicon .bb-wire--yellow { stroke: var(--bb-yellow); }
+.gicon .bb-wire--red { stroke: var(--bb-red); }
 /* Take Time clock: ticks and hands need thinner strokes than the sticker outline. */
 /* Ticks/hands sit on the cream face, so use the fixed dark lunar color (ink flips light in dark mode). */
 .gicon .tt-tick, .gicon .tt-hand { stroke: var(--tt-lunar); }
@@ -198,6 +203,8 @@
 .game-sticker.su .badge-mini { --badge-bg: var(--jade-500); --badge-ink: #fff; }
 .game-sticker.rt { --tile-bg: color-mix(in srgb, var(--rt-steel) 70%, var(--milk-50)); --tile-bg2: var(--rt-steel); }
 .game-sticker.rt .badge-mini { --badge-bg: var(--rt-steel-dark); --badge-ink: #fff; }
+.game-sticker.bb { --tile-bg: #eef0f4; --tile-bg2: #c3c9d4; }
+.game-sticker.bb .badge-mini { --badge-bg: var(--bb-red); --badge-ink: #fff; }
 
 /* per-game tile tints — dark mode */
 [data-theme="dark"] .game-sticker.tir   { --tile-bg: #5a2818; --tile-bg2: #3a1810; }
@@ -210,6 +217,7 @@
 }
 [data-theme="dark"] .game-sticker.fb { --tile-bg: #4a2818; --tile-bg2: #2e1810; }
 [data-theme="dark"] .game-sticker.rt { --tile-bg: #2c3a4a; --tile-bg2: #1a2430; }
+[data-theme="dark"] .game-sticker.bb { --tile-bg: #2a2e37; --tile-bg2: #181a20; }
 [data-theme="dark"] .game-sticker.su {
   --tile-bg: #1f3d2e;
   --tile-bg2: #3a3010;
@@ -348,6 +356,15 @@
   --banner-sub: color-mix(in srgb, var(--rt-steel-dark) 80%, var(--ink));
 }
 .game-banner.rt .banner-icon { background: var(--milk-50); border-color: var(--rt-steel-dark); }
+/* Bomb Busters: light bomb-casing banner with a blue/yellow/red wire stripe */
+.game-banner.bb {
+  background:
+    linear-gradient(90deg, var(--bb-blue) 0 60%, var(--bb-yellow) 60% 85%, var(--bb-red) 85% 100%) bottom / 100% 4px no-repeat,
+    linear-gradient(120deg, #e9ecf1 0%, #c9ced8 100%);
+  --banner-ink: var(--bb-shell-dark);
+  --banner-sub: color-mix(in srgb, var(--bb-shell-dark) 80%, var(--ink));
+}
+.game-banner.bb .banner-icon { background: var(--milk-50); border-color: var(--bb-shell-dark); }
 /* Startups banner: clean jade-to-gold diagonal with the 6-company stripe at the base */
 .game-banner.su {
   background:
@@ -399,6 +416,14 @@
   --banner-ink: #eef3f8;
   --banner-sub: #c4d0dc;
 }
+[data-theme="dark"] .game-banner.bb {
+  background:
+    linear-gradient(90deg, var(--bb-blue) 0 60%, var(--bb-yellow) 60% 85%, var(--bb-red) 85% 100%) bottom / 100% 4px no-repeat,
+    linear-gradient(120deg, #2a2e37 0%, #181a20 100%);
+  --banner-ink: #eef1f6;
+  --banner-sub: #c3c9d4;
+}
+[data-theme="dark"] .game-banner.bb .banner-icon { background: #e4e8ee; border-color: var(--bb-spark); }
 [data-theme="dark"] .game-banner.rt .banner-icon { background: #dfe7ef; border-color: var(--rt-steel); }
 [data-theme="dark"] .game-banner.clover .banner-icon {
   background: #e8f7eb;

@@ -22,6 +22,10 @@ export interface RoomSettings {
   robotrickMoreHangars?: boolean;
   /** Robotrick: reuse round 1's AI card for all three rounds. */
   robotrickFixedAiCard?: boolean;
+  /** Bomb Busters: mission to play next (1–8). */
+  bombBustersMission?: number;
+  /** Bomb Busters: missions this room has won. */
+  bombBustersCompleted?: number[];
 }
 
 export interface Room {
