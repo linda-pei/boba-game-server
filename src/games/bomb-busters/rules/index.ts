@@ -1,12 +1,15 @@
 import type { BBDeclared, BBGame, BBInfoToken, BBMission, BBWire } from "../../../types";
-import { applyCutToGame, buildMission, isRed, refreshEquipment, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
+import { applyCutToGame, buildMission, finishTurn, isRed, loseMission, refreshEquipment, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
 import { getMission } from "../missions";
+import { audioTimer } from "./audioTimer";
 import { deadlyValue } from "./deadlyValue";
+import { freeTurns } from "./freeTurns";
 import { redHerring } from "./redHerring";
 import { redTape } from "./redTape";
 import { rookie } from "./rookie";
 import { russianToolbox } from "./russianToolbox";
 import { sequence } from "./sequence";
+import { timer } from "./timer";
 import type { MissionRule, RuleParams, RuleRegistry } from "./types";
 
 /** Every registered rule module. Each mission lists the ones it uses (see missions.ts). */
@@ -17,6 +20,9 @@ export const RULES: RuleRegistry = {
   russianToolbox,
   rookie,
   redHerring,
+  timer,
+  freeTurns,
+  audioTimer,
 } as unknown as RuleRegistry;
 
 /** Where rules and missions come from; tests pass fakes, the app uses the defaults. */
@@ -139,6 +145,48 @@ export function wrongGuessToken(game: BBGame, wire: BBWire, declared: BBDeclared
 export function ruleCanUseEquipment(game: BBGame, uid: string, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): string | null {
   for (const { rule, params } of rulesOf(game, env)) {
     const error = rule.canUseEquipment?.(uid, cardId, { game, params, state: stateOf(game, rule.id) });
+    if (error) return error;
+  }
+  return null;
+}
+
+/** Setup is finished and play begins: let rules start timers, open the turn, etc. */
+export function startPlayWithRules(game: BBGame, now: number = Date.now(), env: RuleEnv = DEFAULT_RULE_ENV): BBGame {
+  let next: BBGame = { ...game, phase: "playing", turn: game.captain };
+  for (const { rule, params } of rulesOf(next, env)) {
+    if (!rule.onPlay) continue;
+    const result = rule.onPlay({ game: next, params, state: stateOf(next, rule.id), now });
+    next = { ...(result.game ?? next), ruleState: { ...(result.game ?? next).ruleState, [rule.id]: result.state } };
+  }
+  return next;
+}
+
+/** The first rule reason the mission is lost right now (e.g. "Time ran out."), or null. */
+export function ruleLossReason(game: BBGame, now: number = Date.now(), env: RuleEnv = DEFAULT_RULE_ENV): string | null {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const reason = rule.checkLoss?.({ game, params, state: stateOf(game, rule.id), now });
+    if (reason) return reason;
+  }
+  return null;
+}
+
+/** End a turn: win/lose checks, then the next player (or a rule's choice, e.g. an open turn). */
+export function finishTurnWithRules(game: BBGame, actor: string, now: number = Date.now(), env: RuleEnv = DEFAULT_RULE_ENV): BBGame {
+  const lost = game.phase !== "mission-lost" ? ruleLossReason(game, now, env) : null;
+  if (lost) return loseMission(game, lost);
+  let next = finishTurn(game, actor);
+  if (next.phase !== "playing") return next;
+  for (const { rule, params } of rulesOf(next, env)) {
+    const result = rule.nextTurn?.(actor, { game: next, params, state: stateOf(next, rule.id) });
+    if (result) next = { ...next, turn: result.turn, ruleState: { ...next.ruleState, [rule.id]: result.state } };
+  }
+  return next;
+}
+
+/** When the turn is open (free turn order): the first rule objection to this player taking it, or null. */
+export function ruleCanClaimTurn(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): string | null {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const error = rule.canClaimTurn?.(uid, { game, params, state: stateOf(game, rule.id) });
     if (error) return error;
   }
   return null;

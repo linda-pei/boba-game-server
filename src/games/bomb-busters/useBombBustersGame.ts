@@ -8,7 +8,6 @@ import {
   canRevealRed,
   describeDeclared,
   describeWire,
-  finishTurn,
   advanceDial,
   infoTokenFor,
   loseMission,
@@ -35,7 +34,11 @@ import {
   cutWithRules,
   deadlyCheck,
   equipmentUnlockCheck,
+  finishTurnWithRules,
   ruleCanCut,
+  ruleCanClaimTurn,
+  ruleLossReason,
+  startPlayWithRules,
   ruleCanUseEquipment,
   setupInfoPolicy,
   wrongGuessExplodes,
@@ -161,7 +164,8 @@ export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: n
     const finished = flatIndex === null || placed[uid] >= policy.count;
     const setupDone = finished ? [...done, uid] : done;
     const allDone = setupDone.length >= game.playerOrder.length;
-    transaction.set(gameRef, { ...next, setupPlaced: placed, setupDone, phase: allDone ? "playing" : "setup-info", turn: game.captain });
+    const updated = { ...next, setupPlaced: placed, setupDone };
+    transaction.set(gameRef, allDone ? startPlayWithRules(updated) : { ...updated, phase: "setup-info", turn: game.captain });
   });
 }
 
@@ -271,7 +275,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 
     if (outcome.result === "explode") {
       if (game.stabilized) {
-        transaction.set(gameRef, addLog(finishTurn(game, pending.by), `🛡️ The Stabilizer held: ${mention(pending.by)} hit a red wire, but the bomb didn't explode.`));
+        transaction.set(gameRef, addLog(finishTurnWithRules(game, pending.by), `🛡️ The Stabilizer held: ${mention(pending.by)} hit a red wire, but the bomb didn't explode.`));
       } else {
         transaction.set(gameRef, addLog(loseMission(game, "A red wire was cut."), `💥 ${mention(pending.by)} cut a red wire.`));
       }
@@ -313,7 +317,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
       : wrong.phase === "mission-lost"
         ? `💥 ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The detonator reached the skull.`
         : `❌ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}.`;
-    transaction.set(gameRef, addLog(finishTurn(wrong, pending.by), text));
+    transaction.set(gameRef, addLog(finishTurnWithRules(wrong, pending.by), text));
     return { status: "done" };
   });
 }
@@ -337,7 +341,7 @@ export async function completeOwnCut(roomCode: string, uid: string, choice?: num
     }
     const slot = options.length > 1 ? choice! : options[0];
     transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
-    transaction.set(gameRef, finishTurn(cutWithRules(game, uid, slot, wires[slot]), uid));
+    transaction.set(gameRef, finishTurnWithRules(cutWithRules(game, uid, slot, wires[slot]), uid));
     return { status: "done" };
   });
 }
@@ -359,7 +363,7 @@ export async function soloCut(roomCode: string, uid: string, declared: BBDeclare
       next = cutWithRules(next, uid, slot, wires[slot]);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
-    transaction.set(gameRef, addLog(finishTurn(next, uid), `✂️ ${mention(uid)} solo-cut ${indices.length} × ${describeDeclared(declared)}.`));
+    transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), `✂️ ${mention(uid)} solo-cut ${indices.length} × ${describeDeclared(declared)}.`));
   });
 }
 
@@ -378,7 +382,7 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
       next = cutWithRules(next, uid, slot, wire);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
-    transaction.set(gameRef, addLog(finishTurn(next, uid), `🟥 ${mention(uid)} revealed their red wires.`));
+    transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), `🟥 ${mention(uid)} revealed their red wires.`));
   });
 }
 
@@ -568,5 +572,27 @@ export async function openFalseBottom(roomCode: string, uid: string): Promise<vo
     const extra = drawExtraEquipment(getMission(game.missionId), next.equipment.map((card) => card.id), 2);
     const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts, equipmentUnlockCheck(next));
     return addLog({ ...next, equipment }, `🧰 ${mention(uid)} opened the False Bottom: ${extra.length ? extra.map((id) => `#${id}`).join(" and ") : "nothing left"} added.`);
+  });
+}
+
+/**
+ * Free turn order (mission 10): when the turn is open (`turn === ""`), an eligible player says
+ * "Snip!" to take it. A rule decides eligibility (e.g. not the player who just went).
+ */
+export async function claimTurn(roomCode: string, uid: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase !== "playing" || game.turn !== "" || game.pendingAction || game.pendingSwap) throw new Error("Someone else already took the turn.");
+    const objection = ruleCanClaimTurn(game, uid);
+    if (objection) throw new Error(objection);
+    return addLog({ ...game, turn: uid }, `✂️ ${mention(uid)}: "Snip!"`);
+  });
+}
+
+/** Any client: end the mission if a rule says it's lost now (e.g. the timer ran out). */
+export async function checkTimeUp(roomCode: string, reason?: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase === "mission-won" || game.phase === "mission-lost") return game;
+    const lost = reason ?? ruleLossReason(game);
+    return lost ? addLog(loseMission(game, lost), `⏰ ${lost}`) : game;
   });
 }

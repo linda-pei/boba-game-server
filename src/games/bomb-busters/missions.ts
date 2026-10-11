@@ -100,6 +100,16 @@ export const MISSIONS: BBMission[] = [
     rules: [{ id: "sequence", params: { cards: 3, threshold: 2 } }],
   },
   {
+    id: 10,
+    name: "A Rough Patch",
+    subtitle: "Someone forgot to pick up coffee and now everyone's feeling the pressure. Keep up the team spirit, and remember to buy coffee before the next mission.",
+    blue: { from: 1, to: 12 },
+    red: { count: 1 },
+    yellow: { count: 4 },
+    equipment: { count: "players", exclude: [11], falseBottom: true },
+    rules: [{ id: "timer", params: { minutes: 15, twoPlayerMinutes: 12 } }, { id: "freeTurns" }],
+  },
+  {
     id: 11,
     name: "Blue on Red Looks Like We Are Dead",
     subtitle: "You're asking me to cut the blue wire, Captain, but remember I'm colorblind.",
@@ -164,6 +174,16 @@ export const MISSIONS: BBMission[] = [
     equipment: { count: "players", falseBottom: true },
     twoPlayer: { red: { count: 3 } },
     rules: [{ id: "redHerring" }],
+  },
+  {
+    id: 19,
+    name: "In the Belly of the Beast",
+    subtitle: "You've tracked the mad scientist to his secret base: a remote and ominous cave. There's only one way to find out what's inside.",
+    blue: { from: 1, to: 12 },
+    red: { count: 1 },
+    yellow: { count: 2, outOf: 3 },
+    equipment: { count: "players", falseBottom: true },
+    rules: [{ id: "audioTimer", params: { url: "https://cdn.pegasus.de/public/media/d6/e0/54/1759224869/BB-Final_Mission-19.mp3?ts=1759240277" } }],
   },
 ];
 

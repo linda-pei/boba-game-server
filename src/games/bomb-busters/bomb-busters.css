@@ -288,3 +288,5 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 .bb-equipment__card--face-down { opacity: 0.75; border-style: dashed; }
 .bb-tag--role { border-color: var(--accent-primary); color: var(--accent-primary); }
 .bb-fake-values { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.35rem; margin-top: 0.6rem; }
+.bb-clock { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.bb-clock--urgent { color: var(--bb-red); }

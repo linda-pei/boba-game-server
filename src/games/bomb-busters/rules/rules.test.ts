@@ -6,8 +6,12 @@ import {
   buildMissionWithRules,
   cutWithRules,
   deadlyCheck,
+  finishTurnWithRules,
+  ruleCanClaimTurn,
   ruleCanCut,
   ruleCanUseEquipment,
+  ruleLossReason,
+  startPlayWithRules,
   ruleEquipmentFaceDown,
   setupInfoPolicy,
   wrongGuessExplodes,
@@ -152,6 +156,48 @@ describe("secret roles (missions 14 & 17)", () => {
     expect(wrongGuessToken(built.game, wire, 8, other, truth)).toEqual(truth);
     expect(ruleCanUseEquipment(built.game, herring, 2)).toMatch(/can't use equipment/);
     expect(ruleCanUseEquipment(built.game, other, 2)).toBeNull();
+  });
+});
+
+describe("timer, free turns and audio (missions 10 & 19)", () => {
+  it("timer: starts when play begins and loses the mission when it runs out", () => {
+    const built = buildMissionWithRules(["a", "b", "c"], getMission(10), seeded(1));
+    expect(built.game.ruleState.timer).toEqual({ endsAt: null });
+    const playing = startPlayWithRules(built.game, 1_000);
+    expect(playing.ruleState.timer).toEqual({ endsAt: 1_000 + 15 * 60_000 });
+    expect(ruleLossReason(playing, 1_000 + 15 * 60_000 - 1)).toBeNull();
+    expect(ruleLossReason(playing, 1_000 + 15 * 60_000)).toBe("Time ran out.");
+    const late = finishTurnWithRules({ ...playing, turn: "a" }, "a", 1_000 + 16 * 60_000);
+    expect(late.phase).toBe("mission-lost");
+
+    const twoPlayer = startPlayWithRules(buildMissionWithRules(["a", "b"], getMission(10), seeded(1)).game, 0);
+    expect(twoPlayer.ruleState.timer).toEqual({ endsAt: 12 * 60_000 });
+  });
+
+  it("free turns: the turn opens after each action; the last player can't snip again (except with 2)", () => {
+    const playing = startPlayWithRules(buildMissionWithRules(["a", "b", "c"], getMission(10), seeded(2)).game, 0);
+    expect(playing.turn).toBe("");
+    expect(ruleCanClaimTurn(playing, "b")).toBeNull();
+    const after = finishTurnWithRules({ ...playing, turn: "b" }, "b", 1);
+    expect(after.turn).toBe("");
+    expect(ruleCanClaimTurn(after, "b")).toMatch(/just went/);
+    expect(ruleCanClaimTurn(after, "c")).toBeNull();
+
+    const two = startPlayWithRules(buildMissionWithRules(["a", "b"], getMission(10), seeded(2)).game, 0);
+    const twoAfter = finishTurnWithRules({ ...two, turn: "a" }, "a", 1);
+    expect(ruleCanClaimTurn(twoAfter, "a")).toBeNull();
+  });
+
+  it("free turns: players with no wires left can't snip", () => {
+    const playing = startPlayWithRules(buildMissionWithRules(["a", "b", "c"], getMission(10), seeded(3)).game, 0);
+    const emptied = { ...playing, stands: { ...playing.stands, c: playing.stands.c.map((stand) => ({ slots: stand.slots.map(() => ({ cut: true })) })) } };
+    expect(ruleCanClaimTurn(emptied, "c")).toMatch(/no wires/);
+  });
+
+  it("audio timer: records when the track starts", () => {
+    const playing = startPlayWithRules(buildMissionWithRules(["a", "b"], getMission(19), seeded(4)).game, 42);
+    expect(playing.ruleState.audioTimer).toEqual({ startedAt: 42 });
+    expect(String(getMission(19).rules[0].params?.url)).toMatch(/^https:\/\/cdn\.pegasus\.de\//);
   });
 });
 

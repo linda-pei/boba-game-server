@@ -32,6 +32,14 @@ export interface MissionRule<P extends RuleParams = RuleParams, S = unknown> {
   wrongGuessToken?(wire: BBWire, declared: BBDeclared, ctx: { game: BBGame; params: P; state: S; target: string }): BBInfoToken | undefined;
   /** Whoever uses equipment: an error if this player may not use this card. */
   canUseEquipment?(uid: string, cardId: number, ctx: { game: BBGame; params: P; state: S }): string | null;
+  /** Whoever finishes setup: runs once as play begins (start a timer, open the turn…). */
+  onPlay?(ctx: { game: BBGame; params: P; state: S; now: number }): { game?: BBGame; state: S };
+  /** After each action: who acts next. `undefined` keeps the default (next player clockwise); "" opens the turn. */
+  nextTurn?(actor: string, ctx: { game: BBGame; params: P; state: S }): { turn: string; state: S } | undefined;
+  /** When the turn is open: an error if this player may not claim it, or null. */
+  canClaimTurn?(uid: string, ctx: { game: BBGame; params: P; state: S }): string | null;
+  /** Any client: a reason the mission is lost right now (e.g. time ran out), or null. */
+  checkLoss?(ctx: { game: BBGame; params: P; state: S; now: number }): string | null;
   /** Any client: override whether an equipment card is unlocked (undefined = default). `cuts` is up to date. */
   isEquipmentUnlocked?(cardId: number, ctx: { game: BBGame; params: P; state: S; cuts: BBGame["cutCounts"] }): boolean | undefined;
   /** Rendering: whether an equipment card is still face down (its identity hidden). */

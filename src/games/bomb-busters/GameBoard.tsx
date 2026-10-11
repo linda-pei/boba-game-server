@@ -78,7 +78,7 @@ function LabelMark({ labels, index }: { labels: BBLabel[]; index: number }) {
   ) : null;
 }
 
-function Board({ game, room, uid, canUse, onUse }: { game: BBGame; room: Room; uid: string; canUse: (id: number) => boolean; onUse: (id: number) => void }) {
+function Board({ roomCode, game, room, uid, canUse, onUse }: { roomCode: string; game: BBGame; room: Room; uid: string; canUse: (id: number) => boolean; onUse: (id: number) => void }) {
   const mission = getMission(game.missionId);
   return (
     <section className="bb-board" aria-label="Bomb">
@@ -92,7 +92,7 @@ function Board({ game, room, uid, canUse, onUse }: { game: BBGame; room: Room; u
       </div>
       {getMission(game.missionId).rules.map(({ id }) => {
         const Panel = RULE_PANELS[id];
-        return Panel ? <Panel key={id} game={game} room={room} uid={uid} /> : null;
+        return Panel ? <Panel key={id} roomCode={roomCode} game={game} room={room} uid={uid} /> : null;
       })}
       <div className="bb-dial" aria-label={`Detonator: ${game.dial.wrongGuesses} of ${game.dial.limit}`}>
         <span className="bb-label">Detonator</span>
@@ -521,6 +521,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
           : { mood: "waiting" as const, text: `Waiting for ${game.playerOrder.filter((player) => !(game.setupDone ?? []).includes(player)).map((player) => name(room, player)).join(", ")} to place an info token…` };
       case "playing":
         if (swap) return { mood: "waiting" as const, text: `Walkie-Talkies: waiting for ${name(room, swap.to)}…` };
+        if (game.turn === "") return { mood: "neutral" as const, text: 'The turn is open: say "Snip!" to take it.' };
         return isMyTurn ? { mood: "mine" as const, text: "Your turn" } : { mood: "waiting" as const, text: `Waiting for ${name(room, game.turn)}…` };
       case "resolving":
         return { mood: "judging" as const, text: pending?.kind === "dual-cut" ? `Checking ${name(room, pending.target)}'s wire…` : `${pending ? name(room, pending.by) : "A player"} is cutting the matching wire…` };
@@ -589,7 +590,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
         <TurnStatus mood={status.mood}>{status.text}</TurnStatus>
         {error && <p className="error-message" role="alert">{error}</p>}
 
-        <Board game={game} room={room} uid={uid} canUse={canUseEquipment} onUse={onUseEquipment} />
+        <Board roomCode={roomCode} game={game} room={room} uid={uid} canUse={canUseEquipment} onUse={onUseEquipment} />
 
         {equipMode && (
           <section className="bb-equip-panel">
