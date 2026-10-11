@@ -37,20 +37,23 @@ import "./bomb-busters.css";
 
 const name = (room: Room, uid: string) => room.players[uid]?.name ?? "Player";
 
-/** Flat index where each stand starts, for players with two stands. */
-const standOffsets = (stands: unknown[][]) => stands.map((_, i) => stands.slice(0, i).reduce((sum, stand) => sum + stand.length, 0));
-
 /** Log entries store `@uid@` mentions; swap in player names. */
 const renderLog = (room: Room, text: string) => text.replace(/@([^@]+)@/g, (_, uid: string) => name(room, uid));
 
-const DETECTOR_LABEL: Record<BBDetector, string> = { none: "Single wire", double: "Double Detector", triple: "Triple Detector", super: "Super Detector" };
+/** Flat index where each stand starts, for players with two stands. */
+const standOffsets = (stands: unknown[][]) => stands.map((_, i) => stands.slice(0, i).reduce((sum, stand) => sum + stand.length, 0));
+
+const DETECTOR_LABEL: Record<BBDetector, string> = { none: "Single wire", double: "with Double Detector", triple: "with Triple Detector", super: "with Super Detector" };
 const DETECTOR_SLOTS: Record<BBDetector, number> = { none: 1, double: 2, triple: 3, super: 0 };
 
 /** Equipment that opens extra controls on the board when used (others fire immediately or live in the cut panel). */
 type EquipMode = "batteries" | "coffee" | "radar" | "post-it" | "label-neq" | "label-eq" | "walkie" | null;
 
+/** Wire label: blue shows its value; red/yellow show their sorting decimal (e.g. 6.5, 4.1). */
+const wireLabel = (color: string, sortKey: number) => (color === "blue" ? String(sortKey) : sortKey.toFixed(1));
+
 function WireFace({ color, sortKey }: { color: string; sortKey: number }) {
-  return <span className={`bb-wire bb-wire--${color}`}>{color === "blue" ? sortKey : color === "red" ? "✕" : "Y"}</span>;
+  return <span className={`bb-wire bb-wire--${color}${color === "blue" ? "" : " bb-wire--decimal"}`}>{wireLabel(color, sortKey)}</span>;
 }
 
 function InfoToken({ slot }: { slot: BBPublicSlot }) {
@@ -64,7 +67,12 @@ function InfoToken({ slot }: { slot: BBPublicSlot }) {
 
 function LabelMark({ labels, index }: { labels: BBLabel[]; index: number }) {
   const label = labels.find((item) => item.at === index);
-  return label ? <span className="bb-label-mark" title={label.kind === "eq" ? "Same value" : "Different values"}>{label.kind === "eq" ? "=" : "≠"}</span> : null;
+  // A bracket under this wire and the next, with the symbol centered between them.
+  return label ? (
+    <span className="bb-label-mark" title={label.kind === "eq" ? "These two wires have the same value" : "These two wires have different values"}>
+      <span className="bb-label-mark__symbol">{label.kind === "eq" ? "=" : "≠"}</span>
+    </span>
+  ) : null;
 }
 
 function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse: (id: number) => boolean; onUse: (id: number) => void }) {
@@ -93,12 +101,31 @@ function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse
       {game.markers.length > 0 && (
         <div className="bb-markers">
           <span className="bb-label">In play</span>
-          {game.markers.map((marker) => (
-            <span key={`${marker.color}-${marker.sortKey}`} className={`bb-marker bb-marker--${marker.color}`}>
-              {marker.uncertain ? "?" : ""}
-              {marker.sortKey}
+          {/* Known wires show only how many are in play; "N out of M" candidates show their possible values. */}
+          {(["red", "yellow"] as const).map((color) => {
+            const known = game.markers.filter((marker) => marker.color === color && !marker.uncertain).length;
+            return known > 0 ? (
+              <span key={color} className={`bb-marker bb-marker--${color}`}>
+                {known} {color}
+              </span>
+            ) : null;
+          })}
+          {game.markers
+            .filter((marker) => marker.uncertain)
+            .map((marker) => (
+              <span key={`${marker.color}-${marker.sortKey}`} className={`bb-marker bb-marker--${marker.color}`}>
+                ?{marker.sortKey}
+              </span>
+            ))}
+          {game.markers.some((marker) => marker.uncertain) && (
+            <span className="bb-muted">
+              {(["red", "yellow"] as const)
+                .filter((color) => game.markers.some((marker) => marker.color === color && marker.uncertain))
+                .map((color) => `${game.wireTotals[color]} of these ${color}`)
+                .join(", ")}{" "}
+              in play
             </span>
-          ))}
+          )}
         </div>
       )}
       <div className="bb-validation" aria-label="Validation track">
@@ -108,10 +135,17 @@ function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse
           .map((value) => (
             <span key={value} className={`bb-validation__value${game.validated.includes(value) ? " bb-validation__value--done" : ""}`}>
               {value}
-              <small>{game.cutCounts.blue[value] ?? 0}/{game.wireTotals.blue[value]}</small>
+              {game.validated.includes(value) ? (
+                <small className="bb-validation__check" aria-label="All cut">✓</small>
+              ) : (
+                <small>{game.cutCounts.blue[value] ?? 0}/{game.wireTotals.blue[value]}</small>
+              )}
             </span>
           ))}
       </div>
+      {game.log.length > 0 && (
+        <p className="bb-last-action" aria-live="polite">{renderLog(room, game.log[game.log.length - 1].text)}</p>
+      )}
       {game.radar && (
         <div className="bb-radar">
           <span className="bb-label">Radar: {game.radar.value}</span>
@@ -134,7 +168,8 @@ function Board({ game, room, canUse, onUse }: { game: BBGame; room: Room; canUse
               >
                 <span className="bb-equipment__number">{card.id}</span>
                 <strong>{info.name}</strong>
-                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? info.effect : `Unlocks at two ${card.id}s`}</span>
+                {/* The full effect is on hover (title) to keep the cards compact. */}
+                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : `Unlocks at two ${card.id}s`}</span>
                 {canUse(card.id) && (
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => onUse(card.id)}>
                     Use
@@ -156,6 +191,7 @@ function TeammateStand({
   selectable,
   selected,
   onSelect,
+  children,
 }: {
   game: BBGame;
   room: Room;
@@ -163,6 +199,8 @@ function TeammateStand({
   selectable: boolean;
   selected: number[];
   onSelect: (slot: number) => void;
+  /** The "is it…" prompt, shown under the stand you're pointing at. */
+  children?: React.ReactNode;
 }) {
   const stands = unwrapPublic(game.stands)[uid] ?? [];
   const offsets = standOffsets(stands);
@@ -175,7 +213,7 @@ function TeammateStand({
         <span className={`bb-tag${game.characters[uid]?.used ? " bb-tag--used" : ""}`}>Double Detector</span>
       </div>
       {stands.map((slots, standIndex) => (
-        <div key={standIndex} className="bb-stand">
+        <div key={standIndex} className={`bb-stand${labels.length > 0 ? " bb-stand--labeled" : ""}`}>
           {slots.map((slot, position) => {
             const index = offsets[standIndex] + position;
             return (
@@ -189,9 +227,7 @@ function TeammateStand({
                     disabled={!selectable || slot.cut}
                     onClick={() => onSelect(index)}
                     aria-label={`${name(room, uid)}'s wire ${index + 1}`}
-                  >
-                    {index + 1}
-                  </button>
+                  />
                 )}
                 <InfoToken slot={slot} />
                 <LabelMark labels={labels} index={index} />
@@ -200,6 +236,7 @@ function TeammateStand({
           })}
         </div>
       ))}
+      {children}
     </div>
   );
 }
@@ -209,6 +246,8 @@ function MyStand({
   slots,
   labels,
   highlight,
+  hint,
+  titleFor,
   pickable,
   onPick,
 }: {
@@ -216,6 +255,10 @@ function MyStand({
   slots: BBPublicSlot[][];
   labels: BBLabel[];
   highlight: number[];
+  /** Wires that could be solo cut right now (light outline). */
+  hint: number[];
+  /** Optional tooltip per wire (e.g. why it can't be picked). */
+  titleFor?: (wire: BBHandWire) => string | undefined;
   pickable: (wire: BBHandWire, index: number) => boolean;
   onPick: (index: number) => void;
 }) {
@@ -223,7 +266,7 @@ function MyStand({
   return (
     <>
       {hand.map((stand, standIndex) => (
-        <div key={standIndex} className="bb-stand">
+        <div key={standIndex} className={`bb-stand${labels.length > 0 ? " bb-stand--labeled" : ""}`}>
           {stand.map((wire, position) => {
             const index = offsets[standIndex] + position;
             const slot = slots[standIndex]?.[position] ?? { cut: wire.cut };
@@ -231,12 +274,13 @@ function MyStand({
               <div key={wire.id} className="bb-slot">
                 <button
                   type="button"
-                  className={`bb-wire bb-wire--${wire.color}${wire.cut ? " bb-wire--cut" : ""}${highlight.includes(index) ? " bb-wire--selected" : ""}`}
+                  className={`bb-wire bb-wire--${wire.color}${wire.color === "blue" ? "" : " bb-wire--decimal"}${wire.cut ? " bb-wire--cut" : ""}${highlight.includes(index) ? " bb-wire--selected" : hint.includes(index) ? " bb-wire--solo" : ""}`}
                   disabled={!pickable(wire, index)}
                   onClick={() => onPick(index)}
+                  title={titleFor?.(wire)}
                   aria-label={`Your wire ${index + 1}: ${wire.color === "blue" ? wire.sortKey : wire.color}${wire.cut ? " (cut)" : ""}`}
                 >
-                  {wire.color === "blue" ? wire.sortKey : wire.color === "red" ? "✕" : "Y"}
+                  {wireLabel(wire.color, wire.sortKey)}
                 </button>
                 <InfoToken slot={slot} />
                 <LabelMark labels={labels} index={index} />
@@ -261,6 +305,8 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   const [equipMode, setEquipMode] = useState<EquipMode>(null);
   const [walkieTo, setWalkieTo] = useState<string | null>(null);
   const [recharge, setRecharge] = useState<string[]>([]);
+  // Your own wires picked for a Solo Cut, one click per wire (like pointing at a teammate's).
+  const [soloSelected, setSoloSelected] = useState<number[]>([]);
   const [choice, setChoice] = useState<Extract<ResolveResult, { status: "needs-choice" }> | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -280,6 +326,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     setEquipMode(null);
     setWalkieTo(null);
     setRecharge([]);
+    setSoloSelected([]);
   }
 
   // Steps only this client can perform (it alone can read its stand) run automatically.
@@ -333,12 +380,24 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   const ready = (id: number) => game.equipment.some((card) => card.id === id && card.unlocked && !card.used);
   const neededSlots = DETECTOR_SLOTS[detector];
   const swapReturnOwed = swap?.to === uid && swap.stage === "await-target";
+  const setupOwed = game.phase === "setup-info" && !(game.setupDone ?? []).includes(uid);
 
   const declarable: BBDeclared[] = [
     ...new Set(myWires.filter((wire) => !wire.cut && wire.color === "blue").map((wire) => wire.sortKey)),
   ].sort((a, b) => a - b);
   if (myWires.some((wire) => !wire.cut && wire.color === "yellow")) declarable.push("yellow");
   const soloOptions = declarable.filter((value) => soloCutIndices(myStands, value, game.wireTotals, game.cutCounts));
+  const soloIndices = (value: BBDeclared) => soloCutIndices(myStands, value, game.wireTotals, game.cutCounts) ?? [];
+  const soloValueOf = (wire: BBHandWire): BBDeclared | null => {
+    const value: BBDeclared = wire.color === "yellow" ? "yellow" : wire.sortKey;
+    return !wire.cut && wire.color !== "red" && soloOptions.includes(value) ? value : null;
+  };
+  const soloHint = isMyTurn && !equipMode ? soloOptions.flatMap(soloIndices) : [];
+  // The Solo Cut button appears once the selection is exactly one value's full remaining set.
+  const soloReady = soloOptions.find((value) => {
+    const indices = soloIndices(value);
+    return indices.length === soloSelected.length && indices.every((index) => soloSelected.includes(index));
+  });
   const detectorOptions: BBDetector[] = ["none"];
   if (!game.characters[uid]?.used) detectorOptions.push("double");
   if (ready(3)) detectorOptions.push("triple");
@@ -386,7 +445,8 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (equipMode === "post-it") return !wire.cut && wire.color === "blue";
     if (equipMode === "label-neq" || equipMode === "label-eq") return areAdjacent(myStands, index);
     if (equipMode === "walkie") return Boolean(walkieTo) && !wire.cut;
-    return game.phase === "setup-info" && game.setupTurn === uid && !wire.cut && wire.color === "blue";
+    if (isMyTurn && soloValueOf(wire) !== null) return true;
+    return setupOwed && !wire.cut && wire.color === "blue";
   };
   const onPickMine = (index: number) => {
     if (choice) {
@@ -401,6 +461,15 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (equipMode === "post-it") return void run(() => placePostIt(roomCode, uid, index));
     if (equipMode === "label-neq" || equipMode === "label-eq") return void run(() => placeLabel(roomCode, uid, equipMode === "label-eq" ? "eq" : "neq", index));
     if (equipMode === "walkie" && walkieTo) return void run(() => startWalkieTalkies(roomCode, uid, walkieTo, index));
+    const soloValue = isMyTurn ? soloValueOf(myWires[index]) : null;
+    if (soloValue !== null) {
+      // Toggle this wire; picking a wire of a different value starts a fresh selection.
+      return setSoloSelected((current) => {
+        if (current.includes(index)) return current.filter((i) => i !== index);
+        const sameValue = current.every((i) => soloValueOf(myWires[i]) === soloValue);
+        return sameValue ? [...current, index] : [index];
+      });
+    }
     void run(() => placeSetupInfo(roomCode, uid, index));
   };
 
@@ -416,14 +485,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (swapReturnOwed) return { mood: "mine" as const, text: `${name(room, swap!.by)} handed you a wire (Walkie-Talkies): pick one of yours to hand back.` };
     switch (game.phase) {
       case "setup-info":
-        return game.setupTurn === uid
+        return setupOwed
           ? { mood: "mine" as const, text: "Place your info token: pick one of your blue wires." }
-          : { mood: "waiting" as const, text: `Waiting for ${name(room, game.setupTurn ?? "")} to place an info token…` };
+          : { mood: "waiting" as const, text: `Waiting for ${game.playerOrder.filter((player) => !(game.setupDone ?? []).includes(player)).map((player) => name(room, player)).join(", ")} to place an info token…` };
       case "playing":
         if (swap) return { mood: "waiting" as const, text: `Walkie-Talkies: waiting for ${name(room, swap.to)}…` };
         return isMyTurn ? { mood: "mine" as const, text: "Your turn" } : { mood: "waiting" as const, text: `Waiting for ${name(room, game.turn)}…` };
       case "resolving":
-        return { mood: "judging" as const, text: pending?.kind === "dual-cut" ? `Checking ${name(room, pending.target)}'s wire…` : "Cutting the matching wire…" };
+        return { mood: "judging" as const, text: pending?.kind === "dual-cut" ? `Checking ${name(room, pending.target)}'s wire…` : `${pending ? name(room, pending.by) : "A player"} is cutting the matching wire…` };
       case "mission-won":
         return { mood: "judging" as const, text: "Bomb defused! Every wire is cut." };
       default:
@@ -440,6 +509,35 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     "label-eq": "Click the left wire of two adjacent wires with the same value.",
     walkie: "Choose a teammate, then click the wire you hand them:",
   };
+
+  // Only built once wires are selected (it reads the target).
+  const cutPrompt = target && targetReady && (
+    <div className="bb-cut-prompt">
+      <span className="bb-muted">
+                {useXray && xray === null
+                  ? "Name the first value…"
+                  : useXray
+                  ? `First value: ${describeDeclared(xray!)}. Now the second…`
+                  : `${name(room, target.uid)}'s ${detector === "super" ? "stand" : target.slots.length === 1 ? "wire" : `${target.slots.length} wires`}: is it…`}
+              </span>
+              <div className="bb-values">
+                {declarable
+                  .filter((value) => !(value === "yellow" && (detector === "triple" || detector === "super")))
+                  .filter((value) => value !== xray)
+                  .map((value) => (
+                    <button
+                      key={String(value)}
+                      type="button"
+                      className={`btn btn--sm${value === "yellow" ? " bb-value--yellow" : ""}`}
+                      disabled={busy}
+                      onClick={() => declare(value)}
+                    >
+                      {describeDeclared(value)}
+                    </button>
+                  ))}
+              </div>
+    </div>
+  );
 
   const isHost = room.host === uid;
   const finished = game.phase === "mission-won" || game.phase === "mission-lost";
@@ -518,7 +616,9 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
               selectable={isMyTurn && !equipMode}
               selected={target?.uid === player ? target.slots : []}
               onSelect={(slot) => selectTarget(player, slot)}
-            />
+            >
+              {target?.uid === player && targetReady && cutPrompt}
+            </TeammateStand>
           ))}
         </section>
 
@@ -527,16 +627,26 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
             <strong>Your stand</strong>
             {uid === game.captain && <span className="bb-tag">Captain</span>}
             <span className={`bb-tag${game.characters[uid]?.used ? " bb-tag--used" : ""}`}>Double Detector</span>
+            {soloHint.length > 0 && soloReady === undefined && (
+              <span className="bb-solo-hint">✂️ Solo Cut available: select your {soloOptions.map((value) => `"${describeDeclared(value)}"`).join(" or ")} wires</span>
+            )}
           </div>
           <MyStand
             hand={myStands}
             slots={mySlots}
             labels={game.labels.filter((label) => label.uid === uid)}
-            highlight={choice?.options ?? []}
+            highlight={choice?.options ?? soloSelected}
+            hint={soloHint}
+            titleFor={(wire) => (setupOwed && !wire.cut && wire.color !== "blue" ? `Info tokens can't go in front of ${wire.color} wires` : undefined)}
             pickable={myPickable}
             onPick={onPickMine}
           />
-          {game.phase === "setup-info" && game.setupTurn === uid && !myWires.some((wire) => wire.color === "blue") && (
+          {setupOwed && myWires.some((wire) => wire.color !== "blue") && (
+            <p className="bb-setup-note">
+              Info tokens can&apos;t go in front of {[...new Set(myWires.filter((wire) => wire.color !== "blue").map((wire) => wire.color))].join(" or ")} wires.
+            </p>
+          )}
+          {setupOwed && !myWires.some((wire) => wire.color === "blue") && (
             <div className="bb-actions">
               <button className="btn" type="button" disabled={busy} onClick={() => void run(() => placeSetupInfo(roomCode, uid, null))}>
                 No blue wires: skip
@@ -556,6 +666,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                       setTarget(null);
                     }}
                     aria-label="Detector"
+                    className="bb-select"
                   >
                     {detectorOptions.map((option) => (
                       <option key={option} value={option}>{DETECTOR_LABEL[option]}</option>
@@ -569,40 +680,13 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   </label>
                 )}
               </div>
-              <span className="bb-muted">
-                {!targetReady
-                  ? detector === "super"
-                    ? "Click any wire on a teammate's stand to point at the whole stand."
-                    : `Pick ${neededSlots === 1 ? "a wire" : `${neededSlots} wires`} on one teammate's stand.`
-                  : useXray && xray === null
-                  ? "Name the first value…"
-                  : useXray
-                  ? `First value: ${describeDeclared(xray!)}. Now the second…`
-                  : `${name(room, target!.uid)}'s ${detector === "super" ? "stand" : `wire ${target!.slots.map((s) => `#${s + 1}`).join(" / ")}`}: is it…`}
-              </span>
-              <div className="bb-values">
-                {declarable
-                  .filter((value) => !(value === "yellow" && (detector === "triple" || detector === "super")))
-                  .filter((value) => value !== xray)
-                  .map((value) => (
-                    <button
-                      key={String(value)}
-                      type="button"
-                      className={`btn btn--sm${value === "yellow" ? " bb-value--yellow" : ""}`}
-                      disabled={busy || !targetReady}
-                      onClick={() => declare(value)}
-                    >
-                      {describeDeclared(value)}
+              {(soloReady !== undefined || canRevealRed(myStands)) && (
+                <div className="bb-cut__row bb-cut__row--actions">
+                  {soloReady !== undefined && (
+                    <button type="button" className="btn btn--sm" disabled={busy} onClick={() => void run(() => soloCut(roomCode, uid, soloReady))}>
+                      Solo Cut {soloSelected.length} × {describeDeclared(soloReady)}
                     </button>
-                  ))}
-              </div>
-              {(soloOptions.length > 0 || canRevealRed(myStands)) && (
-                <div className="bb-cut__row">
-                  {soloOptions.map((value) => (
-                    <button key={String(value)} type="button" className="btn btn--secondary btn--sm" disabled={busy} onClick={() => void run(() => soloCut(roomCode, uid, value))}>
-                      Solo Cut all {describeDeclared(value)}
-                    </button>
-                  ))}
+                  )}
                   {canRevealRed(myStands) && (
                     <button type="button" className="btn btn--danger btn--sm" disabled={busy} onClick={() => void run(() => revealRedWires(roomCode, uid))}>
                       Reveal your red wires
@@ -617,7 +701,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
         {finished && (
           <section className="bb-result">
             <h3>{game.phase === "mission-won" ? "Mission complete!" : "Mission failed"}</h3>
-            <p className="bb-muted">{game.result?.reason}</p>
+            {game.phase === "mission-lost" && <p className="bb-muted">{game.result?.reason}</p>}
             {isHost ? (
               <div className="bb-actions">
                 {game.phase === "mission-won" && game.missionId < MISSIONS.length && (
@@ -636,16 +720,6 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
           </section>
         )}
 
-        {game.log.length > 0 && (
-          <section className="bb-log" aria-label="Turn log">
-            <span className="bb-label">Log</span>
-            <ol>
-              {[...game.log].reverse().slice(0, 12).map((entry) => (
-                <li key={`${entry.at}-${entry.text}`}>{renderLog(room, entry.text)}</li>
-              ))}
-            </ol>
-          </section>
-        )}
       </main>
     </div>
   );

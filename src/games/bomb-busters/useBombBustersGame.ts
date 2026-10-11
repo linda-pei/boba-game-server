@@ -107,11 +107,12 @@ function cutInHand(hand: BBHandWire[][], flatIndex: number): BBHandWire[][] {
   );
 }
 
-/** Setup: each player, in order from the captain, points an info token at one of their blue wires. */
+/** Setup: every player, at the same time, points an info token at one of their blue wires. */
 export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: number | null): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
-    if (game.phase !== "setup-info" || game.setupTurn !== uid) throw new Error("It's not your turn to place an info token.");
+    if (game.phase !== "setup-info") throw new Error("Setup is over.");
+    if ((game.setupDone ?? []).includes(uid)) throw new Error("You've already placed your info token.");
     const wires = hand.flat();
 
     let next = game;
@@ -125,14 +126,9 @@ export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: n
       next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
     }
 
-    const nextIndex = game.playerOrder.indexOf(uid) + 1;
-    const done = nextIndex >= game.playerOrder.length;
-    transaction.set(gameRef, {
-      ...next,
-      phase: done ? "playing" : "setup-info",
-      setupTurn: done ? null : game.playerOrder[nextIndex],
-      turn: game.captain,
-    });
+    const setupDone = [...(game.setupDone ?? []), uid];
+    const done = setupDone.length >= game.playerOrder.length;
+    transaction.set(gameRef, { ...next, setupDone, phase: done ? "playing" : "setup-info", turn: game.captain });
   });
 }
 
@@ -255,7 +251,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
         gameRef,
         addLog(
           { ...next, pendingAction: { kind: "own-cut", by: pending.by, declared: matchedValue(wires[slot], values) } },
-          `✂️ Correct! ${mention(uid)}'s wire #${slot + 1} is ${describeWire(wires[slot])}.`,
+          `✂️ ${mention(pending.by)} dual cut ${mention(uid)}'s ${describeWire(wires[slot])}.`,
         ),
       );
       return { status: "done" };
@@ -269,10 +265,10 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
     const marked = placeInfoToken(game, uid, slot, infoTokenFor(wires[slot]));
     const wrong = game.stabilized ? marked : advanceDial(marked);
     const text = game.stabilized
-      ? `🛡️ Wrong — ${mention(uid)}'s wire #${slot + 1} is ${describeWire(wires[slot])}. The Stabilizer kept the dial still.`
+      ? `🛡️ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The Stabilizer kept the dial still.`
       : wrong.phase === "mission-lost"
-        ? `💥 Wrong — ${mention(uid)}'s wire #${slot + 1} is ${describeWire(wires[slot])}. The detonator reached the skull.`
-        : `❌ Wrong — ${mention(uid)}'s wire #${slot + 1} is ${describeWire(wires[slot])}.`;
+        ? `💥 ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The detonator reached the skull.`
+        : `❌ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}.`;
     transaction.set(gameRef, addLog(finishTurn(wrong, pending.by), text));
     return { status: "done" };
   });

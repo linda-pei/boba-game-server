@@ -405,7 +405,7 @@ export function buildMission(playerOrder: string[], mission: BBMission, random: 
     captain,
     stands: wrapPublic(Object.fromEntries(playerOrder.map((uid) => [uid, publicStandsFor(hands[uid])]))),
     turn: captain,
-    setupTurn: captain,
+    setupDone: [],
     dial: { wrongGuesses: 0, limit: dialLimit(playerOrder.length) },
     markers,
     wireTotals: totals,

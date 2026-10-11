@@ -31,8 +31,7 @@
 .bb-board,
 .bb-player,
 .bb-me,
-.bb-result,
-.bb-log {
+.bb-result {
   border: 1px solid var(--border-strong);
   border-radius: var(--r-3);
   background: var(--surface);
@@ -84,6 +83,7 @@
 }
 .bb-validation__value small { color: var(--ink-soft); font-size: 0.6rem; font-weight: 600; }
 .bb-validation__value--done { border-color: var(--accent-secondary); background: color-mix(in srgb, var(--accent-secondary) 18%, var(--surface-2)); }
+.bb-validation__value .bb-validation__check { color: var(--accent-secondary); font-size: 0.8rem; font-weight: 900; }
 
 .bb-equipment { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; }
 .bb-equipment__card {
@@ -151,6 +151,32 @@
 .bb-wire--back:disabled { cursor: default; }
 .bb-wire--back:not(:disabled):hover { outline: 2px solid var(--accent-primary); }
 .bb-wire--selected { outline: 3px solid var(--accent-primary); outline-offset: 2px; }
+/* Keep each wire's own color on hover (the global button:hover would turn it orange). */
+button.bb-wire--back:hover:not(:disabled) { background-color: var(--bb-shell); transform: translateY(-2px); }
+button.bb-wire--blue:hover:not(:disabled) { background-color: var(--bb-blue); }
+button.bb-wire--yellow:hover:not(:disabled) { background-color: var(--bb-yellow); }
+button.bb-wire--red:hover:not(:disabled) { background-color: var(--bb-red); }
+/* A teammate's wire you've pointed at: filled, raised, and marked "?". */
+button.bb-wire--back.bb-wire--selected,
+button.bb-wire--back.bb-wire--selected:hover:not(:disabled) {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #fff;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--accent-primary) 45%, transparent);
+}
+button.bb-wire--back.bb-wire--selected::after { content: "?"; font-size: 1rem; font-weight: 900; }
+/* Your own wires you've selected (Solo Cut, or a choice prompt): raised with a strong glow. */
+button.bb-wire--blue.bb-wire--selected,
+button.bb-wire--yellow.bb-wire--selected,
+button.bb-wire--red.bb-wire--selected {
+  outline: 3px solid var(--accent-primary);
+  outline-offset: 2px;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+}
+/* These wires can be solo cut: a light hint, stronger once selected. */
+.bb-wire--solo { outline: 2px dashed var(--accent-secondary); outline-offset: 2px; }
 .bb-wire--cut { opacity: 0.35; text-decoration: line-through; }
 button.bb-wire:disabled { opacity: 1; }
 button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
@@ -171,15 +197,16 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 /* ---- Actions ---- */
 .bb-cut { display: grid; gap: 0.6rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); }
 .bb-cut__row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
-.bb-values { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.bb-values { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+/* The Solo Cut / Reveal Red row sits centered under the value buttons. */
+.bb-cut__row--actions { justify-content: center; }
+.bb-solo-hint { margin-left: auto; color: var(--accent-secondary); font-size: 0.82rem; font-weight: 700; }
 .bb-value--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
 .bb-detector { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 600; }
 .bb-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 0.75rem; }
 
 .bb-result { text-align: center; }
 
-.bb-log ol { margin: 0.4rem 0 0; padding-left: 1.2rem; font-size: 0.85rem; }
-.bb-log li { margin: 0.15rem 0; }
 
 @media (max-width: 600px) {
   .bb-wire { width: 26px; height: 38px; font-size: 0.85rem; }
@@ -187,7 +214,7 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 }
 
 /* ---- Equipment in play ---- */
-.bb-equipment__card .btn { justify-self: start; margin-top: 0.25rem; }
+.bb-equipment__card .btn { justify-self: center; margin-top: 0.25rem; }
 .bb-tag--on { border-color: var(--accent-secondary); color: var(--accent-secondary); }
 .bb-radar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
 .bb-equip-panel {
@@ -201,9 +228,38 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
   background: color-mix(in srgb, var(--accent-secondary) 8%, var(--surface));
   font-size: 0.9rem;
 }
+/* ≠ / = label: a bracket spanning a wire and its right neighbour (slots are 30px apart by a 0.3rem gap). */
+.bb-slot { position: relative; }
+.bb-stand--labeled { padding-bottom: 1.35rem; }
 .bb-label-mark {
-  margin-top: -0.1rem;
-  color: var(--ink-soft);
-  font-size: 0.75rem;
-  font-weight: 800;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 15px;
+  width: calc(100% + 0.3rem);
+  height: 6px;
+  border: 2px solid var(--ink-soft);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
 }
+.bb-label-mark__symbol {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 3px;
+  background: color-mix(in srgb, var(--bb-shell) 10%, var(--surface-2));
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* One-line "last action" under the validation track. */
+.bb-last-action { margin: 0; color: var(--ink-soft); font-size: 0.85rem; text-align: left; }
+.bb-setup-note { margin: 0.5rem 0 0; color: var(--ink-soft); font-size: 0.82rem; text-align: left; }
+/* Match the surrounding controls: same font, size and weight as the small buttons. */
+.bb-select { padding: 0.35em 2.2em 0.35em 0.7em; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; }
+/* The "is it…" prompt sits under the teammate's stand you're pointing at. */
+.bb-cut-prompt { display: grid; justify-items: center; gap: 0.45rem; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed var(--border); }
+/* Red/yellow wires show a decimal (e.g. 11.5): a touch smaller so it fits the tile. */
+.bb-wire--decimal { font-size: 0.7rem; letter-spacing: -0.02em; }

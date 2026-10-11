@@ -794,8 +794,8 @@ export interface BBGame {
   /** Per player, one entry per stand (wrapped: Firestore can't store nested arrays). */
   stands: Record<string, { slots: BBPublicSlot[] }[]>;
   turn: string;
-  /** Next player still to place their setup info token (setup-info phase). */
-  setupTurn: string | null;
+  /** Players who have placed their setup info token (everyone places at once). */
+  setupDone: string[];
   dial: { wrongGuesses: number; limit: number };
   markers: BBMarker[];
   wireTotals: { blue: Record<string, number>; red: number; yellow: number };

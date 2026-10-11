@@ -37,7 +37,7 @@ Rule reference: [Bomb Busters rulebook (rulespal)](https://www.rulespal.com/bomb
 4. **Equipment and dial:**
    - Lay out as many equipment cards as there are players, locked (not yet usable).
    - Set the dial to the section for the player count.
-5. **Setup info tokens:** starting with the captain and going clockwise, each player places one info token on a **blue** wire in their own hand, showing its value. A player with 2 stands places only one.
+5. **Setup info tokens:** each player places one info token on a **blue** wire in their own hand, showing its value. A player with 2 stands places only one. (The rulebook goes clockwise from the captain; online, everyone places at the same time.)
 
 ### Turns
 
@@ -243,7 +243,7 @@ interface BBHand {                  // games/{room}/hands/{uid}, owner-readable 
 
 | Phase | Who can act | Exit condition |
 | --- | --- | --- |
-| `setup-info` | Each player in order, starting with the captain | Everyone has placed their setup info token |
+| `setup-info` | Every player, at the same time | Everyone has placed their setup info token |
 | `playing` | The player in `turn` | A Solo Cut or Reveal Red resolves at once (next turn). A Dual Cut moves to `resolving`. |
 | `resolving` | The target's client (automatic, or the target's choice when the rules call for one) | Outcome applied: next turn, or `mission-won` / `mission-lost` |
 | `mission-won` / `mission-lost` | Host | Retry, next mission, or back to lobby |

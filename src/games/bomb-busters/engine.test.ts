@@ -218,7 +218,7 @@ describe("public state transitions", () => {
   it("builds a mission waiting for setup info tokens from the captain", () => {
     const { game, hands } = base();
     expect(game.phase).toBe("setup-info");
-    expect(game.setupTurn).toBe("cap");
+    expect(game.setupDone).toEqual([]);
     expect(game.dial).toEqual({ wrongGuesses: 0, limit: 3 });
     expect(game.equipment).toHaveLength(3);
     expect(unwrapPublic(game.stands).cap).toHaveLength(2);
