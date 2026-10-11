@@ -25,6 +25,8 @@ export interface FeedbackEntry {
   instruction: string;
   target: FeedbackTarget;
   images?: FeedbackImageAttachment[];
+  /** Path to a JSON file with page + game state captured at submit time (written by the queue). */
+  contextPath?: string;
 }
 
 const MAX_TEXT_LENGTH = 160;

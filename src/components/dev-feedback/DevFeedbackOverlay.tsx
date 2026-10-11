@@ -1,5 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { type FeedbackEntry, type FeedbackImageUpload, type FeedbackTarget, getFeedbackTarget } from "./feedbackUtils";
+import { captureFeedbackContext, type FeedbackContext } from "./feedbackContext";
 import { type FeedbackTransport, localFeedbackTransport } from "./feedbackTransport";
 import "./dev-feedback.css";
 
@@ -13,6 +14,7 @@ const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", 
 interface LocalFeedbackEntry extends FeedbackEntry {
   queuedAt?: string;
   imageUploads?: FeedbackImageUpload[];
+  context?: FeedbackContext;
 }
 
 interface HighlightRect {
@@ -67,7 +69,7 @@ function saveFeedbackLocally(items: LocalFeedbackEntry[]): void {
     // Fall through to the image-free copy.
   }
   try {
-    const withoutImages = items.map((item) => ({ ...item, imageUploads: undefined }));
+    const withoutImages = items.map((item) => ({ ...item, imageUploads: undefined, context: undefined }));
     window.localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(withoutImages));
   } catch {
     // Storage unavailable (private mode, blocked site data); notes stay in memory only.
@@ -108,10 +110,19 @@ export default function DevFeedbackOverlay({ transport = localFeedbackTransport 
     saveFeedbackLocally(savedFeedback);
   }, [savedFeedback]);
 
+  // Mirror of savedFeedback so the resolved watcher can tell which notes it just cleared.
+  const savedFeedbackRef = useRef(savedFeedback);
+  useEffect(() => {
+    savedFeedbackRef.current = savedFeedback;
+  }, [savedFeedback]);
+
   useEffect(() => transport.watchResolved((resolvedIds) => {
-    if (resolvedIds.size > 0) {
-      setSavedFeedback((items) => items.filter((item) => !(item.queuedAt && resolvedIds.has(item.id))));
-    }
+    const isResolved = (item: LocalFeedbackEntry) => Boolean(item.queuedAt && resolvedIds.has(item.id));
+    const resolved = savedFeedbackRef.current.filter(isResolved);
+    if (resolved.length === 0) return;
+    setSavedFeedback((items) => items.filter((item) => !isResolved(item)));
+    // Replace the stale "Queued…" message so it's clear the note was handled.
+    setStatus(resolved.length === 1 ? `Resolved: ${resolved[0].instruction}` : `${resolved.length} notes resolved.`);
   }), [transport]);
 
   useEffect(() => {
@@ -266,12 +277,14 @@ export default function DevFeedbackOverlay({ transport = localFeedbackTransport 
     event.preventDefault();
     if (!selectedTarget || !instruction.trim()) return;
 
+    const context = await captureFeedbackContext().catch(() => undefined);
     const entry: LocalFeedbackEntry = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       instruction: instruction.trim(),
       target: selectedTarget,
       imageUploads: imageUploads.length > 0 ? imageUploads : undefined,
+      context,
     };
 
     setSavedFeedback((items) => [...items, entry].slice(-MAX_SAVED_FEEDBACK));

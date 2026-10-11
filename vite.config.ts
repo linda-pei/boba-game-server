@@ -6,6 +6,8 @@ import react from '@vitejs/plugin-react'
 const feedbackQueuePath = resolve(process.cwd(), '.codex', 'dev-feedback.json')
 const resolvedFeedbackPath = resolve(process.cwd(), '.codex', 'dev-feedback-resolved.json')
 const feedbackImagesPath = resolve(process.cwd(), '.codex', 'dev-feedback-images')
+const feedbackContextPath = resolve(process.cwd(), '.codex', 'dev-feedback-context')
+const maxContextBytes = 1024 * 1024
 const maxFeedbackQueueSize = 50
 const maxFeedbackBodyBytes = 7 * 1024 * 1024
 const maxImageBytes = 2 * 1024 * 1024
@@ -28,6 +30,7 @@ interface QueuedFeedback {
     mimeType: string
     path: string
   }>
+  contextPath?: string
 }
 
 interface ImageUpload {
@@ -36,8 +39,9 @@ interface ImageUpload {
   dataUrl: string
 }
 
-interface SubmittedFeedback extends Omit<QueuedFeedback, 'images'> {
+interface SubmittedFeedback extends Omit<QueuedFeedback, 'images' | 'contextPath'> {
   imageUploads?: ImageUpload[]
+  context?: unknown
 }
 
 function sortFeedbackOldestFirst(queue: QueuedFeedback[]): QueuedFeedback[] {
@@ -100,6 +104,9 @@ function devFeedbackQueue(): Plugin {
               const nextQueue = queue.filter((item) => item.id !== feedbackId)
               await writeFile(feedbackQueuePath, JSON.stringify(nextQueue, null, 2))
               await removeFeedbackImages(removedFeedback.images)
+              if (removedFeedback.contextPath?.startsWith(`${feedbackContextPath}/`)) {
+                await unlink(removedFeedback.contextPath).catch(() => undefined)
+              }
             }
             response.setHeader('Content-Type', 'application/json')
             response.end(JSON.stringify({ ok: true }))
@@ -145,9 +152,14 @@ function devFeedbackQueue(): Plugin {
               return
             }
 
-            const { imageUploads = [], ...feedback } = submittedFeedback
+            const { imageUploads = [], context, ...feedback } = submittedFeedback
             const images = await saveFeedbackImages(feedback.id, imageUploads)
-            const queuedFeedback: QueuedFeedback = images.length > 0 ? { ...feedback, images } : feedback
+            const contextPath = await saveFeedbackContext(feedback.id, context)
+            const queuedFeedback: QueuedFeedback = {
+              ...feedback,
+              ...(images.length > 0 ? { images } : {}),
+              ...(contextPath ? { contextPath } : {}),
+            }
             const nextQueue = [...queue, queuedFeedback].slice(0, maxFeedbackQueueSize)
             await mkdir(resolve(feedbackQueuePath, '..'), { recursive: true })
             await writeFile(feedbackQueuePath, JSON.stringify(nextQueue, null, 2))
@@ -206,6 +218,17 @@ async function saveFeedbackImages(feedbackId: string, uploads: ImageUpload[]): P
     await writeFile(imagePath, bytes)
     return { name: upload.name, mimeType: upload.mimeType, path: imagePath }
   }))
+}
+
+async function saveFeedbackContext(feedbackId: string, context: unknown): Promise<string | null> {
+  if (context === undefined || context === null) return null
+  const json = JSON.stringify(context, null, 2)
+  if (Buffer.byteLength(json) > maxContextBytes) return null
+
+  await mkdir(feedbackContextPath, { recursive: true })
+  const contextFile = resolve(feedbackContextPath, `${feedbackId.replace(/[^a-zA-Z0-9_-]/g, '')}.json`)
+  await writeFile(contextFile, json)
+  return contextFile
 }
 
 async function removeFeedbackImages(images: QueuedFeedback['images']): Promise<void> {

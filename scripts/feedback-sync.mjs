@@ -4,7 +4,8 @@
 //   1. Ids in .codex/dev-feedback-resolved.json are marked `resolved` in Firestore
 //      (the prod overlay watches that status to dismiss notes) and their images deleted.
 //   2. Pending Firestore entries are appended to .codex/dev-feedback.json, with screenshots
-//      written to .codex/dev-feedback-images/ — the same contract as the local dev server.
+//      written to .codex/dev-feedback-images/ and page/game state to .codex/dev-feedback-context/
+//      — the same contract as the local dev server.
 //
 // Auth: uses Application Default Credentials. Run `gcloud auth application-default login`
 // once, or set GOOGLE_APPLICATION_CREDENTIALS to a service-account key kept outside the repo.
@@ -19,6 +20,7 @@ const root = process.cwd();
 const queuePath = resolve(root, ".codex", "dev-feedback.json");
 const ledgerPath = resolve(root, ".codex", "dev-feedback-resolved.json");
 const imagesPath = resolve(root, ".codex", "dev-feedback-images");
+const contextPath = resolve(root, ".codex", "dev-feedback-context");
 const COLLECTION = "devFeedback";
 
 async function readJsonArray(path) {
@@ -59,7 +61,7 @@ for (const snapshot of pending.docs) {
   if (!resolvedIds.has(snapshot.id)) continue;
   const images = await snapshot.ref.collection("images").listDocuments();
   await Promise.all(images.map((image) => image.delete()));
-  await snapshot.ref.update({ status: "resolved", resolvedAt: FieldValue.serverTimestamp() });
+  await snapshot.ref.update({ status: "resolved", resolvedAt: FieldValue.serverTimestamp(), contextJson: FieldValue.delete() });
   markedResolved += 1;
 }
 
@@ -77,6 +79,13 @@ for (const snapshot of pending.docs) {
     target: data.target,
     source: "production",
   };
+
+  if (typeof data.contextJson === "string") {
+    await mkdir(contextPath, { recursive: true });
+    const file = resolve(contextPath, `${snapshot.id.replace(/[^a-zA-Z0-9_-]/g, "")}.json`);
+    await writeFile(file, JSON.stringify(JSON.parse(data.contextJson), null, 2));
+    entry.contextPath = file;
+  }
 
   const imageDocs = (await snapshot.ref.collection("images").get()).docs
     .sort((left, right) => Number(left.id) - Number(right.id));

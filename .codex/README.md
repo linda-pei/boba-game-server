@@ -13,6 +13,7 @@ state between developers.
 | Queue | `.codex/dev-feedback.json` | Pending entries, newest appended. Max 50 |
 | Resolved ledger | `.codex/dev-feedback-resolved.json` | JSON array of completed entry ids |
 | Screenshots | `.codex/dev-feedback-images/` | Up to 3 per entry, 2 MB each |
+| Context | `.codex/dev-feedback-context/{id}.json` (entry `contextPath`) | Captured on submit: URL, viewport, theme, user agent, uid, and on room pages the `rooms`/`games` docs plus your own hand. Read it when debugging state-dependent issues |
 
 All three data paths are gitignored. `.codex/` is created on first write, so
 there is nothing to set up beyond running `npm run dev`.
