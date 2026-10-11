@@ -2,7 +2,7 @@
 
 Missions 9–19 add a **special rule** to almost every mission. The goal of this plan is to add them without the engine, actions or UI growing a pile of `if (missionId === n)` checks: **each special rule is its own module**, plugged in through a small set of named hooks.
 
-Source notes: `9-19.txt` (your transcription of the mission cards). Missions 1–8 are in `Rules.md`.
+Source notes: [`notes/bomb-busters/missions-9-19.txt`](../../../notes/bomb-busters/missions-9-19.txt) (a transcription of the mission cards). Missions 1–8 are in `Rules.md`.
 
 ## New components
 
@@ -115,6 +115,6 @@ Defaults (change any of these if they're wrong):
    - The bomb explodes when the timer runs out.
    - With 2 players, back-to-back turns are allowed.
 8. **Mission 11:** other players place setup info tokens as usual, including on the deadly value. Naming the deadly value in a Dual Cut is blocked, since a successful cut of it would explode anyway.
-9. **Mission 12:** if a number card shows the same value as the equipment it covers, cutting that value's first pair satisfies both.
+9. **Mission 12 (confirmed):** if a number card shows the same value as the equipment it covers, cutting that value's first pair satisfies both.
 10. **Mission 15:** each time a number card's 4 wires are cut, the next face-down equipment card flips, going left to right.
 11. **Mission 17:** Red Herring's General Radar answers and Walkie-Talkies swaps are truthful. Only info tokens are fake.
