@@ -277,6 +277,7 @@ export default function Lobby() {
                 key={id}
                 game={GAME_ID_TO_KEY[id]}
                 selected={gameType === id}
+                note={filtersActive && !matchesFilters(id) ? "Doesn't fit your filters" : undefined}
                 disabled={!isHost}
                 onClick={() => handleSetGameType(id)}
               />
