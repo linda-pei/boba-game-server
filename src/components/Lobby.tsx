@@ -131,14 +131,17 @@ export default function Lobby() {
     ? canStartOrderOverload
     : canStartTIR;
 
-  // The selected game always stays visible so the current choice never disappears behind a filter.
-  const visibleGameIds = ALL_GAME_IDS.filter((id) => {
-    if (id === gameType) return true;
+  const matchesFilters = (id: (typeof ALL_GAME_IDS)[number]) => {
     const meta = GAME_META[GAME_ID_TO_KEY[id]];
     if (modeFilter !== "all" && !meta.modes.includes(modeFilter)) return false;
     if (fitsPlayersOnly && (players.length < meta.minPlayers || players.length > meta.maxPlayers)) return false;
     return true;
-  });
+  };
+  const matchingGameIds = ALL_GAME_IDS.filter(matchesFilters);
+  // The selected game always stays visible so the current choice never disappears behind a filter.
+  const visibleGameIds = ALL_GAME_IDS.filter((id) => id === gameType || matchesFilters(id));
+  const fewestPlayersSupported = Math.min(...Object.values(GAME_META).map((meta) => meta.minPlayers));
+  const filtersActive = modeFilter !== "all" || fitsPlayersOnly;
 
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
@@ -249,6 +252,25 @@ export default function Lobby() {
               Fits your player count
             </label>
           </div>
+          {filtersActive && matchingGameIds.length === 0 && (
+            <div className="game-filters__empty" role="status">
+              <span>
+                {fitsPlayersOnly && players.length < fewestPlayersSupported
+                  ? `No games support ${players.length} player${players.length === 1 ? "" : "s"} yet. Invite friends with the room code, or clear the filters.`
+                  : "No games match these filters."}
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => {
+                  setModeFilter("all");
+                  setFitsPlayersOnly(false);
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
           <div className="game-sticker-grid">
             {visibleGameIds.map((id) => (
               <GameSticker
