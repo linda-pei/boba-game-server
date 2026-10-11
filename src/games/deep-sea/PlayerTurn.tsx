@@ -243,7 +243,7 @@ export default function PlayerTurn({
               name={room.players[pid]?.name ?? pid}
               isYou={isMe}
               isActive={isActive}
-              className={diver.returned ? "ds-diver-returned" : undefined}
+              className={`ds-diver-row${diver.returned ? " ds-diver-returned" : ""}`}
             >
               <span className="score-cards">
                 {diver.returned
@@ -257,7 +257,8 @@ export default function PlayerTurn({
                   {game.scores[pid] ?? 0} pts
                 </span>
               )}
-              {!diver.returned && diver.carriedCount > 0 && (
+              {/* Rendered even when empty so rows keep their height as treasure is picked up */}
+              {!diver.returned && (
                 <div className="ds-carried-shapes">
                   {(diver.carriedLevels ?? []).map((group, gi) =>
                     group.levels.length > 1 ? (
