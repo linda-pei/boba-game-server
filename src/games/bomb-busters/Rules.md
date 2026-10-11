@@ -281,7 +281,19 @@ Reuse the shared pieces: `GameBanner`, `TurnStatus`, `PlayerScores` (for the mis
 4. **Registration:** add the game to the lobby (meta with `modes: ["co-op"]`, 2–5 players), the icon, `GameRouter` and the README.
 5. **Board and cut-flow UI.** Test with two or three browser sessions.
 6. **Equipment and characters** used by missions 4–8, one card at a time, each with unit tests.
-7. **Mission progression:** a mission picker in the lobby (unlocked in order), retry and next-mission flow, and a full playthrough of missions 1–8.
+7. **Mission progression:** a mission picker in the lobby (any order, as the rulebook allows, with ✓ on completed missions), retry and next-mission flow, and a full playthrough of missions 1–8.
+
+## Implementation Notes
+
+Judgment calls where the rules don't say how something works online:
+
+- **Your matching wire on a successful Dual Cut** is turned up automatically: the leftmost matching wire on your stand.
+- **"Any time" equipment** can be used whenever no other action is in progress (no cut being resolved, no Walkie-Talkies swap underway), by any player. "Your turn" equipment is only offered on your turn.
+- **Stabilizer and a red wire:** the bomb doesn't explode and the turn ends. The red wire isn't revealed.
+- **General Radar results** stay on the board until someone runs the radar again or the mission ends.
+- **Walkie-Talkies:** the swap shows on both stands in the log ("hands wire #3"). Any ≠ / = labels on those two players' stands are removed, since wire positions shift.
+- **Info tokens and swaps:** a token on a wire that's handed away leaves with that wire. The incoming wire arrives with no token, and every other wire keeps its token as the stand re-sorts.
+- **Rewinder** can't move the dial below its starting space.
 
 ## Definition of Done (first release: missions 1–8)
 
