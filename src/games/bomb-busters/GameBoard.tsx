@@ -10,7 +10,7 @@ import TurnStatus from "../../components/shared/TurnStatus";
 import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
-import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, setupInfoPolicy } from "./rules";
+import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
 import { RULE_PANELS, type RulePanelProps } from "./rules/ui";
 import {
   type ResolveResult,
@@ -540,6 +540,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     void run(() => placeSetupInfo(roomCode, uid, index));
   };
 
+  const ruled = uid && game.phase === "playing" ? ruleTurnStatus(game, uid) : null;
   const status = (() => {
     if (rulePick) return { mood: "mine" as const, text: `Pick ${rulePick.count - rulePick.picks.length} more wire${rulePick.count - rulePick.picks.length === 1 ? "" : "s"} (any stand).` };
     if (choice) {
@@ -563,6 +564,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
       case "playing":
         if (swap) return { mood: "waiting" as const, text: `Walkie-Talkies: waiting for ${name(room, swap.to)}…` };
         if (game.turn === "") return { mood: "neutral" as const, text: 'The turn is open: say "Snip!" to take it.' };
+        if (ruled) return { mood: ruled.mine ? ("mine" as const) : ("waiting" as const), text: ruled.text };
         return isMyTurn ? { mood: "mine" as const, text: "Your turn" } : { mood: "waiting" as const, text: `Waiting for ${name(room, game.turn)}…` };
       case "resolving":
         if (pending?.kind === "red-alert") return { mood: "judging" as const, text: `🚨 Red Alert! Checking ${pending.picks.map((p) => name(room, p.uid)).join(" and ")}'s wires…` };

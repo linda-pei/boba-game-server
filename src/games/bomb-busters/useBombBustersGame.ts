@@ -29,6 +29,7 @@ import {
   type BuiltMission,
 } from "./engine";
 import { getMission } from "./missions";
+import { designateBatCutter, revealBatCard } from "./rules/batRadar";
 import {
   buildMissionWithRules,
   cutWithRules,
@@ -41,6 +42,7 @@ import {
   ruleLossReason,
   startPlayWithRules,
   ruleCanUseEquipment,
+  ruleEquipmentReusable,
   setupInfoPolicy,
   wrongGuessExplodes,
   wrongGuessToken,
@@ -188,6 +190,7 @@ function spendEquipment(game: BBGame, id: number, uid: string): BBGame {
   if (!card) throw new Error("That equipment isn't on the board this mission.");
   if (!card.unlocked) throw new Error("That equipment isn't unlocked yet.");
   if (card.used) throw new Error("That equipment has already been used.");
+  if (ruleEquipmentReusable(game, id)) return game;
   return { ...game, equipment: game.equipment.map((item) => (item.id === id ? { ...item, used: true } : item)) };
 }
 
@@ -680,5 +683,27 @@ export async function resolveRedAlertAsOwner(roomCode: string, uid: string): Pro
     } else {
       transaction.set(gameRef, { ...next, pendingAction: { ...pending, confirmed } });
     }
+  });
+}
+
+// ---- Mission 18: Bat Helping Hand ----
+
+/** Turn step 1: reveal the top number card, which runs the General Radar for it. */
+export async function revealBatNumber(roomCode: string, uid: string): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    if (game.phase !== "playing" || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    if (canRevealRed(hand, deadlyCheck(game))) throw new Error("You only hold red wires: Reveal them instead.");
+    const next = revealBatCard(game, uid);
+    transaction.set(gameRef, addLog(next, `🦇 ${mention(uid)} revealed number card ${next.radar!.value}.`));
+  });
+}
+
+/** Turn step 2: choose who carries out the cut (they then take a normal Dual or Solo Cut). */
+export async function chooseBatCutter(roomCode: string, uid: string, cutter: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase !== "playing" || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    const value = game.radar?.value;
+    return addLog(designateBatCutter(game, uid, cutter), `🦇 ${mention(uid)} chose ${cutter === uid ? "themselves" : mention(cutter)} to cut a ${value}.`);
   });
 }

@@ -187,6 +187,18 @@ export const MISSIONS: BBMission[] = [
     rules: [{ id: "redHerring" }],
   },
   {
+    id: 18,
+    name: "Bat Helping Hand",
+    subtitle: "There is no equipment. Luckily our favorite vigilante and caped crusader has loaned us his high-tech bat radar.",
+    blue: { from: 1, to: 12 },
+    red: { count: 2 },
+    yellow: { count: 0 },
+    // The batRadar rule replaces the equipment with a single, reusable General Radar (#8).
+    equipment: { count: 0 },
+    twoPlayer: { red: { count: 3 } },
+    rules: [{ id: "batRadar" }],
+  },
+  {
     id: 19,
     name: "In the Belly of the Beast",
     subtitle: "You've tracked the mad scientist to his secret base: a remote and ominous cave. There's only one way to find out what's inside.",

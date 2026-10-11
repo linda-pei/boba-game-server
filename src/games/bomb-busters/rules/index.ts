@@ -2,6 +2,7 @@ import type { BBDeclared, BBGame, BBInfoToken, BBMission, BBWire } from "../../.
 import { applyCutToGame, buildMission, finishTurn, isRed, loseMission, refreshEquipment, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
 import { getMission } from "../missions";
 import { audioTimer } from "./audioTimer";
+import { batRadar } from "./batRadar";
 import { deadlyValue } from "./deadlyValue";
 import { freeTurns } from "./freeTurns";
 import { redAlert } from "./redAlert";
@@ -25,6 +26,7 @@ export const RULES: RuleRegistry = {
   freeTurns,
   audioTimer,
   redAlert,
+  batRadar,
 } as unknown as RuleRegistry;
 
 /** Where rules and missions come from; tests pass fakes, the app uses the defaults. */
@@ -68,6 +70,8 @@ export function buildMissionWithRules(
     const result = rule.setup(built, { mission, params, random });
     built = { ...result.built, game: { ...result.built.game, ruleState: { ...result.built.game.ruleState, [rule.id]: result.state } } };
   }
+  // Rules may skip setup info tokens for everyone (mission 18): then play starts right away.
+  if (built.game.setupDone.length >= built.game.playerOrder.length) built = { ...built, game: startPlayWithRules(built.game, Date.now(), env) };
   return built;
 }
 
@@ -113,6 +117,11 @@ export function cutWithRules(game: BBGame, uid: string, flatIndex: number, wire:
 /** Unlock check for equipment changes made outside a cut (e.g. False Bottom adding cards). */
 export function equipmentUnlockCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_ENV): UnlockCheck | undefined {
   return unlockCheck(game, env);
+}
+
+/** Whether a rule lets this equipment card be used again and again. */
+export function ruleEquipmentReusable(game: BBGame, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
+  return rulesOf(game, env).some(({ rule, params }) => rule.isEquipmentReusable?.(cardId, { game, params, state: stateOf(game, rule.id) }) ?? false);
 }
 
 /** Whether a rule keeps this equipment card face down (identity hidden). */
@@ -199,6 +208,15 @@ export function ruleCanReveal(game: BBGame, uid: string, env: RuleEnv = DEFAULT_
   for (const { rule, params } of rulesOf(game, env)) {
     const error = rule.canReveal?.(uid, { game, params, state: stateOf(game, rule.id) });
     if (error) return error;
+  }
+  return null;
+}
+
+/** A rule's status line for this viewer during play (e.g. mission 18's turn steps), or null. */
+export function ruleTurnStatus(game: BBGame, viewer: string, env: RuleEnv = DEFAULT_RULE_ENV): { mine: boolean; text: string } | null {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const status = rule.turnStatus?.(viewer, { game, params, state: stateOf(game, rule.id) });
+    if (status) return status;
   }
   return null;
 }

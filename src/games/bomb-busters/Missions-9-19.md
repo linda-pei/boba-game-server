@@ -62,30 +62,38 @@ src/games/bomb-busters/rules/
 ```
 
 Each module also owns:
-- **its UI panel,** e.g. the sequence cards, timer, number card or role badge, in `rules/ui/<rule>.tsx`
-- **its unit tests,** in `rules/<rule>.test.ts`
+- **its UI panel,** e.g. the sequence cards, timer, number card or role badge, in `rules/ui/RulePanels.tsx`, registered in `RULE_PANELS`
+- **its unit tests,** in `rules/rules.test.ts` (framework tests with a fake rule are in `rules/index.test.ts`)
 
 Rule state lives in a namespaced bag on the game: `game.ruleState[ruleId]`, typed by its module. Nothing else reads another rule's state.
 
 ### Hooks
 
-Every hook is optional. The engine and actions call the folded hook at a fixed point and never check mission ids. **"Runs on"** matters because stands are owner-only: a hook that needs a hand runs on that hand owner's client.
+Every hook is optional (see `rules/types.ts`). The engine and actions call the folded hook (`rules/index.ts`) at a fixed point and never check mission ids. **"Runs on"** matters because stands are owner-only: a hook that needs a hand runs on that hand owner's client.
 
 | Hook | When | Runs on | Used by |
 | --- | --- | --- | --- |
-| `setup(ctx)` | Building the mission | Host | Most: number cards, red dealing (13), roles (14, 17), equipment changes (12, 15, 18), initial `ruleState` |
-| `setupInfoPolicy` | Setup info tokens | Each player | 11 (captain none), 13 (random token), 17 (2 fake for Red Herring), 18 (none) |
-| `turnPolicy` | Who may act next | Any | 10 (free order, no back-to-back except 2 players) |
-| `canCut(ctx, value)` | Declaring a Dual Cut / Solo Cut value | Active player | 9, 16 (sequence), 11 (can't cut the deadly value) |
-| `isDeadly(wire, game)` | Resolving a pointed wire | Target | 11 (blue value acts like red) |
-| `onWrongGuess(ctx)` | After a failed Dual Cut | Target | 14 (Rookie explodes), 17 (fake info token) |
-| `extraActions` | Extra turn actions | Active player, then targets | 13 ("cut three reds"), 18 (turn starts with the number card + radar) |
-| `afterCut(game, wire)` | After any wire is cut | Any | 9, 16 (advance the sequence), 12 (discard the number card), 15 (flip equipment), 18 (discard the number card) |
-| `equipmentPolicy` | Unlocking / using equipment | Any | 12, 15 (unlock rules), 14, 17 (who can't use what), 18 (radar always usable) |
-| `checkLoss(game, now)` | Each action, plus a client timer | Any | 10 (timer), 19 (audio track ends) |
-| `Panel` / `describe` | Rendering | Everyone | All: the board widget and rule summary text |
+| `choosePlayerOrder` | Before dealing | Host | 14, 17 (the Captain-card holder goes first) |
+| `setup` | Building the mission | Host | Most: number cards, red dealing (13), roles (14, 17), equipment changes (15, 18), initial rule state. If every player ends up in `setupDone`, play starts immediately (18). |
+| `setupInfoPolicy` | Setup info tokens | Each player | 13 (a forced random value; none matching → token beside the stand), 17 (2 fake tokens for Red Herring) |
+| `onPlay` | Setup finishes | Last player to finish setup | 10, 19 (start the clock), 10 (open the turn), 18 (record the active player) |
+| `canCut` | Declaring a Dual / Solo Cut value | Active player | 9, 16 (sequence), 11 (deadly value), 18 (only this turn's number) |
+| `isDeadly` | Resolving a pointed wire | Target | 11 |
+| `afterCut` | After any wire is cut | Any | 9, 16 (advance the sequence), 15 (flip equipment) |
+| `onWrongGuess` / `wrongGuessToken` | After a failed Dual Cut | Target | 14 (Rookie explodes), 17 (fake info token) |
+| `canUseEquipment` | Using equipment | User | 14, 17 (role limits), 18 (no extra radar mid-choice) |
+| `isEquipmentUnlocked` / `equipmentFaceDown` / `isEquipmentReusable` | Equipment state | Any | 12, 15 (unlock rules), 15 (face down), 18 (radar always usable, never spent) |
+| `canReveal` | Reveal Red | Active player | 13 (Red Alert instead), 18 (not once the number card is out) |
+| `nextTurn` / `canClaimTurn` | After each action / open turn | Any | 10 (open turn, "Snip!"), 18 (the turn passes on from the active player, not the chosen cutter) |
+| `checkLoss` | Each action, plus a client timer | Any | 10, 19 |
+| `turnStatus` | Rendering the status line | Everyone | 18 (reveal / choose steps) |
+| `describe` + `RULE_PANELS` | Rendering | Everyone | All: the rule summary line and board widget (`rules/ui/`) |
 
-The existing missions 1–8 have `rules: []`, so the refactor is behavior-neutral for them. The 62 existing tests guard that.
+Multi-step actions that a hook can't express live in `useBombBustersGame.ts`, using pure helpers from the rule module:
+- **Red Alert (13):** `declareRedAlert` cuts the caller's own picks; each other owner's client then runs `resolveRedAlertAsOwner`. Panels pick wires on any stand with `requestPick(count, onDone)`.
+- **Bat turn (18):** `revealBatNumber` (→ `revealBatCard`) turns up the number card and runs the radar; each client answers it as usual; `chooseBatCutter` (→ `designateBatCutter`) moves `game.turn` to a player who answered yes, who then takes a normal Dual or Solo Cut of that value.
+
+The existing missions 1–8 have `rules: []`, so the refactor is behavior-neutral for them.
 
 ## Implementation order
 
@@ -96,6 +104,8 @@ The existing missions 1–8 have `rules: []`, so the refactor is behavior-neutra
 5. **Multi-target actions:** `redAlert` (13), whose "cut three reds" needs each owner's client to confirm its pointed wires. `batRadar` (18).
 6. **`audioTimer` (19):** play the publisher's audio track for everyone, linked from Pegasus's CDN rather than copied into the repo. The mission is lost if the track ends before the bomb is defused.
 7. **Playthrough:** for each mission, add a simulation test where the rule allows it, then a manual playthrough.
+
+Status: steps 1–6 are done, and the rule-aware simulation wins every mission 9–19 at 2–5 players. Manual playthroughs are still to do.
 
 ## Decisions
 
@@ -118,3 +128,8 @@ Defaults (change any of these if they're wrong):
 9. **Mission 12 (confirmed):** if a number card shows the same value as the equipment it covers, cutting that value's first pair satisfies both.
 10. **Mission 15:** each time a number card's 4 wires are cut, the next face-down equipment card flips, going left to right.
 11. **Mission 17:** Red Herring's General Radar answers and Walkie-Talkies swaps are truthful. Only info tokens are fake.
+12. **Mission 13:** with 2 players the captain places no setup info token, since they already hold two reds. Red Alert picks are checked by each stand's owner; any non-red pick explodes the bomb.
+13. **Mission 18:**
+    - The number card is public, since the radar announces its value anyway.
+    - The active player may only choose someone who answered "yes" to that radar.
+    - Nobody can run an extra radar while the active player is choosing, because it would replace the answers being used.

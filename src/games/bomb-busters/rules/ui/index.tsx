@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { BBGame, Room } from "../../../../types";
 import {
   AudioTimerPanel,
+  BatRadarPanel,
   RedAlertPanel,
   DeadlyValuePanel,
   FreeTurnsPanel,
@@ -34,4 +35,5 @@ export const RULE_PANELS: Record<string, ComponentType<RulePanelProps>> = {
   freeTurns: FreeTurnsPanel,
   audioTimer: AudioTimerPanel,
   redAlert: RedAlertPanel,
+  batRadar: BatRadarPanel,
 };

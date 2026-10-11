@@ -18,6 +18,7 @@ import {
   wrongGuessExplodes,
   wrongGuessToken,
 } from "./index";
+import { designateBatCutter, revealBatCard, type BatRadarState } from "./batRadar";
 import type { RedAlertState } from "./redAlert";
 import type { SecretRoleState } from "./secretRole";
 import type { DeadlyValueState } from "./deadlyValue";
@@ -231,6 +232,54 @@ describe("redAlert (mission 13)", () => {
   });
 });
 
+describe("batRadar (mission 18)", () => {
+  const start = (players = ["a", "b", "c"], seed = 4) => buildMissionWithRules(players, getMission(18), seeded(seed));
+  const answerAll = (game: BBGame, holders: string[]) => ({
+    ...game,
+    radar: { ...game.radar!, answers: Object.fromEntries(game.playerOrder.map((p) => [p, holders.includes(p)])) },
+  });
+
+  it("skips setup tokens, starts play and leaves only a reusable General Radar", () => {
+    const { game } = start();
+    expect(game.phase).toBe("playing");
+    expect((game.ruleState.batRadar as BatRadarState).active).toBe("a");
+    expect(game.equipment).toEqual([{ id: 8, unlocked: true, used: false }]);
+    expect(ruleCanUseEquipment(game, "b", 8)).toBeNull();
+  });
+
+  it("reveals a card (running the radar), then the active player chooses a holder to cut that value", () => {
+    let { game } = start();
+    expect(ruleCanCut(game, 3)).toMatch(/Reveal the number card/);
+    game = revealBatCard(game, "a", seeded(1));
+    const value = (game.ruleState.batRadar as BatRadarState).current!;
+    expect(game.radar).toEqual({ by: "a", value, answers: { a: null, b: null, c: null } });
+    expect(() => designateBatCutter(game, "a", "b")).toThrow(/Wait for everyone/);
+    expect(ruleCanUseEquipment(game, "b", 8)).toMatch(/Choose who cuts/);
+    expect(ruleCanReveal(game, "a")).toMatch(/carry out the cut/);
+    game = answerAll(game, ["b"]);
+    expect(() => designateBatCutter(game, "a", "c")).toThrow(/holds a/);
+    expect(() => designateBatCutter(game, "b", "b")).toThrow(/not your turn/);
+    game = designateBatCutter(game, "a", "b");
+    expect(game.turn).toBe("b");
+    expect(ruleCanCut(game, value)).toBeNull();
+    expect(ruleCanCut(game, value === 12 ? 11 : value + 1)).toMatch(/must be a/);
+    // After b's cut the turn passes on from a (to b), and the card is cleared.
+    const next = finishTurnWithRules(game, "b");
+    expect(next.turn).toBe("b");
+    expect(next.ruleState.batRadar).toMatchObject({ active: "b", current: null, designated: null });
+  });
+
+  it("skips fully cut values and reshuffles an empty deck", () => {
+    const { game } = start();
+    const state = game.ruleState.batRadar as BatRadarState;
+    const done = { ...game, cutCounts: { ...game.cutCounts, blue: { [state.deck[0]]: 4 } } };
+    expect((revealBatCard(done, "a").ruleState.batRadar as BatRadarState).current).toBe(state.deck[1]);
+    const empty = { ...game, ruleState: { batRadar: { ...state, deck: [] } } };
+    const drawn = revealBatCard(empty, "a", seeded(2)).ruleState.batRadar as BatRadarState;
+    expect(drawn.deck).toHaveLength(11);
+  });
+});
+
 describe("rule-aware mission simulation", () => {
   // An all-knowing team that only takes moves the rules allow: Reveal (red/deadly), else a legal
   // Solo Cut, else a correct legal Dual Cut; a player with no legal move passes.
@@ -238,7 +287,22 @@ describe("rule-aware mission simulation", () => {
     const built = buildMissionWithRules(players, getMission(missionId), seeded(seed));
     const hands = built.hands;
     let game: BBGame = { ...built.game, phase: "playing" };
+    const bat = getMission(missionId).rules.some((rule) => rule.id === "batRadar");
+    // Mission 18's turn passes from the active player (not the chosen cutter), via the rule's nextTurn.
+    const endTurn = (g: BBGame, actor: string) => (bat ? finishTurnWithRules(g, actor) : finishTurn(g, actor));
     for (let guard = 0; guard < 600 && game.phase === "playing"; guard += 1) {
+      const batState = game.ruleState.batRadar as BatRadarState | undefined;
+      if (batState && batState.current === null && !canRevealRed(hands[game.turn], deadlyCheck(game))) {
+        // Reveal the number card, answer the radar truthfully, then pick a holder who can make the cut.
+        const active = game.turn;
+        game = revealBatCard(game, active, seeded(seed + guard));
+        const value = game.radar!.value;
+        const holds = (p: string) => hands[p].flat().some((w) => !w.cut && w.color === "blue" && w.sortKey === value);
+        game = { ...game, radar: { ...game.radar!, answers: Object.fromEntries(players.map((p) => [p, holds(p)])) } };
+        const holders = players.filter(holds);
+        const cutter = holders.find((p) => soloCutIndices(hands[p], value, game.wireTotals, game.cutCounts)) ?? holders[0];
+        game = designateBatCutter(game, active, cutter);
+      }
       const uid = game.turn;
       const mine = hands[uid];
       const flat = mine.flat();
@@ -259,7 +323,7 @@ describe("rule-aware mission simulation", () => {
             }
           }),
         );
-        game = finishTurn(game, uid);
+        game = endTurn(game, uid);
         continue;
       }
       if (canRevealRed(mine, deadly)) {
@@ -269,7 +333,7 @@ describe("rule-aware mission simulation", () => {
             game = cutWithRules(game, uid, index, wire);
           }
         });
-        game = finishTurn(game, uid);
+        game = endTurn(game, uid);
         continue;
       }
       const values = [...new Set(flat.filter((w) => !w.cut && !deadly(w)).map((w): BBDeclared => (w.color === "yellow" ? "yellow" : w.sortKey)))].filter(
@@ -278,7 +342,7 @@ describe("rule-aware mission simulation", () => {
       const solo = values.map((value) => soloCutIndices(mine, value, game.wireTotals, game.cutCounts)).find(Boolean);
       if (solo) {
         solo.forEach((index) => cut(uid, index));
-        game = finishTurn(game, uid);
+        game = endTurn(game, uid);
         continue;
       }
       done: for (const value of values) {
@@ -290,7 +354,7 @@ describe("rule-aware mission simulation", () => {
           break done;
         }
       }
-      game = finishTurn(game, uid);
+      game = endTurn(game, uid);
     }
     return game;
   }

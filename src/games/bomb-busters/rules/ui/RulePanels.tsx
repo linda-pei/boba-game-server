@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { getMission } from "../../missions";
-import { checkTimeUp, claimTurn, declareRedAlert } from "../../useBombBustersGame";
+import { checkTimeUp, chooseBatCutter, claimTurn, declareRedAlert, revealBatNumber } from "../../useBombBustersGame";
 import type { AudioTimerState } from "../audioTimer";
+import type { BatRadarState } from "../batRadar";
 import type { DeadlyValueState } from "../deadlyValue";
 import { ruleCanClaimTurn } from "../index";
 import type { TimerState } from "../timer";
@@ -198,6 +199,48 @@ export function RedAlertPanel({ game, uid, roomCode, requestPick }: RulePanelPro
         >
           Cut the three reds…
         </button>
+      )}
+      {error && <span className="bb-muted">{error}</span>}
+    </div>
+  );
+}
+
+export function BatRadarPanel({ game, room, uid, roomCode }: RulePanelProps) {
+  const [error, setError] = useState<string | null>(null);
+  const state = game.ruleState.batRadar as BatRadarState | undefined;
+  if (!state || game.phase !== "playing" || !state.active) return null;
+  const who = (player: string) => (player === uid ? "You" : room.players[player]?.name ?? "Player");
+  const mine = state.active === uid && game.turn === uid && !game.pendingAction && !game.pendingSwap;
+  const fail = (fallback: string) => (e: unknown) => setError(e instanceof Error ? e.message : fallback);
+  const answers = game.radar?.value === state.current ? game.radar.answers : null;
+  const waiting = !answers || Object.values(answers).some((answer) => answer === null);
+  return (
+    <div className="bb-rule-panel">
+      <span className="bb-label">🦇 Number card</span>
+      {state.current === null ? <span className="bb-muted">Not revealed</span> : <NumberCard value={state.current} state="current" />}
+      {state.current === null && mine && (
+        <button className="btn btn--sm" type="button" onClick={() => void revealBatNumber(roomCode, uid).catch(fail("Couldn't reveal the card."))}>
+          Reveal number card
+        </button>
+      )}
+      {state.current === null && !mine && <span className="bb-muted">{who(state.active)} reveals the next card</span>}
+      {state.current !== null && state.designated === null && mine && waiting && <span className="bb-muted">Waiting for radar answers…</span>}
+      {state.current !== null &&
+        state.designated === null &&
+        mine &&
+        !waiting &&
+        game.playerOrder
+          .filter((player) => answers?.[player])
+          .map((player) => (
+            <button key={player} className="btn btn--secondary btn--sm" type="button" onClick={() => void chooseBatCutter(roomCode, uid, player).catch(fail("Couldn't choose."))}>
+              {player === uid ? "I'll cut it" : `${who(player)} cuts`}
+            </button>
+          ))}
+      {state.current !== null && state.designated === null && !mine && <span className="bb-muted">{who(state.active)} is choosing who cuts</span>}
+      {state.designated !== null && (
+        <span className="bb-muted">
+          {who(state.designated)} {state.designated === uid ? "cut" : "cuts"} a {state.current}
+        </span>
       )}
       {error && <span className="bb-muted">{error}</span>}
     </div>
