@@ -686,3 +686,107 @@ export interface RobotrickHand {
   /** Cards passed to this player; merged into `cards` on their first play. */
   incoming: RobotrickCard[];
 }
+
+// ---- Bomb Busters types ----
+
+export type BBColor = "blue" | "red" | "yellow";
+
+/** One wire tile. Blue sortKey = its value (1–12); red is n.5, yellow n.1 (used only for sorting). */
+export interface BBWire {
+  id: string;
+  color: BBColor;
+  sortKey: number;
+}
+
+/** A wire in a player's hand; positions never change, cut wires stay in place face up. */
+export interface BBHandWire extends BBWire {
+  cut: boolean;
+}
+
+/** What a Dual Cut names: a blue value 1–12, or "yellow". Red is never named. */
+export type BBDeclared = number | "yellow";
+
+export interface BBInfoToken {
+  color: "blue" | "yellow";
+  /** Blue value shown on the token (undefined for a yellow token). */
+  value?: number;
+}
+
+/** Public view of one slot on someone's stand. */
+export interface BBPublicSlot {
+  cut: boolean;
+  /** Set once the wire is cut (or revealed). */
+  revealed?: { color: BBColor; sortKey: number };
+  info?: BBInfoToken;
+}
+
+export interface BBWireDraw {
+  count: number;
+  /** "count out of outOf": outOf candidates are revealed, count go into play unseen. */
+  outOf?: number;
+  /** Limit candidates to this sortKey range (e.g. 1.5–9.5). */
+  from?: number;
+  to?: number;
+}
+
+export interface BBMission {
+  id: number;
+  name: string;
+  subtitle: string;
+  blue: { from: number; to: number };
+  red: BBWireDraw;
+  yellow: BBWireDraw;
+  equipment: { count: "players" | 0; exclude?: number[] };
+  twoPlayer?: { red?: BBWireDraw; yellow?: BBWireDraw };
+  rules: string[];
+}
+
+/** A red/yellow marker on the board: a value that is (or might be) in play. */
+export interface BBMarker {
+  color: "red" | "yellow";
+  sortKey: number;
+  /** True for "N out of M" candidates: this value might not be in play. */
+  uncertain: boolean;
+}
+
+export type BBPhase = "setup-info" | "playing" | "resolving" | "mission-won" | "mission-lost";
+
+export interface BBPendingAction {
+  kind: "dual-cut";
+  by: string;
+  target: string;
+  /** Flat slot indices across the target's stands (1 normally; 2 with the Double Detector). */
+  slots: number[];
+  declared: BBDeclared;
+  detector: "none" | "double";
+}
+
+export interface BBGame {
+  gameType: "bomb-busters";
+  missionId: number;
+  phase: BBPhase;
+  /** Clockwise from the captain. */
+  playerOrder: string[];
+  captain: string;
+  /** Per player, one array of slots per stand. */
+  stands: Record<string, BBPublicSlot[][]>;
+  turn: string;
+  /** Next player still to place their setup info token (setup-info phase). */
+  setupTurn: string | null;
+  dial: { wrongGuesses: number; limit: number };
+  markers: BBMarker[];
+  wireTotals: { blue: Record<string, number>; red: number; yellow: number };
+  cutCounts: { blue: Record<string, number>; red: number; yellow: number };
+  validated: number[];
+  equipment: { id: number; unlocked: boolean; used: boolean }[];
+  characters: Record<string, { used: boolean }>;
+  pendingAction: BBPendingAction | null;
+  log: { at: number; text: string }[];
+  result: { outcome: "won" | "lost"; reason: string } | null;
+}
+
+export interface BBHand {
+  ownerUid: string;
+  /** One array per stand, sorted ascending by sortKey; mirrors the public slots. */
+  stands: BBHandWire[][];
+}
