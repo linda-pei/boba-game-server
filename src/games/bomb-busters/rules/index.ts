@@ -4,13 +4,14 @@ import { getMission } from "../missions";
 import { audioTimer } from "./audioTimer";
 import { deadlyValue } from "./deadlyValue";
 import { freeTurns } from "./freeTurns";
+import { redAlert } from "./redAlert";
 import { redHerring } from "./redHerring";
 import { redTape } from "./redTape";
 import { rookie } from "./rookie";
 import { russianToolbox } from "./russianToolbox";
 import { sequence } from "./sequence";
 import { timer } from "./timer";
-import type { MissionRule, RuleParams, RuleRegistry } from "./types";
+import type { MissionRule, RuleParams, RuleRegistry, SetupInfoPolicy } from "./types";
 
 /** Every registered rule module. Each mission lists the ones it uses (see missions.ts). */
 export const RULES: RuleRegistry = {
@@ -23,6 +24,7 @@ export const RULES: RuleRegistry = {
   timer,
   freeTurns,
   audioTimer,
+  redAlert,
 } as unknown as RuleRegistry;
 
 /** Where rules and missions come from; tests pass fakes, the app uses the defaults. */
@@ -119,7 +121,7 @@ export function ruleEquipmentFaceDown(game: BBGame, cardId: number, env: RuleEnv
 }
 
 /** How many setup info tokens this player places, and whether they're fake (default: 1, real). */
-export function setupInfoPolicy(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): { count: number; fake: boolean } {
+export function setupInfoPolicy(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): SetupInfoPolicy {
   for (const { rule, params } of rulesOf(game, env)) {
     const policy = rule.setupInfoPolicy?.(uid, { game, params, state: stateOf(game, rule.id) });
     if (policy) return policy;
@@ -187,6 +189,15 @@ export function finishTurnWithRules(game: BBGame, actor: string, now: number = D
 export function ruleCanClaimTurn(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): string | null {
   for (const { rule, params } of rulesOf(game, env)) {
     const error = rule.canClaimTurn?.(uid, { game, params, state: stateOf(game, rule.id) });
+    if (error) return error;
+  }
+  return null;
+}
+
+/** The first rule objection to Reveal Red right now, or null. */
+export function ruleCanReveal(game: BBGame, uid: string, env: RuleEnv = DEFAULT_RULE_ENV): string | null {
+  for (const { rule, params } of rulesOf(game, env)) {
+    const error = rule.canReveal?.(uid, { game, params, state: stateOf(game, rule.id) });
     if (error) return error;
   }
   return null;

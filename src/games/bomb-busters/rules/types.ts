@@ -25,13 +25,15 @@ export interface MissionRule<P extends RuleParams = RuleParams, S = unknown> {
   /** Any client, after a wire is cut: the rule's next state (and any game changes it owns). */
   afterCut?(wire: BBWire, ctx: { game: BBGame; params: P; state: S }): { game?: BBGame; state: S };
   /** Each player, during setup: how many info tokens they place, and whether they're fake. */
-  setupInfoPolicy?(uid: string, ctx: { game: BBGame; params: P; state: S }): { count: number; fake: boolean } | undefined;
+  setupInfoPolicy?(uid: string, ctx: { game: BBGame; params: P; state: S }): SetupInfoPolicy | undefined;
   /** Target, after a failed Dual Cut: "explode" to blow the bomb regardless (e.g. the Rookie). */
   onWrongGuess?(ctx: { game: BBGame; params: P; state: S; by: string; target: string }): "explode" | undefined;
   /** Target, after a failed Dual Cut: the info token to place instead of the true value. */
   wrongGuessToken?(wire: BBWire, declared: BBDeclared, ctx: { game: BBGame; params: P; state: S; target: string }): BBInfoToken | undefined;
   /** Whoever uses equipment: an error if this player may not use this card. */
   canUseEquipment?(uid: string, cardId: number, ctx: { game: BBGame; params: P; state: S }): string | null;
+  /** Active player: an error if Reveal Red isn't allowed right now (e.g. mission 13 forces Red Alert). */
+  canReveal?(uid: string, ctx: { game: BBGame; params: P; state: S }): string | null;
   /** Whoever finishes setup: runs once as play begins (start a timer, open the turn…). */
   onPlay?(ctx: { game: BBGame; params: P; state: S; now: number }): { game?: BBGame; state: S };
   /** After each action: who acts next. `undefined` keeps the default (next player clockwise); "" opens the turn. */
@@ -44,6 +46,14 @@ export interface MissionRule<P extends RuleParams = RuleParams, S = unknown> {
   isEquipmentUnlocked?(cardId: number, ctx: { game: BBGame; params: P; state: S; cuts: BBGame["cutCounts"] }): boolean | undefined;
   /** Rendering: whether an equipment card is still face down (its identity hidden). */
   equipmentFaceDown?(cardId: number, ctx: { game: BBGame; params: P; state: S }): boolean;
+}
+
+/** How a player places setup info tokens: how many, whether fake, and (if set) the value they must show. */
+export interface SetupInfoPolicy {
+  count: number;
+  fake: boolean;
+  /** A forced value (mission 13's random token); with no matching wire it goes beside the stand. */
+  value?: number;
 }
 
 export type RuleRegistry = Record<string, MissionRule<RuleParams, unknown>>;

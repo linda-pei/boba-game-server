@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getMission } from "../../missions";
-import { checkTimeUp, claimTurn } from "../../useBombBustersGame";
+import { checkTimeUp, claimTurn, declareRedAlert } from "../../useBombBustersGame";
 import type { AudioTimerState } from "../audioTimer";
 import type { DeadlyValueState } from "../deadlyValue";
 import { ruleCanClaimTurn } from "../index";
@@ -175,6 +175,31 @@ export function AudioTimerPanel({ game, roomCode }: RulePanelProps) {
           </button>
         )
       )}
+    </div>
+  );
+}
+
+export function RedAlertPanel({ game, uid, roomCode, requestPick }: RulePanelProps) {
+  const [error, setError] = useState<string | null>(null);
+  const myTurn = game.phase === "playing" && game.turn === uid && !game.pendingAction && !game.pendingSwap;
+  const redsLeft = game.wireTotals.red - game.cutCounts.red;
+  return (
+    <div className="bb-rule-panel">
+      <span className="bb-label">🚨 Red Alert</span>
+      <span className="bb-muted">{redsLeft > 0 ? `${redsLeft} red wires to cut at once` : "All reds cut"}</span>
+      {myTurn && redsLeft > 0 && requestPick && (
+        <button
+          className="btn btn--danger btn--sm"
+          type="button"
+          onClick={() => {
+            setError(null);
+            requestPick(3, (picks) => void declareRedAlert(roomCode, uid, picks).catch((e: unknown) => setError(e instanceof Error ? e.message : "Red Alert failed.")));
+          }}
+        >
+          Cut the three reds…
+        </button>
+      )}
+      {error && <span className="bb-muted">{error}</span>}
     </div>
   );
 }

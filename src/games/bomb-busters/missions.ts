@@ -132,6 +132,17 @@ export const MISSIONS: BBMission[] = [
     rules: [{ id: "redTape" }],
   },
   {
+    id: 13,
+    name: "Red Alert",
+    subtitle: "The formidable mad scientist strikes again. He's been seeing red, so much that his latest device is stuffed with three red wires.",
+    blue: { from: 1, to: 12 },
+    // The three reds are dealt by the redAlert rule (one each to the first three players), not shuffled in.
+    red: { count: 0 },
+    yellow: { count: 0 },
+    equipment: { count: "players", falseBottom: true },
+    rules: [{ id: "redAlert" }],
+  },
+  {
     id: 14,
     name: "High Risk Bomb Disposal Expert",
     subtitle: "We all remember having sweaty palms during our first mission. Let's help the rookie: if possible, leave the easy cuts to them.",

@@ -789,7 +789,9 @@ export type BBPendingAction =
       alsoDeclared?: BBDeclared;
       detector: BBDetector;
     }
-  | { kind: "own-cut"; by: string; declared: BBDeclared };
+  | { kind: "own-cut"; by: string; declared: BBDeclared }
+  /** Mission 13: wires picked on other stands; each owner's client checks (and cuts) its own. */
+  | { kind: "red-alert"; by: string; picks: { uid: string; slot: number }[]; confirmed: string[] };
 
 export interface BBGame {
   gameType: "bomb-busters";
@@ -805,6 +807,8 @@ export interface BBGame {
   setupDone: string[];
   /** How many setup info tokens each player has placed so far (some rules allow more than one). */
   setupPlaced?: Record<string, number>;
+  /** Setup info tokens a player couldn't place (no matching wire), shown face up beside their stand. */
+  besideTokens?: Record<string, number>;
   dial: { wrongGuesses: number; limit: number };
   markers: BBMarker[];
   wireTotals: { blue: Record<string, number>; red: number; yellow: number };

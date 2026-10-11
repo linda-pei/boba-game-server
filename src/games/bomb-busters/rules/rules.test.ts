@@ -9,6 +9,7 @@ import {
   finishTurnWithRules,
   ruleCanClaimTurn,
   ruleCanCut,
+  ruleCanReveal,
   ruleCanUseEquipment,
   ruleLossReason,
   startPlayWithRules,
@@ -17,6 +18,7 @@ import {
   wrongGuessExplodes,
   wrongGuessToken,
 } from "./index";
+import type { RedAlertState } from "./redAlert";
 import type { SecretRoleState } from "./secretRole";
 import type { DeadlyValueState } from "./deadlyValue";
 import type { RedTapeState } from "./redTape";
@@ -201,6 +203,34 @@ describe("timer, free turns and audio (missions 10 & 19)", () => {
   });
 });
 
+describe("redAlert (mission 13)", () => {
+  const redsOf = (stands: { color: string }[][]) => stands.map((stand) => stand.filter((w) => w.color === "red").length);
+
+  it("deals one red to each of the first three players", () => {
+    const built = buildMissionWithRules(["a", "b", "c", "d"], getMission(13), seeded(1));
+    expect(built.game.wireTotals.red).toBe(3);
+    expect(["a", "b", "c", "d"].map((uid) => redsOf(built.hands[uid]).reduce((x, y) => x + y, 0))).toEqual([1, 1, 1, 0]);
+    // Stands stay sorted with the red tucked in.
+    Object.values(built.hands).flat().forEach((stand) => expect(stand.map((w) => w.sortKey)).toEqual([...stand.map((w) => w.sortKey)].sort((x, y) => x - y)));
+    expect(built.game.markers.filter((m) => m.color === "red")).toHaveLength(3);
+  });
+
+  it("with 2 players the captain gets two reds, one per stand, and places no info token", () => {
+    const built = buildMissionWithRules(["cap", "b"], getMission(13), seeded(2));
+    expect(redsOf(built.hands.cap)).toEqual([1, 1]);
+    expect(redsOf(built.hands.b).reduce((x, y) => x + y, 0)).toBe(1);
+    expect(built.game.setupDone).toEqual(["cap"]);
+  });
+
+  it("draws a random setup token value per player and blocks Reveal Red", () => {
+    const built = buildMissionWithRules(["a", "b", "c"], getMission(13), seeded(3));
+    const { tokens } = built.game.ruleState.redAlert as RedAlertState;
+    expect(Object.keys(tokens)).toEqual(["a", "b", "c"]);
+    expect(setupInfoPolicy(built.game, "b")).toEqual({ count: 1, fake: false, value: tokens.b });
+    expect(ruleCanReveal(built.game, "a")).toMatch(/Red Alert/);
+  });
+});
+
 describe("rule-aware mission simulation", () => {
   // An all-knowing team that only takes moves the rules allow: Reveal (red/deadly), else a legal
   // Solo Cut, else a correct legal Dual Cut; a player with no legal move passes.
@@ -219,6 +249,19 @@ describe("rule-aware mission simulation", () => {
         wire.cut = true;
         game = cutWithRules(game, owner, index, wire);
       };
+      if (canRevealRed(mine, deadly) && ruleCanReveal(game, uid)) {
+        // Mission 13: Red Alert instead of Reveal — the all-knowing team cuts every red at once.
+        players.forEach((owner) =>
+          hands[owner].flat().forEach((wire, index) => {
+            if (!wire.cut && wire.color === "red") {
+              wire.cut = true;
+              game = cutWithRules(game, owner, index, wire);
+            }
+          }),
+        );
+        game = finishTurn(game, uid);
+        continue;
+      }
       if (canRevealRed(mine, deadly)) {
         flat.forEach((wire, index) => {
           if (!wire.cut) {

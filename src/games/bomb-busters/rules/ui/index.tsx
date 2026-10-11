@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { BBGame, Room } from "../../../../types";
 import {
   AudioTimerPanel,
+  RedAlertPanel,
   DeadlyValuePanel,
   FreeTurnsPanel,
   RedHerringPanel,
@@ -17,6 +18,8 @@ export interface RulePanelProps {
   game: BBGame;
   room: Room;
   uid: string;
+  /** Ask the player to pick `count` uncut wires on any stand; `onDone` gets the picks. */
+  requestPick?: (count: number, onDone: (picks: { uid: string; slot: number }[]) => void) => void;
 }
 
 /** Board widgets for rules that show something (sequence cards, timer, number card, roles…). */
@@ -30,4 +33,5 @@ export const RULE_PANELS: Record<string, ComponentType<RulePanelProps>> = {
   timer: TimerPanel,
   freeTurns: FreeTurnsPanel,
   audioTimer: AudioTimerPanel,
+  redAlert: RedAlertPanel,
 };

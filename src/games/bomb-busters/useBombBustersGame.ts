@@ -37,6 +37,7 @@ import {
   finishTurnWithRules,
   ruleCanCut,
   ruleCanClaimTurn,
+  ruleCanReveal,
   ruleLossReason,
   startPlayWithRules,
   ruleCanUseEquipment,
@@ -139,9 +140,15 @@ export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: n
 
     let next = game;
     if (flatIndex === null) {
-      // Only allowed when you have no blue wires at all (real tokens).
-      if (policy.fake || wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your wires.");
-      next = addLog(next, `${mention(uid)} has no blue wires to mark.`);
+      if (policy.value !== undefined) {
+        // A forced token with no matching wire goes face up beside the stand (public information).
+        if (wires.some((wire) => wire.color === "blue" && wire.sortKey === policy.value)) throw new Error(`Point it at one of your ${policy.value}s.`);
+        next = addLog({ ...next, besideTokens: { ...(next.besideTokens ?? {}), [uid]: policy.value } }, `${mention(uid)} has no ${policy.value}s.`);
+      } else {
+        // Only allowed when you have no blue wires at all (real tokens).
+        if (policy.fake || wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your wires.");
+        next = addLog(next, `${mention(uid)} has no blue wires to mark.`);
+      }
     } else {
       const wire = wires[flatIndex];
       const slot = unwrapPublic(game.stands)[uid].flat()[flatIndex];
@@ -156,6 +163,7 @@ export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: n
         next = addLog(placeInfoToken(next, uid, flatIndex, token), `${mention(uid)} placed an info token.`);
       } else {
         if (wire.color !== "blue") throw new Error("Setup info tokens go on a blue wire.");
+        if (policy.value !== undefined && wire.sortKey !== policy.value) throw new Error(`Your token is a ${policy.value}: point it at a ${policy.value}.`);
         next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
       }
     }
@@ -372,6 +380,8 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "playing" || game.turn !== uid || game.pendingAction) throw new Error("It's not your turn.");
     if (!canRevealRed(hand, deadlyCheck(game))) throw new Error("You can only reveal when all your remaining wires are red.");
+    const revealObjection = ruleCanReveal(game, uid);
+    if (revealObjection) throw new Error(revealObjection);
 
     const wires = hand.flat();
     let nextHand = hand;
@@ -594,5 +604,81 @@ export async function checkTimeUp(roomCode: string, reason?: string): Promise<vo
     if (game.phase === "mission-won" || game.phase === "mission-lost") return game;
     const lost = reason ?? ruleLossReason(game);
     return lost ? addLog(loseMission(game, lost), `⏰ ${lost}`) : game;
+  });
+}
+
+// ---- Mission 13: Red Alert ----
+
+type WirePick = { uid: string; slot: number };
+
+/**
+ * Red Alert (mission 13), step 1: point at three uncut wires anywhere (yours included). Your own
+ * picks are checked and cut now; the other stands' owners check theirs (step 2). Any non-red wire
+ * explodes the bomb.
+ */
+export async function declareRedAlert(roomCode: string, uid: string, picks: WirePick[]): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    if (game.phase !== "playing" || game.turn !== uid || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    const keys = new Set(picks.map((pick) => `${pick.uid}:${pick.slot}`));
+    if (picks.length !== 3 || keys.size !== 3) throw new Error("Point at exactly three different wires.");
+    const publicStands = unwrapPublic(game.stands);
+    if (picks.some((pick) => !publicStands[pick.uid]?.flat()[pick.slot] || publicStands[pick.uid].flat()[pick.slot].cut)) {
+      throw new Error("Pick three uncut wires.");
+    }
+
+    const wires = hand.flat();
+    const mine = picks.filter((pick) => pick.uid === uid);
+    if (mine.some((pick) => wires[pick.slot].color !== "red")) {
+      transaction.set(gameRef, addLog(loseMission(game, "Red Alert hit a wire that wasn't red."), `💥 ${mention(uid)}'s Red Alert hit a wire that wasn't red.`));
+      return;
+    }
+    let nextHand = hand;
+    let next = game;
+    mine.forEach((pick) => {
+      nextHand = cutInHand(nextHand, pick.slot);
+      next = cutWithRules(next, uid, pick.slot, wires[pick.slot]);
+    });
+    if (mine.length > 0) transaction.update(handRef, { stands: wrapHand(nextHand) });
+
+    const others = picks.filter((pick) => pick.uid !== uid);
+    const log = `🚨 ${mention(uid)} called Red Alert on ${picks.map((pick) => `${mention(pick.uid)}'s wire #${pick.slot + 1}`).join(", ")}.`;
+    if (others.length === 0) {
+      transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), log));
+      return;
+    }
+    transaction.set(gameRef, addLog({ ...next, phase: "resolving", pendingAction: { kind: "red-alert", by: uid, picks: others, confirmed: [] } }, log));
+  });
+}
+
+/** Red Alert, step 2 — each picked stand's owner checks (and cuts) its own picks. */
+export async function resolveRedAlertAsOwner(roomCode: string, uid: string): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    const pending = game.pendingAction;
+    if (game.phase !== "resolving" || pending?.kind !== "red-alert" || pending.confirmed.includes(uid)) return;
+    const mine = pending.picks.filter((pick) => pick.uid === uid);
+    if (mine.length === 0) return;
+
+    const wires = hand.flat();
+    if (mine.some((pick) => wires[pick.slot].color !== "red")) {
+      transaction.set(gameRef, addLog(loseMission(game, "Red Alert hit a wire that wasn't red."), `💥 Red Alert hit a wire on ${mention(uid)}'s stand that wasn't red.`));
+      return;
+    }
+    let nextHand = hand;
+    let next = game;
+    mine.forEach((pick) => {
+      nextHand = cutInHand(nextHand, pick.slot);
+      next = cutWithRules(next, uid, pick.slot, wires[pick.slot]);
+    });
+    transaction.update(handRef, { stands: wrapHand(nextHand) });
+
+    const confirmed = [...pending.confirmed, uid];
+    const owners = new Set(pending.picks.map((pick) => pick.uid));
+    if (confirmed.length >= owners.size) {
+      transaction.set(gameRef, addLog(finishTurnWithRules({ ...next, pendingAction: null }, pending.by), "🚨 Red Alert: all three reds cut!"));
+    } else {
+      transaction.set(gameRef, { ...next, pendingAction: { ...pending, confirmed } });
+    }
   });
 }
