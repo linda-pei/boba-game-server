@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { BBGame, BBHandWire, BBWire } from "../../types";
 import {
+  areAdjacent,
+  matchedValue,
+  sameValue,
+  swapIntoHand,
   advanceDial,
   applyCutToGame,
   buildMission,
@@ -300,5 +304,43 @@ describe("full mission simulation", () => {
         expect(game.validated.length).toBe(mission.blue.to - mission.blue.from + 1);
       }
     }
+  });
+});
+
+describe("equipment helpers", () => {
+  it("X or Y Ray: a wire matching either named value succeeds, and the own cut uses the matched one", () => {
+    expect(resolveDualCut([blue(7)], [3, 7])).toEqual({ result: "success", matching: [0] });
+    expect(resolveDualCut([yellow(2)], [5, "yellow"])).toEqual({ result: "success", matching: [0] });
+    expect(matchedValue(blue(7), [3, 7])).toBe(7);
+    expect(canDeclare(hand([blue(3), blue(7)]), [3, 7])).toBe(true);
+    expect(canDeclare(hand([blue(3)]), [3, 7])).toBe(false);
+  });
+
+  it("Triple/Super Detector: any match succeeds; all-red explodes; otherwise a token on a non-red wire", () => {
+    expect(resolveDualCut([blue(1), blue(4), blue(9)], 9)).toEqual({ result: "success", matching: [2] });
+    expect(resolveDualCut([red(2), blue(4), red(8)], 6)).toEqual({ result: "wrong", infoCandidates: [1] });
+    expect(resolveDualCut([red(2), red(8), red(10)], 6)).toEqual({ result: "explode" });
+  });
+
+  it("labels compare blue by number and treat all yellow (or all red) as equal", () => {
+    expect(sameValue(blue(4, 1), blue(4, 2))).toBe(true);
+    expect(sameValue(blue(4), blue(5))).toBe(false);
+    expect(sameValue(yellow(2), yellow(9))).toBe(true);
+    expect(sameValue(yellow(2), blue(2))).toBe(false);
+    const h = hand([blue(1), blue(2)], [blue(3), blue(4)]);
+    expect(areAdjacent(h, 0)).toBe(true);
+    expect(areAdjacent(h, 1)).toBe(false); // last wire of stand 1 and first of stand 2
+    expect(areAdjacent(h, 3)).toBe(false);
+  });
+
+  it("Walkie-Talkies re-sorts the stand and keeps each wire's public slot", () => {
+    const h = hand([blue(2), blue(5), blue(9)]);
+    h[0][0].cut = true;
+    const slots = [[{ cut: true, revealed: { color: "blue" as const, sortKey: 2 } }, { cut: false, info: { color: "blue" as const, value: 5 } }, { cut: false }]];
+    const result = swapIntoHand(h, slots, 2, blue(6));
+    expect(result.given.sortKey).toBe(9);
+    expect(result.hand[0].map((w) => w.sortKey)).toEqual([2, 5, 6]);
+    expect(result.slots[0]).toEqual([slots[0][0], slots[0][1], { cut: false }]);
+    expect(() => swapIntoHand(h, slots, 0, blue(6))).toThrow();
   });
 });

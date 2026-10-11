@@ -78,8 +78,8 @@ service cloud.firestore {
           || (hasPrivateHands(roomCode) && request.auth.uid == ownerUid)
           // Robotrick / Bomb Busters: the host deals new rounds or missions (a blind overwrite).
           || ((isRobotrickGame(roomCode) || isBombBustersGame(roomCode)) && isRoomHost(roomCode))
-          // Robotrick: any player may deliver a pass, touching only `incoming`.
-          || (isRobotrickGame(roomCode) && isRoomMember(roomCode)
+          // Robotrick passes / Bomb Busters Walkie-Talkies: any player may deliver a wire, touching only `incoming`.
+          || ((isRobotrickGame(roomCode) || isBombBustersGame(roomCode)) && isRoomMember(roomCode)
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["incoming"]));
         allow delete: if (!hasPrivateHands(roomCode) && isRoomMember(roomCode))
           || (hasPrivateHands(roomCode) && (request.auth.uid == ownerUid || isRoomHost(roomCode)));

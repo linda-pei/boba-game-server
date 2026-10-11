@@ -753,6 +753,16 @@ export interface BBMarker {
   uncertain: boolean;
 }
 
+/** Double = character card; Triple (#3) and Super (#5) are equipment. */
+export type BBDetector = "none" | "double" | "triple" | "super";
+
+/** A ≠ (#1) or = (#12) label between two adjacent wires of one player (`at` = left wire's flat index). */
+export interface BBLabel {
+  uid: string;
+  at: number;
+  kind: "neq" | "eq";
+}
+
 export type BBPhase = "setup-info" | "playing" | "resolving" | "mission-won" | "mission-lost";
 
 /**
@@ -765,10 +775,12 @@ export type BBPendingAction =
       kind: "dual-cut";
       by: string;
       target: string;
-      /** Flat slot indices across the target's stands (1 normally; 2 with the Double Detector). */
+      /** Flat slot indices across the target's stands: 1, or 2/3/all with a detector. */
       slots: number[];
       declared: BBDeclared;
-      detector: "none" | "double";
+      /** Second value from the X or Y Ray (#10). */
+      alsoDeclared?: BBDeclared;
+      detector: BBDetector;
     }
   | { kind: "own-cut"; by: string; declared: BBDeclared };
 
@@ -792,6 +804,13 @@ export interface BBGame {
   equipment: { id: number; unlocked: boolean; used: boolean }[];
   characters: Record<string, { used: boolean }>;
   pendingAction: BBPendingAction | null;
+  labels: BBLabel[];
+  /** General Radar (#8) in progress: each player's client answers from its own stand. */
+  radar: { by: string; value: number; answers: Record<string, boolean | null> } | null;
+  /** Stabilizer (#9) is active for the current player's Dual Cut. */
+  stabilized: boolean;
+  /** Walkie-Talkies (#2): `by` has handed a wire to `to`, who must hand one back. */
+  pendingSwap: { by: string; to: string; fromSlot: number; stage: "await-target" | "await-return" } | null;
   log: { at: number; text: string }[];
   result: { outcome: "won" | "lost"; reason: string } | null;
 }
@@ -800,4 +819,6 @@ export interface BBHand {
   ownerUid: string;
   /** One entry per stand, sorted ascending by sortKey; mirrors the public slots. */
   stands: { wires: BBHandWire[] }[];
+  /** Walkie-Talkies: a wire handed to this player, merged into their stand by their own client. */
+  incoming?: BBWire[];
 }

@@ -185,3 +185,25 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
   .bb-wire { width: 26px; height: 38px; font-size: 0.85rem; }
   .bb-teammates { grid-template-columns: 1fr; }
 }
+
+/* ---- Equipment in play ---- */
+.bb-equipment__card .btn { justify-self: start; margin-top: 0.25rem; }
+.bb-tag--on { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+.bb-radar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.bb-equip-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent-secondary);
+  border-radius: var(--r-3);
+  background: color-mix(in srgb, var(--accent-secondary) 8%, var(--surface));
+  font-size: 0.9rem;
+}
+.bb-label-mark {
+  margin-top: -0.1rem;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+}

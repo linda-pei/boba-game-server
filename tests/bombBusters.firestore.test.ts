@@ -60,6 +60,11 @@ describe("Bomb Busters stand privacy", () => {
     await assertFails(updateDoc(aliceStand("bob"), { stands: [] }));
   });
 
+  it("lets a teammate deliver a Walkie-Talkies wire, touching only `incoming`", async () => {
+    await assertSucceeds(updateDoc(aliceStand("bob"), { incoming: [{ id: "B3-1", color: "blue", sortKey: 3 }] }));
+    await assertFails(updateDoc(aliceStand("bob"), { incoming: [], stands: [] }));
+  });
+
   it("lets the host deal a new mission and clean up without reading", async () => {
     await assertSucceeds(setDoc(aliceStand("host"), { ownerUid: "alice", ...stand }));
     await assertSucceeds(deleteDoc(aliceStand("host")));

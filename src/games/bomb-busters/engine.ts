@@ -147,8 +147,9 @@ export function uncutWires(hand: BBHandWire[][]): BBHandWire[] {
 // ---- Legality ----
 
 /** You may only name a value (or yellow) you hold yourself. Red can never be named. */
-export function canDeclare(hand: BBHandWire[][], declared: BBDeclared): boolean {
-  return uncutWires(hand).some((wire) => wireMatches(wire, declared));
+export function canDeclare(hand: BBHandWire[][], declared: BBDeclared | BBDeclared[]): boolean {
+  const values = Array.isArray(declared) ? declared : [declared];
+  return values.every((value) => uncutWires(hand).some((wire) => wireMatches(wire, value)));
 }
 
 function remainingOf(declared: BBDeclared, totals: BBGame["wireTotals"], cuts: BBGame["cutCounts"]): number {
@@ -193,13 +194,63 @@ export type DualCutOutcome =
  * Any match succeeds (the target picks if several match). With no match, the bomb explodes
  * only if every wire pointed at is red; otherwise the target puts an info token on a non-red one.
  */
-export function resolveDualCut(pointed: BBWire[], declared: BBDeclared): DualCutOutcome {
+export function resolveDualCut(pointed: BBWire[], declared: BBDeclared | BBDeclared[]): DualCutOutcome {
   if (pointed.length === 0) throw new Error("Point at a wire.");
-  const matching = pointed.flatMap((wire, index) => (wireMatches(wire, declared) ? [index] : []));
+  const values = Array.isArray(declared) ? declared : [declared];
+  const matching = pointed.flatMap((wire, index) => (values.some((value) => wireMatches(wire, value)) ? [index] : []));
   if (matching.length > 0) return { result: "success", matching };
   const nonRed = pointed.flatMap((wire, index) => (wire.color !== "red" ? [index] : []));
   if (nonRed.length === 0) return { result: "explode" };
   return { result: "wrong", infoCandidates: nonRed };
+}
+
+/** Which of the named values a wire matches (for the active player's own cut after an X or Y Ray). */
+export function matchedValue(wire: BBWire, declared: BBDeclared[]): BBDeclared {
+  const value = declared.find((item) => wireMatches(wire, item));
+  if (value === undefined) throw new Error("That wire doesn't match.");
+  return value;
+}
+
+/** Equality used by the ≠ and = labels: blue by number; all yellow equal; all red equal. */
+export function sameValue(a: BBWire, b: BBWire): boolean {
+  if (a.color !== b.color) return false;
+  return a.color === "blue" ? a.sortKey === b.sortKey : true;
+}
+
+/** Two flat slots are adjacent when they sit next to each other on the same stand. */
+export function areAdjacent(stands: unknown[][], left: number): boolean {
+  const a = locateSlot(stands, left);
+  try {
+    const b = locateSlot(stands, left + 1);
+    return a.stand === b.stand;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * After a Walkie-Talkies swap, re-sort a stand and carry each wire's public slot (cut state, info
+ * token) to its new position. The incoming wire starts uncut with no token.
+ */
+export function swapIntoHand(
+  hand: BBHandWire[][],
+  slots: BBPublicSlot[][],
+  giveSlot: number,
+  incoming: BBWire,
+): { hand: BBHandWire[][]; slots: BBPublicSlot[][]; given: BBHandWire } {
+  const { stand } = locateSlot(hand, giveSlot);
+  const flat = hand.flat();
+  const given = flat[giveSlot];
+  if (!given || given.cut) throw new Error("Pick one of your uncut wires.");
+  const slotById = new Map(hand.flat().map((wire, index) => [wire.id, slots.flat()[index]]));
+  const nextHand = hand.map((wires, index) => {
+    if (index !== stand) return wires;
+    return sortStand([...wires.filter((wire) => wire.id !== given.id), { ...incoming, cut: false }]);
+  });
+  const nextSlots = nextHand.map((wires) =>
+    wires.map((wire) => (wire.id === incoming.id ? { cut: false } : slotById.get(wire.id) ?? { cut: wire.cut })),
+  );
+  return { hand: nextHand, slots: nextSlots, given };
 }
 
 export function infoTokenFor(wire: BBWire): BBInfoToken {
@@ -329,9 +380,9 @@ export function finishTurn(game: BBGame, actor: string): BBGame {
   if (game.phase === "mission-lost") return game;
   const stands = unwrapPublic(game.stands);
   if (isMissionWon(stands)) {
-    return { ...game, phase: "mission-won", pendingAction: null, result: { outcome: "won", reason: "Every wire is cut." } };
+    return { ...game, phase: "mission-won", pendingAction: null, stabilized: false, result: { outcome: "won", reason: "Every wire is cut." } };
   }
-  return { ...game, phase: "playing", pendingAction: null, turn: nextTurn(game.playerOrder, actor, stands) };
+  return { ...game, phase: "playing", pendingAction: null, stabilized: false, turn: nextTurn(game.playerOrder, actor, stands) };
 }
 
 // ---- Building a mission ----
@@ -363,6 +414,10 @@ export function buildMission(playerOrder: string[], mission: BBMission, random: 
     equipment: drawEquipment(mission, playerOrder.length, random).map((id) => ({ id, unlocked: false, used: false })),
     characters: Object.fromEntries(playerOrder.map((uid) => [uid, { used: false }])),
     pendingAction: null,
+    labels: [],
+    radar: null,
+    stabilized: false,
+    pendingSwap: null,
     log: [],
     result: null,
   };
