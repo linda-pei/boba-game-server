@@ -297,7 +297,9 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
         .catch(fail("Could not resolve the cut."));
     } else if (pending?.kind === "own-cut" && pending.by === uid) {
       handledPending.current = autoKey;
-      completeOwnCut(roomCode, uid).catch(fail("Could not cut your wire."));
+      completeOwnCut(roomCode, uid)
+        .then((result) => setChoice(result.status === "needs-choice" ? result : null))
+        .catch(fail("Could not cut your wire."));
     } else if (swap?.by === uid && swap.stage === "await-return") {
       handledPending.current = autoKey;
       finishWalkieTalkies(roomCode, uid).catch(fail("Could not finish the swap."));
@@ -388,9 +390,10 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   };
   const onPickMine = (index: number) => {
     if (choice) {
+      const resolve = choice.choose === "own" ? completeOwnCut : resolveDualCutAsTarget;
       setChoice(null);
       return void run(async () => {
-        const result = await resolveDualCutAsTarget(roomCode, uid, index);
+        const result = await resolve(roomCode, uid, index);
         if (result.status === "needs-choice") setChoice(result);
       });
     }
@@ -402,7 +405,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   };
 
   const status = (() => {
-    if (choice) return { mood: "mine" as const, text: choice.choose === "cut" ? "More than one wire matches: choose which one is cut." : "Choose which wire gets the info token." };
+    if (choice) {
+      const text = {
+        own: "Correct! Choose which of your matching wires to cut.",
+        cut: "More than one wire matches: choose which one is cut.",
+        info: "Choose which wire gets the info token.",
+      }[choice.choose];
+      return { mood: "mine" as const, text };
+    }
     if (swapReturnOwed) return { mood: "mine" as const, text: `${name(room, swap!.by)} handed you a wire (Walkie-Talkies): pick one of yours to hand back.` };
     switch (game.phase) {
       case "setup-info":

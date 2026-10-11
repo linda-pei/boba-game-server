@@ -217,7 +217,7 @@ export async function declareDualCut(
 
 export type ResolveResult =
   | { status: "done" }
-  | { status: "needs-choice"; choose: "cut" | "info"; options: number[] };
+  | { status: "needs-choice"; choose: "cut" | "info" | "own"; options: number[] };
 
 /**
  * Dual Cut, step 2 — runs on the target's client, which is the only one that can read their stand.
@@ -279,17 +279,26 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 }
 
 /** Dual Cut, step 3 — the active player's client turns up one of their own matching wires. */
-export async function completeOwnCut(roomCode: string, uid: string): Promise<void> {
-  await runTransaction(db, async (transaction) => {
+/**
+ * Dual Cut, step 3 — the active player turns up one of their own matching wires. With several
+ * matches the player chooses which (it reveals a position), so `choice` is needed then.
+ */
+export async function completeOwnCut(roomCode: string, uid: string, choice?: number): Promise<ResolveResult> {
+  return runTransaction(db, async (transaction): Promise<ResolveResult> => {
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     const pending = game.pendingAction;
-    if (game.phase !== "resolving" || pending?.kind !== "own-cut" || pending.by !== uid) return;
+    if (game.phase !== "resolving" || pending?.kind !== "own-cut" || pending.by !== uid) return { status: "done" };
 
     const wires = hand.flat();
-    const slot = wires.findIndex((wire) => !wire.cut && resolveDualCut([wire], pending.declared).result === "success");
-    if (slot === -1) throw new Error("No matching wire left to cut.");
+    const options = wires.flatMap((wire, index) => (!wire.cut && resolveDualCut([wire], pending.declared).result === "success" ? [index] : []));
+    if (options.length === 0) throw new Error("No matching wire left to cut.");
+    if (options.length > 1 && (choice === undefined || !options.includes(choice))) {
+      return { status: "needs-choice", choose: "own", options };
+    }
+    const slot = options.length > 1 ? choice! : options[0];
     transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
     transaction.set(gameRef, finishTurn(applyCutToGame(game, uid, slot, wires[slot]), uid));
+    return { status: "done" };
   });
 }
 
