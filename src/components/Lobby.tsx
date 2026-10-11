@@ -228,29 +228,29 @@ export default function Lobby() {
       </PlayerChipList>
 
       <div className="settings-panel">
-        <h3>Settings</h3>
-
-        {/* Game type selector */}
+        {/* Game picker: title and filters share one row, wrapping on narrow screens */}
         <div className="game-selector">
-          <label className="game-selector-label">Game</label>
-          <div className="game-filters" role="group" aria-label="Filter games">
-            <div className="mode-toggle">
-              {(["all", "co-op", "competitive"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  className={`mode-toggle-btn${modeFilter === filter ? " active" : ""}`}
-                  aria-pressed={modeFilter === filter}
-                  onClick={() => setModeFilter(filter)}
-                >
-                  {filter === "all" ? "All" : filter === "co-op" ? "Co-op" : "Competitive"}
-                </button>
-              ))}
+          <div className="game-selector__header">
+            <h3>Pick your game</h3>
+            <div className="game-filters" role="group" aria-label="Filter games">
+              <div className="mode-toggle">
+                {(["all", "co-op", "competitive"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    className={`mode-toggle-btn${modeFilter === filter ? " active" : ""}`}
+                    aria-pressed={modeFilter === filter}
+                    onClick={() => setModeFilter(filter)}
+                  >
+                    {filter === "all" ? "All" : filter === "co-op" ? "Co-op" : "Competitive"}
+                  </button>
+                ))}
+              </div>
+              <label className="game-filters__fits">
+                <input type="checkbox" checked={fitsPlayersOnly} onChange={(e) => setFitsPlayersOnly(e.target.checked)} />
+                Fits your player count
+              </label>
             </div>
-            <label className="game-filters__fits">
-              <input type="checkbox" checked={fitsPlayersOnly} onChange={(e) => setFitsPlayersOnly(e.target.checked)} />
-              Fits your player count
-            </label>
           </div>
           {filtersActive && matchingGameIds.length === 0 && (
             <div className="game-filters__empty" role="status">
