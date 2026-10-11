@@ -6,7 +6,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
 
 const projectId = "demo-clover";
 const devEmail = "dev@example.com";
@@ -52,6 +52,10 @@ describe("dev feedback rules", () => {
     await assertSucceeds(setDoc(doc(dev(), "devFeedback", "new", "images", "0"), { dataUrl: "data:" }));
     await assertSucceeds(getDoc(doc(dev(), "devFeedback", "existing")));
     await assertSucceeds(deleteDoc(doc(dev(), "devFeedback", "existing")));
+  });
+
+  it("lets the overlay watch resolved notes with a status query", async () => {
+    await assertSucceeds(getDocs(query(collection(dev(), "devFeedback"), where("status", "==", "resolved"))));
   });
 
   it("never lets clients edit the allowlist", async () => {

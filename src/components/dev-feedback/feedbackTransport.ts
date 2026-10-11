@@ -10,10 +10,12 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import type { FeedbackContext } from "./feedbackContext";
 import type { FeedbackEntry, FeedbackImageUpload } from "./feedbackUtils";
 
 export interface SubmittedFeedback extends FeedbackEntry {
   imageUploads?: FeedbackImageUpload[];
+  context?: FeedbackContext;
 }
 
 /** Where the overlay sends notes and how it learns which ones the agent finished. */
@@ -106,7 +108,7 @@ async function shrinkImage(upload: FeedbackImageUpload): Promise<FeedbackImageUp
 
 export const firestoreFeedbackTransport: FeedbackTransport = {
   label: "Production dev mode",
-  async submit({ imageUploads = [], ...entry }) {
+  async submit({ imageUploads = [], context, ...entry }) {
     try {
       const images = await Promise.all(imageUploads.map(shrinkImage));
       const feedbackRef = doc(db, DEV_FEEDBACK_COLLECTION, entry.id);
@@ -115,6 +117,8 @@ export const firestoreFeedbackTransport: FeedbackTransport = {
         ...entry,
         status: "pending",
         imageCount: images.length,
+        // Stored as a string: game state can hold values Firestore maps reject (e.g. undefined).
+        contextJson: context ? JSON.stringify(context) : null,
         createdBy: auth.currentUser?.email ?? null,
         submittedAt: serverTimestamp(),
       });

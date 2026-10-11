@@ -17,6 +17,7 @@ dist-ssr
 .codex/dev-feedback.json
 .codex/dev-feedback-resolved.json
 .codex/dev-feedback-images/
+.codex/dev-feedback-context/
 
 # Firebase local cache
 .firebase/

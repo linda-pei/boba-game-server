@@ -2,10 +2,14 @@ import { initializeApp } from "firebase/app";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { connectAuthEmulator, getAuth } from "firebase/auth";
 
-// TODO: Replace with your Firebase project config
+// On Firebase Hosting, serve the auth handler from the page's own domain (web.app or
+// firebaseapp.com). Redirect sign-in breaks in browsers that partition third-party storage
+// when authDomain differs from the site's domain.
+const isFirebaseHostingDomain = !import.meta.env.DEV && /\.(web\.app|firebaseapp\.com)$/.test(window.location.hostname);
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  authDomain: isFirebaseHostingDomain ? window.location.hostname : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,

@@ -321,14 +321,19 @@
 
 .ds-diver-returned { opacity: 0.5; }
 
-/* Carried shapes row inside score-row */
+/* Carried shapes sit on the name's line, wrapping below only when the row runs out of room */
+.ds-diver-row .score-name { flex: 0 1 auto; min-width: 7rem; }
+.ds-diver-row > :not(.score-name):not(.ds-carried-shapes) { order: 2; }
+
 .ds-carried-shapes {
+  order: 1;
   display: flex;
+  flex: 1 0 auto;
+  max-width: 100%;
+  min-height: 36px; /* one row of chips (30px + group border) */
+  align-items: center;
   gap: 0.3rem;
   flex-wrap: wrap;
-  width: 100%;
-  margin-top: 0.2rem;
-  padding-left: 80px;
 }
 
 .ds-carried-group {
@@ -504,6 +509,9 @@
     height: 24px;
     font-size: 0.9rem;
   }
+
+  .ds-carried-shapes { min-height: 30px; }
+  .ds-diver-row .score-name { min-width: 5.5rem; }
 
   .ds-diver-token {
     width: 14px;
