@@ -1,0 +1,185 @@
+/* Robotrick: banner and screen card share one width, like the other games. */
+#root:has(.rt-wrap) { max-width: 100%; }
+.game-screen-wrap.rt-wrap { max-width: min(100%, 1040px); }
+
+.screen.rt-screen {
+  display: grid;
+  gap: 1rem;
+  max-width: none;
+  font-family: var(--font-body);
+}
+
+.rt-screen h3,
+.rt-screen h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.rt-muted { margin: 0.75rem 0 0; color: var(--ink-soft); text-align: center; }
+
+/* ---- Robot cards ---- */
+.rt-card {
+  --rt-type-color: var(--rt-steel-dark);
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 54px;
+  height: 76px;
+  padding: 0;
+  border: 2px solid var(--rt-type-color);
+  border-radius: var(--r-2);
+  background: linear-gradient(180deg, var(--rt-type-color) 0 22%, var(--surface) 22% 100%);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+  font-family: var(--font-display);
+  user-select: none;
+}
+.rt-card--A { --rt-type-color: var(--rt-a); }
+.rt-card--B { --rt-type-color: var(--rt-b); }
+.rt-card--C { --rt-type-color: var(--rt-c); }
+.rt-card--D { --rt-type-color: var(--rt-d); }
+
+.rt-card__type {
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.rt-card__strength { margin-top: 0.6rem; font-size: 1.35rem; font-weight: 800; }
+.rt-card__vp {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  min-width: 1.2rem;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--rt-type-color);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.2rem;
+  text-align: center;
+}
+
+.rt-card--small { width: 34px; height: 46px; border-radius: var(--r-1); box-shadow: none; }
+.rt-card--small .rt-card__type { font-size: 0.55rem; left: 4px; }
+.rt-card--small .rt-card__strength { margin-top: 0.4rem; font-size: 0.9rem; }
+.rt-card--small .rt-card__vp { min-width: 0.9rem; font-size: 0.5rem; line-height: 0.9rem; }
+
+.rt-card--back {
+  background: repeating-linear-gradient(45deg, var(--rt-steel-dark) 0 6px, var(--rt-steel) 6px 12px);
+  border-color: var(--rt-steel-dark);
+}
+.rt-card--empty {
+  background: var(--surface-2);
+  border: 2px dashed var(--border-strong);
+  box-shadow: none;
+}
+
+/* Selection uses the shared .game-card hover/selected feedback; dim unplayable cards. */
+.rt-card.game-card { cursor: pointer; }
+.rt-card.game-card.disabled { cursor: not-allowed; opacity: 0.45; filter: saturate(0.5); }
+.rt-card.game-card.selected { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent); }
+
+/* ---- Droco + AI card ---- */
+.rt-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  gap: 1rem;
+  align-items: start;
+}
+
+.rt-droco,
+.rt-ai,
+.rt-trick,
+.rt-hand,
+.rt-results {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  padding: 0.85rem 1rem;
+}
+
+.rt-droco__header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.6rem; }
+.rt-trump { display: flex; align-items: center; gap: 0.5rem; color: var(--ink-soft); font-size: 0.85rem; font-weight: 700; }
+
+.rt-droco-hand { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.rt-droco-hand__column { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; min-width: 0; }
+.rt-droco-hand__cards { display: grid; grid-auto-flow: column; justify-content: center; gap: 0.3rem; }
+.rt-droco-hand__type {
+  width: 100%;
+  border-radius: var(--r-1);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+}
+.rt-type--A { background: var(--rt-a); }
+.rt-type--B { background: var(--rt-b); }
+.rt-type--C { background: var(--rt-c); }
+.rt-type--D { background: var(--rt-d); }
+
+.rt-ai-wrap { display: grid; gap: 0.5rem; }
+.rt-ai__title { margin-bottom: 0.5rem; font-family: var(--font-display); font-weight: 800; }
+.rt-ai__columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+.rt-ai__column {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
+  font-size: 0.78rem;
+}
+.rt-ai__column--active { border-color: var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 12%, var(--surface-2)); }
+.rt-ai__label { color: var(--ink-soft); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.rt-ai__criterion { font-weight: 700; }
+.rt-ai__tiebreak { margin-top: 0.4rem; color: var(--ink-soft); font-size: 0.75rem; }
+.rt-droco-reason { margin: 0; color: var(--ink-soft); font-size: 0.82rem; }
+
+/* ---- Trick ---- */
+.rt-trick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; justify-items: center; }
+.rt-trick__seat {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 0.25rem;
+  border: 2px solid transparent;
+  border-radius: var(--r-2);
+}
+.rt-trick__seat--turn { border-color: var(--accent-primary); }
+.rt-trick__seat--winner { border-color: var(--accent-secondary); background: color-mix(in srgb, var(--accent-secondary) 12%, transparent); }
+.rt-trick__name { color: var(--ink-soft); font-size: 0.8rem; font-weight: 700; text-align: center; }
+
+/* ---- Your hand ---- */
+.rt-hand h4 { margin-bottom: 0.6rem; color: var(--ink-soft); font-size: 0.9rem; }
+.rt-hand__cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.45rem; }
+.rt-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 0.85rem; }
+
+/* ---- Hangars ---- */
+.rt-standing .score-name { flex: 0 1 auto; min-width: 6rem; }
+.rt-hangar { display: inline-flex; flex: 1 0 auto; gap: 0.25rem; }
+.rt-hangar__slot {
+  width: 34px;
+  height: 46px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--r-1);
+}
+
+@media (max-width: 760px) {
+  .rt-table { grid-template-columns: 1fr; }
+  /* Four columns of two-wide stacks don't fit at phone width: use compact cards for Droco. */
+  .rt-droco-hand .rt-card { width: 34px; height: 46px; border-radius: var(--r-1); box-shadow: none; }
+  .rt-droco-hand .rt-card__strength { margin-top: 0.4rem; font-size: 0.9rem; }
+  .rt-droco-hand .rt-card__type { font-size: 0.55rem; left: 4px; }
+  .rt-droco-hand .rt-card__vp { min-width: 0.9rem; font-size: 0.5rem; line-height: 0.9rem; }
+  .rt-card { width: 46px; height: 64px; }
+  .rt-card__strength { font-size: 1.1rem; }
+  .rt-trick { gap: 0.4rem; }
+}
