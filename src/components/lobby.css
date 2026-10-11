@@ -51,6 +51,24 @@
   margin-bottom: 0.75rem;
 }
 
+/* ---- Game picker filters ---- */
+.lobby .game-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.9rem;
+}
+.lobby .game-filters .mode-toggle { margin-bottom: 0; }
+.lobby .game-filters__fits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 /* ---- Mode toggle — pill switch ---- */
 .lobby .mode-toggle {
   display: inline-flex;

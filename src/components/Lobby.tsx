@@ -18,10 +18,12 @@ import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
 import BrandTitle from "./shared/BrandTitle";
 import GameSticker from "./shared/GameSticker";
-import { GAME_ID_TO_KEY } from "./shared/gameMeta";
+import { GAME_ID_TO_KEY, GAME_META, type GameMode } from "./shared/gameMeta";
 import PlayerCountStatus from "./shared/PlayerCountStatus";
 import ConfirmButton from "./shared/ConfirmButton";
 import { PlayerChipList, PlayerChip, Badge } from "./shared/PlayerChipList";
+
+const ALL_GAME_IDS = ["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const;
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -29,6 +31,9 @@ export default function Lobby() {
   const { room, loading, error } = useRoom(roomCode);
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+  // Game-picker filters are per viewer (not saved to the room); off by default.
+  const [modeFilter, setModeFilter] = useState<GameMode | "all">("all");
+  const [fitsPlayersOnly, setFitsPlayersOnly] = useState(false);
 
   // Auto-join if the player opened the lobby link but isn't in the room yet
   useEffect(() => {
@@ -126,6 +131,15 @@ export default function Lobby() {
     ? canStartOrderOverload
     : canStartTIR;
 
+  // The selected game always stays visible so the current choice never disappears behind a filter.
+  const visibleGameIds = ALL_GAME_IDS.filter((id) => {
+    if (id === gameType) return true;
+    const meta = GAME_META[GAME_ID_TO_KEY[id]];
+    if (modeFilter !== "all" && !meta.modes.includes(modeFilter)) return false;
+    if (fitsPlayersOnly && (players.length < meta.minPlayers || players.length > meta.maxPlayers)) return false;
+    return true;
+  });
+
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
     await leaveRoom(roomCode, uid);
@@ -216,8 +230,27 @@ export default function Lobby() {
         {/* Game type selector */}
         <div className="game-selector">
           <label className="game-selector-label">Game</label>
+          <div className="game-filters" role="group" aria-label="Filter games">
+            <div className="mode-toggle">
+              {(["all", "co-op", "competitive"] as const).map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  className={`mode-toggle-btn${modeFilter === filter ? " active" : ""}`}
+                  aria-pressed={modeFilter === filter}
+                  onClick={() => setModeFilter(filter)}
+                >
+                  {filter === "all" ? "All" : filter === "co-op" ? "Co-op" : "Competitive"}
+                </button>
+              ))}
+            </div>
+            <label className="game-filters__fits">
+              <input type="checkbox" checked={fitsPlayersOnly} onChange={(e) => setFitsPlayersOnly(e.target.checked)} />
+              Fits {players.length} player{players.length === 1 ? "" : "s"}
+            </label>
+          </div>
           <div className="game-sticker-grid">
-            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const).map((id) => (
+            {visibleGameIds.map((id) => (
               <GameSticker
                 key={id}
                 game={GAME_ID_TO_KEY[id]}

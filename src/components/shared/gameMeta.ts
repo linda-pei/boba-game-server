@@ -1,16 +1,30 @@
 /** Game identity shared by icons, stickers, banners and the lobby. */
 export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover" | "rt";
 
-export const GAME_META: Record<
-  GameKey,
-  { id: string; name: string; tagline: string; players: string; badge: string }
-> = {
+export type GameMode = "co-op" | "competitive";
+
+export interface GameMetaEntry {
+  id: string;
+  name: string;
+  tagline: string;
+  players: string;
+  badge: string;
+  /** Used by the lobby filters. Things in Rings supports both. */
+  modes: GameMode[];
+  minPlayers: number;
+  maxPlayers: number;
+}
+
+export const GAME_META: Record<GameKey, GameMetaEntry> = {
   tir: {
     id: "things-in-rings",
     name: "Things in Rings",
     tagline: "Deduce the secret categories.",
     players: "3–7 players",
     badge: "deduction",
+    modes: ["co-op", "competitive"],
+    minPlayers: 3,
+    maxPlayers: 7,
   },
   scout: {
     id: "scout",
@@ -18,6 +32,9 @@ export const GAME_META: Record<
     tagline: "Play sets to dump your hand fast.",
     players: "3–5 players",
     badge: "tactical",
+    modes: ["competitive"],
+    minPlayers: 3,
+    maxPlayers: 5,
   },
   ww: {
     id: "werewords",
@@ -25,6 +42,9 @@ export const GAME_META: Record<
     tagline: "Guess the secret word. Spot the wolf.",
     players: "4–11 players",
     badge: "social",
+    modes: ["competitive"],
+    minPlayers: 4,
+    maxPlayers: 11,
   },
   oo: {
     id: "order-overload",
@@ -32,6 +52,9 @@ export const GAME_META: Record<
     tagline: "Race the clock. Sort the orders.",
     players: "2–6 players",
     badge: "co-op memory",
+    modes: ["co-op"],
+    minPlayers: 2,
+    maxPlayers: 6,
   },
   ds: {
     id: "deep-sea",
@@ -39,6 +62,9 @@ export const GAME_META: Record<
     tagline: "Push your luck. Don't lose the air.",
     players: "2–6 players",
     badge: "push-your-luck",
+    modes: ["competitive"],
+    minPlayers: 2,
+    maxPlayers: 6,
   },
   tt: {
     id: "take-time",
@@ -46,6 +72,9 @@ export const GAME_META: Record<
     tagline: "Co-op puzzle. Read the clock. Place the card.",
     players: "2–4 players",
     badge: "co-op puzzle",
+    modes: ["co-op"],
+    minPlayers: 2,
+    maxPlayers: 4,
   },
   fb: {
     id: "fruit-boss",
@@ -53,6 +82,9 @@ export const GAME_META: Record<
     tagline: "Stack fruits. Topple rivals. Score the market.",
     players: "2–4 players",
     badge: "set collection",
+    modes: ["competitive"],
+    minPlayers: 2,
+    maxPlayers: 4,
   },
   su: {
     id: "startups",
@@ -60,6 +92,9 @@ export const GAME_META: Record<
     tagline: "Corner the market. Cash in the shares.",
     players: "3–6 players",
     badge: "share holding",
+    modes: ["competitive"],
+    minPlayers: 3,
+    maxPlayers: 6,
   },
   clover: {
     id: "clover",
@@ -67,6 +102,9 @@ export const GAME_META: Record<
     tagline: "Write the link. Rebuild the Clover.",
     players: "3–6 players",
     badge: "co-op word play",
+    modes: ["co-op"],
+    minPlayers: 3,
+    maxPlayers: 6,
   },
   rt: {
     id: "robotrick",
@@ -74,6 +112,9 @@ export const GAME_META: Record<
     tagline: "Outwit Droco. Salvage the best robots.",
     players: "3 players",
     badge: "trick-taking",
+    modes: ["competitive"],
+    minPlayers: 3,
+    maxPlayers: 3,
   },
 };
 
