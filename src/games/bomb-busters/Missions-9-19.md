@@ -116,5 +116,5 @@ Defaults (change any of these if they're wrong):
    - With 2 players, back-to-back turns are allowed.
 8. **Mission 11:** other players place setup info tokens as usual, including on the deadly value. Naming the deadly value in a Dual Cut is blocked, since a successful cut of it would explode anyway.
 9. **Mission 12:** if a number card shows the same value as the equipment it covers, cutting that value's first pair satisfies both.
-10. **Mission 15:** each time a number card's 4 wires are cut, a random face-down equipment card flips.
+10. **Mission 15:** each time a number card's 4 wires are cut, the next face-down equipment card flips, going left to right.
 11. **Mission 17:** Red Herring's General Radar answers and Walkie-Talkies swaps are truthful. Only info tokens are fake.
