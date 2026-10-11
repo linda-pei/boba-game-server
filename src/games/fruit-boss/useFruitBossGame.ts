@@ -13,6 +13,7 @@ import type {
   FruitCard,
   FruitStack,
   FruitSuit,
+  FruitScoreBreakdown,
 } from "../../types";
 import {
   buildDeck,
@@ -310,8 +311,8 @@ function refillMarket(
   deck: FruitCard[],
   stallCounter: { n: number }
 ): { market: (FruitStack | null)[]; deck: FruitCard[] } {
-  let m = [...market];
-  let d = [...deck];
+  const m = [...market];
+  const d = [...deck];
   while (m.filter(Boolean).length <= 1 && d.length > 0) {
     for (let i = 0; i < m.length; i++) {
       if (!m[i] && d.length > 0) {

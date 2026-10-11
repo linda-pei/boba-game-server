@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import confetti from "canvas-confetti";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 import type { Room, StartupsGame } from "../../types";
@@ -27,17 +26,7 @@ export default function GameOver({ game, room }: Props) {
           (game.scoreBreakdowns?.[a]?.totalPoints ?? 0)
       );
 
-  useEffect(() => {
-    if (game.winner !== uid) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, [game.winner, uid]);
+  useCelebration(game.winner === uid);
 
   return (
     <div className="su-game-over">

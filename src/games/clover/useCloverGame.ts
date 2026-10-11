@@ -22,6 +22,7 @@ import {
   getNextCloverPlayer,
   hasValidCloverClues,
   isCompleteCloverPlacement,
+  randomCloverRotations,
 } from "./engine";
 
 const EMPTY_CLUES: Record<CloverClueZone, string> = {
@@ -140,7 +141,10 @@ export async function submitCloverClues(
       [uid]: {
         spectatorUid: uid,
         clues,
-        candidateCards: board.candidateCards,
+        // Shuffle and pre-rotate once so every player sees the same tray, and the
+        // dealt order/orientation doesn't hint at the decoy or the answer.
+        candidateCards: shuffled(board.candidateCards),
+        trayRotations: randomCloverRotations(board.candidateCards),
       },
     };
     const allSubmitted = submittedClueUids.length === game.playerOrder.length;

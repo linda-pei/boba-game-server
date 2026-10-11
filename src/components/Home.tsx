@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../hooks/AuthContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 import { createRoom, joinRoom } from "../hooks/useRoom";
 import BrandTitle from "./shared/BrandTitle";
 

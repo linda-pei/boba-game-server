@@ -6,10 +6,8 @@ import type {
   DeepSeaHand,
   DeepSeaDiver,
   TreasureChip,
-  PathSpace,
   Room,
 } from "../../types";
-import { shuffled } from "../../utils/shuffle";
 import {
   generateTreasureChips,
   buildInitialPath,
@@ -27,10 +25,8 @@ export function useDeepSeaGame(roomCode: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "games", roomCode),
@@ -51,7 +47,7 @@ export function useDeepSeaGame(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { game, loading };
+  return { game, loading: roomCode ? loading : false };
 }
 
 export function useDeepSeaHand(

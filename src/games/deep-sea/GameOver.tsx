@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
-import confetti from "canvas-confetti";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { DeepSeaGame, Room } from "../../types";
 import { LEVEL_SHAPES, LEVEL_CLASSES } from "./constants";
@@ -11,33 +10,13 @@ interface Props {
   room: Room;
 }
 
-export default function GameOver({ roomCode, game, room }: Props) {
+export default function GameOver({ game, room }: Props) {
   const { uid } = useAuthContext();
   const isHost = room.host === uid;
 
   const isWinner = game.winner === uid;
 
-  useEffect(() => {
-    if (!isWinner) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.7 },
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.7 },
-      });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, [isWinner]);
+  useCelebration(isWinner);
 
   if (!game.finalScores) return null;
 

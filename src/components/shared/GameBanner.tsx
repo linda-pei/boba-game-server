@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import GameIcon, { GAME_META, type GameKey } from "./GameIcon";
+import GameIcon from "./GameIcon";
+import { GAME_META, type GameKey } from "./gameMeta";
 import "./game-chrome.css";
 
 interface Props {

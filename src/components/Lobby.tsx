@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuthContext } from "../hooks/AuthContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 import "./lobby.css";
 import { useRoom, joinRoom, leaveRoom, updateRoomSettings } from "../hooks/useRoom";
 import { startGame } from "../games/things-in-rings/useGame";
@@ -17,7 +17,7 @@ import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
 import BrandTitle from "./shared/BrandTitle";
 import GameSticker from "./shared/GameSticker";
-import { GAME_ID_TO_KEY } from "./shared/GameIcon";
+import { GAME_ID_TO_KEY } from "./shared/gameMeta";
 import PlayerCountStatus from "./shared/PlayerCountStatus";
 import ConfirmButton from "./shared/ConfirmButton";
 import { PlayerChipList, PlayerChip, Badge } from "./shared/PlayerChipList";
@@ -128,11 +128,6 @@ export default function Lobby() {
   const handleSetKnower = (playerId: string) => {
     if (!roomCode) return;
     updateRoomSettings(roomCode, { knower: playerId });
-  };
-
-  const handleSetRings = (numRings: number) => {
-    if (!roomCode) return;
-    updateRoomSettings(roomCode, { numRings });
   };
 
   const handleSetMode = (newMode: "competitive" | "coop") => {

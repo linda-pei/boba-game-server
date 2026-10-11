@@ -1,4 +1,5 @@
-import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useRoom } from "../hooks/useRoom";
 import { useEmotes } from "../hooks/useEmotes";
 import GameBoard from "../games/things-in-rings/GameBoard";
@@ -18,6 +19,14 @@ export default function GameRouter() {
   const { roomCode } = useParams<{ roomCode: string }>();
   const { room, loading } = useRoom(roomCode);
   const { emotes, sendEmote, canSend } = useEmotes(roomCode);
+  const navigate = useNavigate();
+
+  // If the room went back to the lobby (e.g. host hit "Back to Lobby"), follow it there.
+  useEffect(() => {
+    if (roomCode && room?.status === "lobby") {
+      navigate(`/lobby/${roomCode}`, { replace: true });
+    }
+  }, [room?.status, roomCode, navigate]);
 
   if (!roomCode) return <p>No room code.</p>;
   if (loading) return <p>Loading...</p>;

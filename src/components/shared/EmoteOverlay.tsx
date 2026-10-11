@@ -1,20 +1,17 @@
-import { useRef } from "react";
 import type { Emote } from "../../hooks/useEmotes";
+
+/** Stable pseudo-random x-offset (0–239px) derived from the emote id, so it never jumps between renders. */
+function offsetFor(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(hash) % 240;
+}
 
 interface Props {
   emotes: Emote[];
 }
 
 export default function EmoteOverlay({ emotes }: Props) {
-  const offsets = useRef<Record<string, number>>({});
-
-  // Assign a stable random x-offset the first time we see each emote
-  emotes.forEach((e) => {
-    if (!(e.id in offsets.current)) {
-      offsets.current[e.id] = Math.floor(Math.random() * 240);
-    }
-  });
-
   if (emotes.length === 0) return null;
 
   return (
@@ -23,7 +20,7 @@ export default function EmoteOverlay({ emotes }: Props) {
         <div
           key={emote.id}
           className="emote-rise-wrapper"
-          style={{ right: offsets.current[emote.id] ?? 0 }}
+          style={{ right: offsetFor(emote.id) }}
         >
           <div className="emote-float">
             <span className="emote-float-emoji">{emote.emoji}</span>

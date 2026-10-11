@@ -59,7 +59,6 @@ export default function BoardPath({
   path,
   divers,
   playerNames,
-  currentPlayerUid,
   myUid,
 }: Props) {
   const boardRef = useRef<HTMLDivElement>(null);

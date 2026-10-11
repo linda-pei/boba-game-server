@@ -47,7 +47,7 @@ export default function ConfirmButton({
 }: Props) {
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     return () => {

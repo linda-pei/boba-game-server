@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, updateDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { leaveRoom } from "../../hooks/useRoom";
 
 interface Props {

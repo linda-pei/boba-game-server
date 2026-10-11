@@ -482,7 +482,7 @@ interface GlyphRule {
   suit?: "white" | "black";
 }
 
-export function mapRuleToGlyph(rule: TakeTimeSegmentRule): GlyphRule {
+function mapRuleToGlyph(rule: TakeTimeSegmentRule): GlyphRule {
   switch (rule.type) {
     case "color-count":
       return {

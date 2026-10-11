@@ -23,10 +23,8 @@ export function useOrderOverloadGame(roomCode: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "games", roomCode),
@@ -47,7 +45,7 @@ export function useOrderOverloadGame(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { game, loading };
+  return { game, loading: roomCode ? loading : false };
 }
 
 export function useOrderOverloadHand(
@@ -82,10 +80,13 @@ export function useAllOrderOverloadHandCounts(
 ) {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (!roomCode || playerUids.length === 0) return;
+  // Join to a stable key so a new array with the same players doesn't resubscribe.
+  const playerKey = playerUids.join(",");
 
-    const unsubs = playerUids.map((uid) =>
+  useEffect(() => {
+    if (!roomCode || !playerKey) return;
+
+    const unsubs = playerKey.split(",").map((uid) =>
       onSnapshot(doc(db, "games", roomCode, "hands", uid), (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data() as OrderOverloadHand;
@@ -95,7 +96,7 @@ export function useAllOrderOverloadHandCounts(
     );
 
     return () => unsubs.forEach((u) => u());
-  }, [roomCode, playerUids.join(",")]);
+  }, [roomCode, playerKey]);
 
   return counts;
 }
@@ -129,8 +130,7 @@ function getEmptiedToWin(playerCount: number): number {
 function findNextActiveTurn(
   turnOrder: string[],
   currentIndex: number,
-  eliminatedPlayers: string[],
-  emptiedPlayers: string[]
+  eliminatedPlayers: string[]
 ): number {
   const count = turnOrder.length;
   for (let offset = 1; offset <= count; offset++) {
@@ -352,8 +352,7 @@ export async function respondToGuess(
     const nextTurn = findNextActiveTurn(
       game.turnOrder,
       game.turnOrder.indexOf(game.guessingPlayer!),
-      game.eliminatedPlayers,
-      newEmptied
+      game.eliminatedPlayers
     );
 
     await updateDoc(doc(db, "games", roomCode), {
@@ -378,7 +377,6 @@ export async function respondToGuess(
     // Nobody had it — guesser is eliminated
     const guesser = game.guessingPlayer!;
     const newEliminated = [...game.eliminatedPlayers, guesser];
-    const newEmptied = game.emptiedPlayers;
 
     // Check if all players are eliminated
     const activeRemaining = game.turnOrder.filter(
@@ -406,8 +404,7 @@ export async function respondToGuess(
     const nextTurn = findNextActiveTurn(
       game.turnOrder,
       game.turnOrder.indexOf(guesser),
-      newEliminated,
-      newEmptied
+      newEliminated
     );
 
     await updateDoc(doc(db, "games", roomCode), {
@@ -430,7 +427,7 @@ export async function respondToGuess(
   });
 }
 
-export async function useAbilityDiscard(
+export async function discardWithAbility(
   roomCode: string,
   game: OrderOverloadGame,
   uid: string,
@@ -470,7 +467,7 @@ export async function useAbilityDiscard(
   await updateDoc(doc(db, "games", roomCode), updates);
 }
 
-export async function useAbilityLetters(
+export async function revealLettersWithAbility(
   roomCode: string,
   game: OrderOverloadGame,
   uid: string,

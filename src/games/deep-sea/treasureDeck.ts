@@ -136,14 +136,8 @@ export function compactPath(path: PathSpace[]): PathSpace[] {
 /** Generate square spiral coordinates from center outward (clockwise). */
 export function generateSpiralCoords(count: number): { row: number; col: number }[] {
   const coords: { row: number; col: number }[] = [];
-
-  // Determine grid size needed — spiral fills an (2n+1) x (2n+1) grid
-  // We need at least count + 1 cells (count for path + 1 for submarine center)
+  // count path spaces + 1 for the submarine at the center
   const totalCells = count + 1;
-  const side = Math.ceil(Math.sqrt(totalCells));
-  const halfSide = Math.floor(side / 2);
-  // Ensure we have a large enough grid
-  const n = halfSide + 1;
 
   // Start at center
   let r = 0, c = 0;

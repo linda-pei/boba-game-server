@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { useRoom } from "../../hooks/useRoom";
-import type { CloverClueZone, CloverPlacement, CloverSlot } from "../../types";
+import type { CloverClueZone, CloverPlacement, CloverRotation, CloverSlot } from "../../types";
 import ConfirmButton from "../../components/shared/ConfirmButton";
 import GameBanner from "../../components/shared/GameBanner";
 import GameEndButtons from "../../components/shared/GameEndButtons";
+import { PlayerScoreRow, PlayerScores } from "../../components/shared/PlayerScores";
 import ResignButton from "../../components/shared/ResignButton";
-import { getCardIdAtSlot, getOuterKeywordPairs, rotateCloverWords } from "./engine";
+import TurnStatus from "../../components/shared/TurnStatus";
+import { getCardIdAtSlot, getCloverClueWarning, getCloverRank, getOuterKeywordPairs, isCompleteCloverPlacement, rotateCloverWords } from "./engine";
 import {
   advanceCloverRound,
   lockCloverGuess,
@@ -58,6 +60,7 @@ function rotatePlacement(map: PlacementMap, cardId: string): CloverPlacement | n
 function CloverCardFace({
   card,
   placement,
+  trayRotation = 0,
   selected = false,
   locked = false,
   onSelect,
@@ -67,6 +70,7 @@ function CloverCardFace({
 }: {
   card: { id: string; words: [string, string, string, string] };
   placement?: CloverPlacement;
+  trayRotation?: CloverRotation;
   selected?: boolean;
   locked?: boolean;
   onSelect?: () => void;
@@ -74,12 +78,14 @@ function CloverCardFace({
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
 }) {
-  const words = rotateCloverWords(card.words, placement?.rotation ?? 0);
+  const words = rotateCloverWords(card.words, placement?.rotation ?? trayRotation);
+  const disabled = !onSelect && !locked;
 
   return (
     <div
-      className={`game-card clover-card${selected ? " selected" : ""}${locked ? " clover-card--locked" : ""}`}
+      className={`game-card clover-card${selected ? " selected" : ""}${locked ? " clover-card--locked" : ""}${disabled ? " disabled" : ""}`}
       role={onSelect ? "button" : undefined}
+      aria-disabled={disabled || undefined}
       tabIndex={onSelect ? 0 : undefined}
       draggable={Boolean(onDragStart)}
       onClick={(event) => {
@@ -149,6 +155,8 @@ function CloverGrid({
   onCardDragEnd: () => void;
 }) {
   const [dropTargetSlot, setDropTargetSlot] = useState<CloverSlot | null>(null);
+  // Clear a stale highlight when a drag ends outside any slot.
+  if (!isDraggingCard && dropTargetSlot) setDropTargetSlot(null);
 
   return (
     <div className="clover-grid" aria-label="Clover board">
@@ -235,6 +243,10 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const isDecisionMaker = game.activeDecisionMakerUid === uid;
   const hasSubmittedClues = game.submittedClueUids.includes(uid);
   const cluePairs = privateBoard ? getOuterKeywordPairs(privateBoard.sourceCards, draftPlacement) : null;
+  const clueWarnings = Object.fromEntries(
+    CLUE_ZONES.map(({ id }) => [id, getCloverClueWarning(draftClues[id], cluePairs?.[id])]),
+  ) as Record<CloverClueZone, string | null>;
+  const hasMultiWordClue = CLUE_ZONES.some(({ id }) => clueWarnings[id] === "One word only");
 
   const run = async (action: () => Promise<void>) => {
     setError(null);
@@ -260,12 +272,14 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     setDraftPlacement((current) => nextPlacement(current, cardId, slot));
   };
 
+  const guessRotation = (cardId: string): CloverRotation =>
+    activeRound?.sharedPlacement[cardId]?.rotation ?? activeRound?.trayRotations?.[cardId] ?? 0;
+
   const placeGuessCard = (slot: CloverSlot) => {
     if (!selectedCardId || !activeRound || !isDecisionMaker) return;
-    const current = activeRound.sharedPlacement[selectedCardId];
     void run(() => placeCloverGuessCard(roomCode, uid, selectedCardId, {
       slot,
-      rotation: current?.rotation ?? 0,
+      rotation: guessRotation(selectedCardId),
     }));
   };
 
@@ -273,10 +287,9 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     if (!activeRound || !isDecisionMaker) return;
     setSelectedCardId(cardId);
     setIsDraggingCard(false);
-    const current = activeRound.sharedPlacement[cardId];
     void run(() => placeCloverGuessCard(roomCode, uid, cardId, {
       slot,
-      rotation: current?.rotation ?? 0,
+      rotation: guessRotation(cardId),
     }));
   };
 
@@ -303,6 +316,14 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           <span>{game.completedSpectatorUids.length}/{game.playerOrder.length} Clovers resolved</span>
         </div>
 
+        {(game.phase === "solving-first" || game.phase === "solving-final") && activeRound?.isLockedForVerification && (
+          <TurnStatus mood={isSpectator ? "mine" : "waiting"}>
+            {isSpectator
+              ? "The team submitted its guess. Reveal how they did!"
+              : `Guess submitted. Waiting for ${room.players[activeRound.spectatorUid]?.name ?? "the spectator"} to reveal it.`}
+          </TurnStatus>
+        )}
+
         {error && <p className="error-message" role="alert">{error}</p>}
 
         {game.phase === "clue-writing" && privateBoard && !hasSubmittedClues && (
@@ -316,18 +337,24 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
             <div className="clover-board-layout">
               <div className="clover-clues clover-clues--editing">
-                {CLUE_ZONES.map(({ id, label }) => (
-                  <label key={id} className={`clover-clue clover-clue--${id}`}>
-                    <span>{label}</span>
-                    {cluePairs && <small>{cluePairs[id].join(" + ")}</small>}
-                    <input
-                      value={draftClues[id]}
-                      onChange={(event) => setDraftClues((current) => ({ ...current, [id]: event.target.value }))}
-                      maxLength={40}
-                      placeholder="One word"
-                    />
-                  </label>
-                ))}
+                {CLUE_ZONES.map(({ id, label }) => {
+                  const warning = clueWarnings[id];
+                  return (
+                    <label key={id} className={`clover-clue clover-clue--${id}`}>
+                      <span>{label}</span>
+                      {cluePairs && <small>{cluePairs[id].join(" + ")}</small>}
+                      <input
+                        value={draftClues[id]}
+                        onChange={(event) => setDraftClues((current) => ({ ...current, [id]: event.target.value }))}
+                        maxLength={40}
+                        placeholder="One word"
+                        aria-invalid={warning ? true : undefined}
+                        className={warning ? "clover-clue__input--invalid" : undefined}
+                      />
+                      {warning && <em className="clover-clue__warning" role="alert">{warning}</em>}
+                    </label>
+                  );
+                })}
               </div>
               <CloverGrid
                 cards={privateBoard.sourceCards}
@@ -370,7 +397,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               busyLabel="Locking…"
               variant="primary"
               className="clover-lock-clues"
-              disabled={busy}
+              disabled={busy || hasMultiWordClue}
               onConfirm={() => run(() => submitCloverClues(roomCode, uid, draftPlacement, draftClues))}
             />
           </section>
@@ -393,7 +420,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 <p className="eyebrow">{game.phase === "solving-final" ? "Final attempt" : "First attempt"}</p>
                 <h3>{room.players[activeRound.spectatorUid]?.name ?? "A player"}&apos;s Clover</h3>
               </div>
-              <p>{isSpectator ? "You are the spectator. Stay silent while the team solves your Clover." : isDecisionMaker ? "Your team chose you to make the final placements." : "Discuss freely; the decision-maker controls the shared board."}</p>
+              <p>{isSpectator ? "You are the spectator. Stay silent while the team solves your Clover." : isDecisionMaker ? "You're making the final placements." : `${room.players[game.activeDecisionMakerUid ?? ""]?.name ?? "The decision-maker"} controls the shared board - work together to figure it out!`}</p>
             </div>
 
             <div className="clover-board-layout clover-board-layout--solving">
@@ -425,13 +452,18 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             </div>
 
             <div className="clover-tray">
-              <h4>{isDecisionMaker ? "Choose or drag a candidate into a slot" : "Candidate cards"}</h4>
+              <h4>
+                {isSpectator
+                  ? "Your cards are locked while the team guesses your Clover"
+                  : isDecisionMaker ? "Choose or drag a candidate into a slot" : "Candidate cards"}
+              </h4>
               <div className="clover-tray__cards">
                 {activeRound.candidateCards.filter((card) => !activeRound.sharedPlacement[card.id]).map((card) => (
                   <CloverCardFace
                     key={card.id}
                     card={card}
                     placement={activeRound.sharedPlacement[card.id]}
+                    trayRotation={activeRound.trayRotations?.[card.id]}
                     selected={selectedCardId === card.id}
                     locked={activeRound.lockedCorrectCardIds.includes(card.id)}
                     onSelect={isDecisionMaker && !activeRound.isLockedForVerification && !activeRound.lockedCorrectCardIds.includes(card.id)
@@ -451,32 +483,25 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 {selectedCardId && !activeRound.lockedCorrectCardIds.includes(selectedCardId) && activeRound.sharedPlacement[selectedCardId] && (
                   <button className="btn btn--danger" type="button" onClick={() => void run(() => placeCloverGuessCard(roomCode, uid, selectedCardId, null))} disabled={busy}>Return selected card</button>
                 )}
-                <ConfirmButton
-                  label="Lock team guess"
-                  confirmLabel="Ask spectator to verify?"
-                  busyLabel="Locking…"
-                  variant="primary"
-                  disabled={busy}
-                  onConfirm={() => run(() => lockCloverGuess(roomCode, uid))}
-                />
+                <button
+                  className="btn"
+                  type="button"
+                  disabled={busy || !isCompleteCloverPlacement(activeRound.sharedPlacement, activeRound.candidateCards)}
+                  onClick={() => void run(() => lockCloverGuess(roomCode, uid))}
+                >
+                  Submit guess
+                </button>
               </div>
             )}
 
-            {activeRound.isLockedForVerification && (
-              <div className="clover-verification">
-                <strong>The team&apos;s guess is locked.</strong>
-                {isSpectator ? (
-                  <ConfirmButton
-                    label="Verify the guess"
-                    confirmLabel="Reveal this result?"
-                    busyLabel="Verifying…"
-                    variant="primary"
-                    disabled={busy}
-                    onConfirm={() => run(() => verifyCloverGuess(roomCode, uid))}
-                  />
-                ) : <span>Waiting for the spectator to verify it.</span>}
+            {activeRound.isLockedForVerification && isSpectator && (
+              <div className="clover-actions">
+                <button className="btn" type="button" disabled={busy} onClick={() => void run(() => verifyCloverGuess(roomCode, uid))}>
+                  {busy ? "Revealing…" : "Reveal the guess"}
+                </button>
               </div>
             )}
+
           </section>
         )}
 
@@ -497,12 +522,37 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
           <section className="clover-panel clover-result">
             <p className="eyebrow">Game complete</p>
             <h3>Final team score: {game.teamScore}</h3>
-            <div className="clover-results-list">
-              {game.playerOrder.map((playerUid) => {
-                const result = game.boardResults[playerUid];
-                return <div key={playerUid}><span>{room.players[playerUid]?.name ?? "Player"}</span><strong>{result?.score ?? 0}</strong></div>;
-              })}
-            </div>
+            {(() => {
+              const rank = getCloverRank(game.teamScore, game.playerOrder.length);
+              return (
+                <div className="clover-rank">
+                  <strong>{rank.name}</strong>
+                  <span>{rank.description}</span>
+                </div>
+              );
+            })()}
+            <PlayerScores title="Clover Results" className="clover-results">
+              {[...game.playerOrder]
+                .sort((a, b) => (game.boardResults[b]?.score ?? 0) - (game.boardResults[a]?.score ?? 0))
+                .map((playerUid) => {
+                  const result = game.boardResults[playerUid];
+                  return (
+                    <PlayerScoreRow
+                      key={playerUid}
+                      name={`${room.players[playerUid]?.name ?? "Player"}'s Clover`}
+                      isYou={playerUid === uid}
+                      isActive={result?.firstAttemptPerfect}
+                    >
+                      <span className="score-detail">
+                        {result?.firstAttemptPerfect
+                          ? "Perfect first try"
+                          : `${result?.correctCardIds.length ?? 0}/4 cards correct`}
+                      </span>
+                      <span className="score-cumulative">{result?.score ?? 0} pts</span>
+                    </PlayerScoreRow>
+                  );
+                })}
+            </PlayerScores>
             <GameEndButtons isHost={room.host === uid} />
           </section>
         )}

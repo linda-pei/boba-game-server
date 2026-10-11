@@ -13,7 +13,7 @@ export default function ResignButton() {
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
   const { roomCode } = useParams<{ roomCode: string }>();
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     return () => {

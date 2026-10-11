@@ -1,5 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from "react";
 import { type FeedbackEntry, type FeedbackImageUpload, type FeedbackTarget, getFeedbackTarget } from "./feedbackUtils";
+import { type FeedbackTransport, localFeedbackTransport } from "./feedbackTransport";
 import "./dev-feedback.css";
 
 const FEEDBACK_STORAGE_KEY = "game-server:dev-feedback";
@@ -8,11 +9,6 @@ const MAX_IMAGE_UPLOADS = 3;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_IMAGE_BYTES = 5 * 1024 * 1024;
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
-
-interface FeedbackQueueState {
-  pending: FeedbackEntry[];
-  resolvedIds: string[];
-}
 
 interface LocalFeedbackEntry extends FeedbackEntry {
   queuedAt?: string;
@@ -58,24 +54,24 @@ function loadSavedFeedback(): LocalFeedbackEntry[] {
   }
 }
 
-function isFeedbackQueueState(value: unknown): value is FeedbackQueueState {
-  if (!value || typeof value !== "object") return false;
-  const queue = value as Partial<FeedbackQueueState>;
-  return Array.isArray(queue.pending) && Array.isArray(queue.resolvedIds);
-}
-
-async function postFeedback(entry: LocalFeedbackEntry): Promise<boolean> {
-  const response = await fetch("/__dev-feedback", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(entry),
-  });
-  return response.ok;
-}
-
-async function deleteFeedbackFromQueue(id: string): Promise<boolean> {
-  const response = await fetch(`/__dev-feedback?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-  return response.ok;
+/**
+ * localStorage is ~5 MB per origin, and screenshots can exceed that. Try the full notes first;
+ * if the quota is hit, keep the notes but drop their image data (already-queued images live
+ * in the queue; unsent ones would need re-attaching after a reload).
+ */
+function saveFeedbackLocally(items: LocalFeedbackEntry[]): void {
+  try {
+    window.localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(items));
+    return;
+  } catch {
+    // Fall through to the image-free copy.
+  }
+  try {
+    const withoutImages = items.map((item) => ({ ...item, imageUploads: undefined }));
+    window.localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(withoutImages));
+  } catch {
+    // Storage unavailable (private mode, blocked site data); notes stay in memory only.
+  }
 }
 
 function readImageUpload(file: File): Promise<FeedbackImageUpload> {
@@ -93,7 +89,7 @@ function readImageUpload(file: File): Promise<FeedbackImageUpload> {
   });
 }
 
-export default function DevFeedbackOverlay() {
+export default function DevFeedbackOverlay({ transport = localFeedbackTransport }: { transport?: FeedbackTransport }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<Element | null>(null);
@@ -109,33 +105,14 @@ export default function DevFeedbackOverlay() {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    window.localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(savedFeedback));
+    saveFeedbackLocally(savedFeedback);
   }, [savedFeedback]);
 
-  useEffect(() => {
-    let isCurrent = true;
-    const syncResolvedFeedback = async () => {
-      try {
-        const response = await fetch("/__dev-feedback");
-        if (!response.ok) return;
-        const queue: unknown = await response.json();
-        if (!isCurrent || !isFeedbackQueueState(queue)) return;
-        const resolvedIds = new Set(queue.resolvedIds);
-        if (resolvedIds.size > 0) {
-          setSavedFeedback((items) => items.filter((item) => !(item.queuedAt && resolvedIds.has(item.id))));
-        }
-      } catch {
-        // The picker still works offline; a later poll will reconcile resolved notes.
-      }
-    };
-
-    void syncResolvedFeedback();
-    const interval = window.setInterval(() => void syncResolvedFeedback(), 3_000);
-    return () => {
-      isCurrent = false;
-      window.clearInterval(interval);
-    };
-  }, []);
+  useEffect(() => transport.watchResolved((resolvedIds) => {
+    if (resolvedIds.size > 0) {
+      setSavedFeedback((items) => items.filter((item) => !(item.queuedAt && resolvedIds.has(item.id))));
+    }
+  }), [transport]);
 
   useEffect(() => {
     const unqueuedFeedback = savedFeedback.filter((entry) => !entry.queuedAt);
@@ -145,7 +122,7 @@ export default function DevFeedbackOverlay() {
     const flushLocalOutbox = async () => {
       const results = await Promise.all(unqueuedFeedback.map(async (entry) => ({
         id: entry.id,
-        queued: await postFeedback(entry).catch(() => false),
+        queued: await transport.submit(entry).catch(() => false),
       })));
       if (!isCurrent) return;
 
@@ -161,7 +138,7 @@ export default function DevFeedbackOverlay() {
     return () => {
       isCurrent = false;
     };
-  }, [savedFeedback]);
+  }, [savedFeedback, transport]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -259,29 +236,29 @@ export default function DevFeedbackOverlay() {
 
   const sendFeedback = async (entry: LocalFeedbackEntry): Promise<boolean> => {
     try {
-      if (!await postFeedback(entry)) throw new Error("The feedback queue rejected this note.");
+      if (!await transport.submit(entry)) throw new Error("The feedback queue rejected this note.");
       setSavedFeedback((items) => items.map((item) => (
         item.id === entry.id ? { ...item, queuedAt: new Date().toISOString() } : item
       )));
-      setStatus("Queued for the local agent. This note disappears once the work is resolved.");
+      setStatus("Queued for the agent. This note disappears once the work is resolved.");
       return true;
     } catch {
-      setStatus("Saved locally, but the local agent queue is unavailable. Keep the dev server running and try again.");
+      setStatus("Saved in this browser, but the agent queue is unavailable. Try again shortly.");
       return false;
     }
   };
 
   const removeFeedback = async (entry: LocalFeedbackEntry) => {
     try {
-      if (entry.queuedAt && !await deleteFeedbackFromQueue(entry.id)) {
+      if (entry.queuedAt && !await transport.remove(entry.id)) {
         throw new Error("The feedback queue rejected the deletion.");
       }
       setSavedFeedback((items) => items.filter((item) => item.id !== entry.id));
       setViewingFeedback((current) => current?.id === entry.id ? null : current);
       setRemovingFeedbackId(null);
-      setStatus("Feedback removed from the local queue.");
+      setStatus("Feedback removed from the queue.");
     } catch {
-      setStatus("Could not remove that feedback from the local agent queue. Keep the dev server running and try again.");
+      setStatus("Could not remove that feedback from the agent queue. Try again shortly.");
     }
   };
 
@@ -375,7 +352,7 @@ export default function DevFeedbackOverlay() {
       >
         <div className="dev-feedback-heading">
           <div>
-            <p className="dev-feedback-kicker">Local development tool</p>
+            <p className="dev-feedback-kicker">{transport.label}</p>
             <h2>Give the agent a UI note</h2>
           </div>
           <button className="btn btn--ghost btn--sm" type="button" onClick={() => setIsOpen(false)}>

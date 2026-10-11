@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import "./deep-sea.css";
 import { useRoom } from "../../hooks/useRoom";
 import { useDeepSeaGame, useDeepSeaHand } from "./useDeepSeaGame";
@@ -41,7 +41,6 @@ export default function DeepSeaGameBoard({
     rolling: "rolling",
     "treasure-action": "treasure",
     "round-end": "round end",
-    finished: "finished",
   };
 
   return (

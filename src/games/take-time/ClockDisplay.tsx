@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { TakeTimePlacedCard, TakeTimeSegmentRule, TakeTimeBetweenRule, TakeTimeLevelDef } from "../../types";
 import { RuleGlyph, CenterGlyph, BetweenRuleGlyph, type CenterGlyphType } from "./RuleGlyph";
 import CardSlot from "./CardSlot";
@@ -36,8 +36,6 @@ const R = 180;       // outer dial radius
 const RINNER = 56;   // hub radius
 const RRIM = R + 14; // outer rim band
 
-const SEGMENT_COUNT = 6;
-const ANGLE_STEP = (2 * Math.PI) / SEGMENT_COUNT;
 
 function getWedgePath(i: number): string {
   const a0 = (i * 60 - 90) * Math.PI / 180;
@@ -54,8 +52,6 @@ export default function ClockDisplay({
   segmentRules,
   clockRotation,
   clockRule,
-  chapter,
-  test,
   specialRules,
   highlightSegment,
   revealedUpTo,
@@ -73,36 +69,33 @@ export default function ClockDisplay({
 }: Props) {
   // Cumulative hand angle: when clockRotation wraps (5 → 0), animate +60° clockwise
   // rather than -300° backwards. Tracks the shortest signed delta across renders.
+  // Adjusted during render (React's "storing information from previous renders" pattern).
   const [handDeg, setHandDeg] = useState(() => clockRotation * 60);
-  const lastRotRef = useRef(clockRotation);
-  useEffect(() => {
-    if (lastRotRef.current === clockRotation) return;
-    let delta = clockRotation - lastRotRef.current;
+  const [lastRotation, setLastRotation] = useState(clockRotation);
+  if (lastRotation !== clockRotation) {
+    let delta = clockRotation - lastRotation;
     if (delta > 3) delta -= 6;
     if (delta < -3) delta += 6;
-    setHandDeg((prev) => prev + delta * 60);
-    lastRotRef.current = clockRotation;
-  }, [clockRotation]);
+    setLastRotation(clockRotation);
+    setHandDeg(handDeg + delta * 60);
+  }
 
   // Same shortest-path treatment for the second hand (level X) which also wraps 6 → 1
   const [secondHandDeg, setSecondHandDeg] = useState(() =>
     secondHandPosition !== undefined ? (secondHandPosition - 0.5) * 60 : 0
   );
-  const lastSecondRef = useRef(secondHandPosition);
-  useEffect(() => {
-    if (secondHandPosition === undefined) return;
-    if (lastSecondRef.current === undefined) {
+  const [lastSecond, setLastSecond] = useState(secondHandPosition);
+  if (secondHandPosition !== undefined && lastSecond !== secondHandPosition) {
+    if (lastSecond === undefined) {
       setSecondHandDeg((secondHandPosition - 0.5) * 60);
-      lastSecondRef.current = secondHandPosition;
-      return;
+    } else {
+      let delta = secondHandPosition - lastSecond;
+      if (delta > 3) delta -= 6;
+      if (delta < -3) delta += 6;
+      setSecondHandDeg(secondHandDeg + delta * 60);
     }
-    if (lastSecondRef.current === secondHandPosition) return;
-    let delta = secondHandPosition - lastSecondRef.current;
-    if (delta > 3) delta -= 6;
-    if (delta < -3) delta += 6;
-    setSecondHandDeg((prev) => prev + delta * 60);
-    lastSecondRef.current = secondHandPosition;
-  }, [secondHandPosition]);
+    setLastSecond(secondHandPosition);
+  }
   const handLen = R - 6;
 
   // For card/glyph positioning outside the SVG

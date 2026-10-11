@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { OrderOverloadGame, OrderOverloadHand, Room } from "../../types";
 import {
   submitGuess,
   respondToGuess,
-  useAbilityDiscard,
-  useAbilityLetters,
+  discardWithAbility,
+  revealLettersWithAbility,
   useAllOrderOverloadHandCounts,
   getLevelStars,
 } from "./useOrderOverloadGame";
@@ -33,7 +33,8 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   const [showAbility, setShowAbility] = useState(false);
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
-  const prevTurn = useRef(game.currentTurn);
+  const [prevTurn, setPrevTurn] = useState(game.currentTurn);
+  const [prevGuess, setPrevGuess] = useState(game.currentGuess);
 
   const handCounts = useAllOrderOverloadHandCounts(roomCode, game.turnOrder);
 
@@ -52,25 +53,24 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
     : null;
   const isMyResponse = currentResponder === uid;
 
-  // Reset state when turn changes
-  useEffect(() => {
-    if (prevTurn.current !== game.currentTurn) {
-      setGuessText("");
-      setActing(false);
-      setShowAbility(false);
-      setSelectedCardIndex(null);
-      setSelectedTarget(null);
-      prevTurn.current = game.currentTurn;
-    }
-  }, [game.currentTurn]);
+  // Reset state when turn changes (adjusted during render, not in an effect)
+  if (prevTurn !== game.currentTurn) {
+    setPrevTurn(game.currentTurn);
+    setGuessText("");
+    setActing(false);
+    setShowAbility(false);
+    setSelectedCardIndex(null);
+    setSelectedTarget(null);
+  }
 
   // Reset state when a new guess comes in (or resolves)
-  useEffect(() => {
+  if (prevGuess !== game.currentGuess) {
+    setPrevGuess(game.currentGuess);
     setSelectedCardIndex(null);
     if (game.currentGuess === null) {
       setGuessText("");
     }
-  }, [game.currentGuess]);
+  }
 
   const handleSubmitGuess = async () => {
     if (!guessText.trim()) return;
@@ -96,7 +96,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   const handleDiscard = async (cardIdx: number) => {
     setActing(true);
     try {
-      await useAbilityDiscard(roomCode, game, uid, cardIdx);
+      await discardWithAbility(roomCode, game, uid, cardIdx);
       setShowAbility(false);
       setSelectedCardIndex(null);
     } catch (err) {
@@ -108,7 +108,7 @@ export default function PlayingPhase({ roomCode, game, hand, uid, room }: Props)
   const handleLetterAbility = async (targetUid: string) => {
     setActing(true);
     try {
-      await useAbilityLetters(roomCode, game, uid, targetUid);
+      await revealLettersWithAbility(roomCode, game, uid, targetUid);
       setShowAbility(false);
       setSelectedTarget(null);
     } catch (err) {

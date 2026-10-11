@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
-import confetti from "canvas-confetti";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { ScoutGame, Room } from "../../types";
 
@@ -21,17 +20,7 @@ export default function GameOver({ game, room }: GameOverProps) {
     ? room.players[game.winner]?.name ?? "Unknown"
     : "Unknown";
 
-  useEffect(() => {
-    if (game.winner !== uid) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, []);
+  useCelebration(game.winner === uid);
 
   return (
     <div className="screen scout-screen">

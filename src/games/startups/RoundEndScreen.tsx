@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Room, StartupsGame, StartupsScoreBreakdown } from "../../types";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { advanceFromRoundEnd, revealNextRemovedCard } from "./useStartupsGame";
 import { COMPANIES, COMPANY_COLOR, COMPANY_INK, COMPANY_SHORT } from "./deck";
 import CompanyLogo from "./CompanyLogo";

@@ -19,10 +19,8 @@ export function useRoom(roomCode: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "rooms", roomCode),
@@ -46,7 +44,7 @@ export function useRoom(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { room, loading, error };
+  return { room, loading: roomCode ? loading : false, error };
 }
 
 export async function createRoom(

@@ -15,7 +15,6 @@ interface Props {
 export default function RoundEnd({
   roomCode,
   game,
-  hand,
   uid,
   room,
 }: Props) {
@@ -61,7 +60,6 @@ export default function RoundEnd({
         <div className="ds-round-section">
           <h3>Made it back!</h3>
           {returnedPlayers.map((pid) => {
-            const isMe = pid === uid;
             const score = game.scores[pid] ?? 0;
             return (
               <div key={pid} className="ds-round-player ds-safe">

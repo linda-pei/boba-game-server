@@ -342,7 +342,7 @@ export async function placeCard(
     const segmentRules = getRulesAtPosition(game, segmentIndex);
     const hasDraw = segmentRules.some((r) => r.type === "draw");
     let drawnCard: TakeTimeCard | null = null;
-    let newDeck = game.deck ? [...game.deck] : [];
+    const newDeck = game.deck ? [...game.deck] : [];
     if (hasDraw && newDeck.length > 0) {
       drawnCard = newDeck.shift()!;
       newCards = [...newCards, drawnCard];

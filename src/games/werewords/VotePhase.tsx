@@ -21,7 +21,7 @@ export default function VotePhase({ roomCode, game, hand, uid, room }: Props) {
 
   const handleVote = async (voteFor: string) => {
     setSubmitting(true);
-    await submitVote(roomCode, game, uid, voteFor);
+    await submitVote(roomCode, uid, voteFor);
   };
 
   return (

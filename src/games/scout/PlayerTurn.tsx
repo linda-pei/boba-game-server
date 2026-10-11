@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { ScoutGame, ScoutHand, ScoutCard, Room } from "../../types";
 import { scoutCardStyle } from "./cardColors";
 import {
@@ -35,7 +35,7 @@ export default function PlayerTurn({
   const [mode, setMode] = useState<ActionMode>("play");
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [acting, setActing] = useState(false);
-  const prevIsMyTurn = useRef(false);
+  const [prevIsMyTurn, setPrevIsMyTurn] = useState(false);
 
   // Snapshot of hand frozen at action time — prevents flicker from Firestore partial updates
   const [frozenHand, setFrozenHand] = useState<ScoutCard[] | null>(null);
@@ -77,13 +77,12 @@ export default function PlayerTurn({
     setSpSimulatedPile(null);
   };
 
-  // Reset all state when turn changes (covers both "my turn ended" and "my turn started again")
-  useEffect(() => {
-    if (prevIsMyTurn.current !== isMyTurn) {
-      resetAllState();
-      prevIsMyTurn.current = isMyTurn;
-    }
-  }, [isMyTurn]);
+  // Reset all state when turn changes (covers both "my turn ended" and "my turn started again").
+  // Done during render rather than in an effect, so the stale selection never paints.
+  if (prevIsMyTurn !== isMyTurn) {
+    setPrevIsMyTurn(isMyTurn);
+    resetAllState();
+  }
 
   // ---- Card selection (play mode) ----
   const toggleCard = (index: number) => {

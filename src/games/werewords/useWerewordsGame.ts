@@ -22,10 +22,8 @@ export function useWerewordsGame(roomCode: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "games", roomCode),
@@ -46,7 +44,7 @@ export function useWerewordsGame(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { game, loading };
+  return { game, loading: roomCode ? loading : false };
 }
 
 export function useWerewordsHand(
@@ -371,7 +369,6 @@ export async function submitWerewolfGuess(
 
 export async function submitVote(
   roomCode: string,
-  game: WerewordsGame,
   uid: string,
   voteFor: string
 ): Promise<void> {

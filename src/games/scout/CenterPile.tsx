@@ -12,7 +12,6 @@ interface CenterPileProps {
 
 export default function CenterPile({
   cards,
-  playedBy,
   playerName,
   scouting,
   onScoutEnd,

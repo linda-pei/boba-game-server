@@ -1,16 +1,17 @@
 .clover-wrap {
   --clover-green: color-mix(in srgb, var(--accent-secondary) 76%, #356448);
-  --clover-soft: color-mix(in srgb, var(--accent-secondary) 10%, var(--surface));
 }
 
-#root:has(.clover-wrap) { max-width: 1100px; }
+#root:has(.clover-wrap) { max-width: 100%; }
 
-.game-screen-wrap.clover-wrap { max-width: min(100%, 1060px); }
+/* Banner and screen card share one width, like the other games. */
+.game-screen-wrap.clover-wrap { max-width: min(100%, 1280px); }
 
-.clover-screen {
+/* .screen.clover-screen beats the global .screen 700px cap regardless of stylesheet order. */
+.screen.clover-screen {
   display: grid;
   gap: 1rem;
-  max-width: 1040px;
+  max-width: none;
   font-family: var(--font-body);
 }
 
@@ -21,8 +22,7 @@
 }
 
 .clover-scorebar,
-.clover-panel,
-.clover-verification {
+.clover-panel {
   border: 1px solid var(--border-strong);
   border-radius: var(--r-3);
   background: var(--surface);
@@ -73,7 +73,7 @@
 
 .clover-board-layout {
   display: grid;
-  grid-template-columns: minmax(150px, 180px) minmax(0, 430px) minmax(150px, 180px);
+  grid-template-columns: minmax(110px, 1fr) minmax(220px, 430px) minmax(110px, 1fr);
   grid-template-rows: auto auto auto;
   align-items: center;
   justify-content: center;
@@ -95,7 +95,8 @@
 }
 
 .clover-slot {
-  min-height: 166px;
+  aspect-ratio: 1;
+  min-width: 0;
   padding: 0;
   overflow: hidden;
   border: 2px dashed var(--border-strong);
@@ -114,18 +115,31 @@
 .clover-slot--drop-target {
   position: relative;
   z-index: 3;
+  border-style: solid;
   border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 16%, var(--surface-2));
   outline: 3px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
   outline-offset: 3px;
 }
-.clover-slot__empty { display: grid; place-items: center; min-height: 166px; padding: 0.75rem; }
+/* Overlay so the highlight stays visible when a card already fills the slot. */
+.clover-slot--drop-target::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  box-shadow: inset 0 0 0 3px var(--accent-primary);
+  pointer-events: none;
+}
+.clover-slot__empty { display: grid; place-items: center; height: 100%; box-sizing: border-box; padding: 0.75rem; text-align: center; }
 
 .clover-card.game-card {
   position: relative;
   display: block;
   width: 100%;
-  min-width: 145px;
-  min-height: 166px;
+  height: auto;
+  aspect-ratio: 1;
+  min-width: 0;
   padding: 0;
   overflow: hidden;
   border: 2px solid var(--border-strong);
@@ -139,6 +153,7 @@
 
 .clover-card.game-card.selected { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
 .clover-card--locked { border-color: var(--clover-green) !important; cursor: default !important; }
+.clover-card.game-card.disabled { cursor: not-allowed; opacity: 0.55; filter: saturate(0.6); }
 
 .clover-card__word {
   position: absolute;
@@ -177,6 +192,8 @@
 }
 
 .clover-clue small { font-weight: 600; }
+.clover-clue input.clover-clue__input--invalid { border-color: var(--rose-500); box-shadow: 0 0 0 2px color-mix(in srgb, var(--rose-500) 25%, transparent); }
+.clover-clue__warning { color: var(--rose-500); font-size: 0.7rem; font-style: normal; font-weight: 700; }
 .clover-clue strong { color: var(--ink); font-size: 0.92rem; overflow-wrap: anywhere; }
 .clover-clue input { width: 100%; box-sizing: border-box; border: 1px solid var(--border-strong); border-radius: var(--r-2); background: var(--surface); color: var(--ink); padding: 0.45rem 0.55rem; text-align: center; }
 .clover-clue--top { grid-column: 2; grid-row: 1; justify-self: center; max-width: 250px; }
@@ -186,20 +203,22 @@
 
 .clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
 .clover-tray h4 { margin: 0 0 0.75rem; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.35; }
-.clover-tray__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.65rem; }
-.clover-tray .clover-card { min-height: 130px; }
+/* One row of up to 5 cards when there's room; cards shrink before wrapping. */
+.clover-tray__cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.65rem; }
+.clover-tray__cards > .clover-card.game-card { flex: 0 1 150px; width: auto; min-width: 96px; }
 .clover-lock-clues { margin-top: 1.25rem; }
 
-.clover-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin-top: 1rem; }
-.clover-verification { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding: 0.8rem 1rem; background: var(--clover-soft); }
+.clover-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; justify-content: center; margin-top: 1rem; }
 .clover-waiting, .clover-result { text-align: center; }
 .clover-progress { height: 0.6rem; margin: 1.25rem auto 0.75rem; max-width: 420px; overflow: hidden; border-radius: 999px; background: var(--surface-2); }
 .clover-progress span { display: block; height: 100%; border-radius: inherit; background: var(--clover-green); transition: width 180ms ease; }
-.clover-results-list { display: grid; gap: 0.5rem; max-width: 400px; margin: 1.25rem auto; text-align: left; }
-.clover-results-list div { display: flex; justify-content: space-between; padding: 0.55rem 0.75rem; border-radius: var(--r-2); background: var(--surface-2); }
+.clover-results { max-width: 480px; margin: 1.25rem auto; }
+.clover-rank { display: grid; gap: 0.2rem; justify-items: center; margin: 0.75rem auto 0; }
+.clover-rank strong { color: var(--clover-green); font-family: var(--font-display); font-size: 1.4rem; }
+.clover-rank span { color: var(--ink-soft); font-size: 0.95rem; }
 
 @media (max-width: 760px) {
-  .clover-panel__heading, .clover-verification { align-items: stretch; flex-direction: column; }
+  .clover-panel__heading { align-items: stretch; flex-direction: column; }
   .clover-board-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: auto auto auto auto;
@@ -213,7 +232,6 @@
   .clover-clue--left { grid-column: 1; grid-row: 3; }
   .clover-clue--right { grid-column: 2; grid-row: 3; }
   .clover-clue--bottom { grid-column: 1 / -1; grid-row: 4; }
-  .clover-card.game-card, .clover-slot, .clover-slot__empty { min-height: 132px; min-width: 0; }
   .clover-card__word { font-size: 0.62rem; }
 }
 
@@ -222,7 +240,6 @@
   .clover-board-layout { width: 100%; }
   .clover-clue { width: 100%; }
   .clover-clue input { padding: 0.35rem 0.15rem; font-size: 0.68rem; }
-  .clover-card.game-card, .clover-slot, .clover-slot__empty { min-height: 105px; }
   .clover-card__word { font-size: 0.53rem; }
   .clover-card__rotate { font-size: 0.58rem; }
 }
