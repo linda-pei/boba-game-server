@@ -46,8 +46,6 @@ export interface MissionRule<P extends RuleParams = RuleParams, S = unknown> {
   checkLoss?(ctx: { game: BBGame; params: P; state: S; now: number }): string | null;
   /** Any client: override whether an equipment card is unlocked (undefined = default). `cuts` is up to date. */
   isEquipmentUnlocked?(cardId: number, ctx: { game: BBGame; params: P; state: S; cuts: BBGame["cutCounts"] }): boolean | undefined;
-  /** Whether using this equipment card leaves it available (mission 18's General Radar). */
-  isEquipmentReusable?(cardId: number, ctx: { game: BBGame; params: P; state: S }): boolean;
   /** Rendering: whether an equipment card is still face down (its identity hidden). */
   equipmentFaceDown?(cardId: number, ctx: { game: BBGame; params: P; state: S }): boolean;
 }

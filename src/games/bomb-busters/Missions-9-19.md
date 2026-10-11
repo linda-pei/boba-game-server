@@ -22,7 +22,7 @@ Source notes: [`notes/bomb-busters/missions-9-19.txt`](../../../notes/bomb-buste
 | 15 | Mission in Russian | 1 out of 3 | 0 | 2 out of 3 red | `russianToolbox` (equipment face down; flips when a number card's 4 wires are cut) |
 | 16 | Time to Reprioritize | 1 | 2 out of 3 | 2 red, 4 yellow | `sequence` (all 4 of each before the next) |
 | 17 | Red Herring | 2 out of 3 | 0 | 3 red | `redHerring` (random roles; Red Herring's info tokens are all fake; no equipment) |
-| 18 | Bat Helping Hand | 2 | 0 | 3 red | `batRadar` (only equipment #8, always usable; a number deck drives each turn; no setup info tokens) |
+| 18 | Bat Helping Hand | 2 | 0 | 3 red | `batRadar` (no equipment; each turn's number card runs the General Radar; no setup info tokens) |
 | 19 | In the Belly of the Beast | 1 | 2 out of 3 | — | `audioTimer` (no special rules; the mission's audio track sets the time limit) |
 
 All missions use the full 48 blue wires and one equipment card per player unless noted.
@@ -81,8 +81,8 @@ Every hook is optional (see `rules/types.ts`). The engine and actions call the f
 | `isDeadly` | Resolving a pointed wire | Target | 11 |
 | `afterCut` | After any wire is cut | Any | 9, 16 (advance the sequence), 15 (flip equipment) |
 | `onWrongGuess` / `wrongGuessToken` | After a failed Dual Cut | Target | 14 (Rookie explodes), 17 (fake info token) |
-| `canUseEquipment` | Using equipment | User | 14, 17 (role limits), 18 (no extra radar mid-choice) |
-| `isEquipmentUnlocked` / `equipmentFaceDown` / `isEquipmentReusable` | Equipment state | Any | 12, 15 (unlock rules), 15 (face down), 18 (radar always usable, never spent) |
+| `canUseEquipment` | Using equipment | User | 14, 17 (role limits) |
+| `isEquipmentUnlocked` / `equipmentFaceDown` | Equipment state | Any | 12, 15 (unlock rules), 15 (face down) |
 | `canReveal` | Reveal Red | Active player | 13 (Red Alert instead), 18 (not once the number card is out) |
 | `nextTurn` / `canClaimTurn` | After each action / open turn | Any | 10 (open turn, "Snip!"), 18 (the turn passes on from the active player, not the chosen cutter) |
 | `checkLoss` | Each action, plus a client timer | Any | 10, 19 |
@@ -132,4 +132,4 @@ Defaults (change any of these if they're wrong):
 13. **Mission 18:**
     - The number card is public, since the radar announces its value anyway.
     - The active player may only choose someone who answered "yes" to that radar.
-    - Nobody can run an extra radar while the active player is choosing, because it would replace the answers being used.
+    - There's no standalone General Radar: the radar only runs when the number card is revealed.

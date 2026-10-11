@@ -42,7 +42,6 @@ import {
   ruleLossReason,
   startPlayWithRules,
   ruleCanUseEquipment,
-  ruleEquipmentReusable,
   setupInfoPolicy,
   wrongGuessExplodes,
   wrongGuessToken,
@@ -190,7 +189,6 @@ function spendEquipment(game: BBGame, id: number, uid: string): BBGame {
   if (!card) throw new Error("That equipment isn't on the board this mission.");
   if (!card.unlocked) throw new Error("That equipment isn't unlocked yet.");
   if (card.used) throw new Error("That equipment has already been used.");
-  if (ruleEquipmentReusable(game, id)) return game;
   return { ...game, equipment: game.equipment.map((item) => (item.id === id ? { ...item, used: true } : item)) };
 }
 

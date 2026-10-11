@@ -119,11 +119,6 @@ export function equipmentUnlockCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_E
   return unlockCheck(game, env);
 }
 
-/** Whether a rule lets this equipment card be used again and again. */
-export function ruleEquipmentReusable(game: BBGame, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
-  return rulesOf(game, env).some(({ rule, params }) => rule.isEquipmentReusable?.(cardId, { game, params, state: stateOf(game, rule.id) }) ?? false);
-}
-
 /** Whether a rule keeps this equipment card face down (identity hidden). */
 export function ruleEquipmentFaceDown(game: BBGame, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
   return rulesOf(game, env).some(({ rule, params }) => rule.equipmentFaceDown?.(cardId, { game, params, state: stateOf(game, rule.id) }) ?? false);

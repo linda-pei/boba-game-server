@@ -239,12 +239,11 @@ describe("batRadar (mission 18)", () => {
     radar: { ...game.radar!, answers: Object.fromEntries(game.playerOrder.map((p) => [p, holders.includes(p)])) },
   });
 
-  it("skips setup tokens, starts play and leaves only a reusable General Radar", () => {
+  it("skips setup tokens, starts play and has no equipment", () => {
     const { game } = start();
     expect(game.phase).toBe("playing");
     expect((game.ruleState.batRadar as BatRadarState).active).toBe("a");
-    expect(game.equipment).toEqual([{ id: 8, unlocked: true, used: false }]);
-    expect(ruleCanUseEquipment(game, "b", 8)).toBeNull();
+    expect(game.equipment).toEqual([]);
   });
 
   it("reveals a card (running the radar), then the active player chooses a holder to cut that value", () => {
@@ -254,7 +253,6 @@ describe("batRadar (mission 18)", () => {
     const value = (game.ruleState.batRadar as BatRadarState).current!;
     expect(game.radar).toEqual({ by: "a", value, answers: { a: null, b: null, c: null } });
     expect(() => designateBatCutter(game, "a", "b")).toThrow(/Wait for everyone/);
-    expect(ruleCanUseEquipment(game, "b", 8)).toMatch(/Choose who cuts/);
     expect(ruleCanReveal(game, "a")).toMatch(/carry out the cut/);
     game = answerAll(game, ["b"]);
     expect(() => designateBatCutter(game, "a", "c")).toThrow(/holds a/);
