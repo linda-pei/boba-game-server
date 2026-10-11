@@ -60,6 +60,8 @@
   margin-bottom: 0.9rem;
 }
 .lobby .game-filters .mode-toggle { margin-bottom: 0; }
+/* Size each pill to its label; the shared equal-width flex squeezed "Co-op" onto two lines. */
+.lobby .game-filters .mode-toggle-btn { flex: 0 0 auto; white-space: nowrap; }
 .lobby .game-filters__fits {
   display: inline-flex;
   align-items: center;
