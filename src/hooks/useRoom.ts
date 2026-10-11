@@ -111,7 +111,7 @@ export async function leaveRoom(
 
 export async function updateRoomSettings(
   roomCode: string,
-  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string; chapter?: number; testNumber?: number; roundsEnabled?: boolean; bonusTokensEnabled?: boolean }
+  settings: { numRings?: number; knower?: string; mode?: "competitive" | "coop"; gameType?: string; deckId?: string; limitedTokens?: boolean; difficulty?: string; timerMinutes?: number; mayor?: string; chapter?: number; testNumber?: number; roundsEnabled?: boolean; bonusTokensEnabled?: boolean; robotrickMoreHangars?: boolean; robotrickFixedAiCard?: boolean }
 ): Promise<void> {
   const roomRef = doc(db, "rooms", roomCode);
   const updates: Record<string, unknown> = {};
@@ -154,6 +154,12 @@ export async function updateRoomSettings(
   }
   if (settings.bonusTokensEnabled !== undefined) {
     updates["settings.bonusTokensEnabled"] = settings.bonusTokensEnabled;
+  }
+  if (settings.robotrickMoreHangars !== undefined) {
+    updates["settings.robotrickMoreHangars"] = settings.robotrickMoreHangars;
+  }
+  if (settings.robotrickFixedAiCard !== undefined) {
+    updates["settings.robotrickFixedAiCard"] = settings.robotrickFixedAiCard;
   }
 
   await updateDoc(roomRef, updates);

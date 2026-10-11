@@ -14,7 +14,7 @@ export default function PlayerCountStatus({ gameName, count, min, max }: Props) 
         : `${count} players — ready!`;
   return (
     <p style={{ fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
-      {gameName} requires {min}–{max} players. {message}
+      {gameName} requires {min === max ? min : `${min}–${max}`} players. {message}
     </p>
   );
 }

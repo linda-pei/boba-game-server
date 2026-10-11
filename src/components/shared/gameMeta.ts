@@ -1,5 +1,5 @@
 /** Game identity shared by icons, stickers, banners and the lobby. */
-export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover";
+export type GameKey = "tir" | "scout" | "ww" | "oo" | "ds" | "tt" | "fb" | "su" | "clover" | "rt";
 
 export const GAME_META: Record<
   GameKey,
@@ -68,6 +68,13 @@ export const GAME_META: Record<
     players: "3–6 players",
     badge: "co-op word play",
   },
+  rt: {
+    id: "robotrick",
+    name: "Robotrick",
+    tagline: "Outwit Droco. Salvage the best robots.",
+    players: "3 players",
+    badge: "trick-taking",
+  },
 };
 
 export const GAME_ID_TO_KEY: Record<string, GameKey> = {
@@ -80,4 +87,5 @@ export const GAME_ID_TO_KEY: Record<string, GameKey> = {
   "fruit-boss": "fb",
   startups: "su",
   clover: "clover",
+  robotrick: "rt",
 };

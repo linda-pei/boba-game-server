@@ -179,6 +179,8 @@
   background: linear-gradient(135deg, var(--tile-bg) 0%, var(--tile-bg2) 100%);
 }
 .game-sticker.su .badge-mini { --badge-bg: var(--jade-500); --badge-ink: #fff; }
+.game-sticker.rt { --tile-bg: color-mix(in srgb, var(--rt-steel) 70%, var(--milk-50)); --tile-bg2: var(--rt-steel); }
+.game-sticker.rt .badge-mini { --badge-bg: var(--rt-steel-dark); --badge-ink: #fff; }
 
 /* per-game tile tints — dark mode */
 [data-theme="dark"] .game-sticker.tir   { --tile-bg: #5a2818; --tile-bg2: #3a1810; }
@@ -190,6 +192,7 @@
   background: linear-gradient(180deg, #3a2f10 0%, #3a2f10 52%, #0c1024 52%, #0c1024 100%);
 }
 [data-theme="dark"] .game-sticker.fb { --tile-bg: #4a2818; --tile-bg2: #2e1810; }
+[data-theme="dark"] .game-sticker.rt { --tile-bg: #2c3a4a; --tile-bg2: #1a2430; }
 [data-theme="dark"] .game-sticker.su {
   --tile-bg: #1f3d2e;
   --tile-bg2: #3a3010;
@@ -318,6 +321,16 @@
   border-color: var(--jade-700);
   box-shadow: 2px 2px 0 var(--jade-700);
 }
+/* Robotrick: brushed-steel banner with the four card-type colors as a base stripe */
+.game-banner.rt {
+  background:
+    linear-gradient(90deg, var(--rt-a) 0 25%, var(--rt-b) 25% 50%, var(--rt-c) 50% 75%, var(--rt-d) 75% 100%)
+      bottom / 100% 4px no-repeat,
+    linear-gradient(120deg, color-mix(in srgb, var(--rt-steel) 80%, var(--milk-50)) 0%, var(--rt-steel) 100%);
+  --banner-ink: var(--rt-steel-dark);
+  --banner-sub: color-mix(in srgb, var(--rt-steel-dark) 80%, var(--ink));
+}
+.game-banner.rt .banner-icon { background: var(--milk-50); border-color: var(--rt-steel-dark); }
 /* Startups banner: clean jade-to-gold diagonal with the 6-company stripe at the base */
 .game-banner.su {
   background:
@@ -361,6 +374,15 @@
   --banner-ink: #f0fbf2;
   --banner-sub: #c8e8d0;
 }
+[data-theme="dark"] .game-banner.rt {
+  background:
+    linear-gradient(90deg, var(--rt-a) 0 25%, var(--rt-b) 25% 50%, var(--rt-c) 50% 75%, var(--rt-d) 75% 100%)
+      bottom / 100% 4px no-repeat,
+    linear-gradient(120deg, #2c3a4a 0%, #1a2430 100%);
+  --banner-ink: #eef3f8;
+  --banner-sub: #c4d0dc;
+}
+[data-theme="dark"] .game-banner.rt .banner-icon { background: #dfe7ef; border-color: var(--rt-steel); }
 [data-theme="dark"] .game-banner.clover .banner-icon {
   background: #e8f7eb;
   border-color: var(--jade-300);

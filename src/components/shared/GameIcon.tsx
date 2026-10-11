@@ -200,5 +200,23 @@ export default function GameIcon({ game, size = 44 }: Props) {
           <circle cx="40" cy="41" r="5.5" fill="var(--honey-500)" />
         </svg>
       );
+    case "rt":
+      return (
+        <svg className="gicon" viewBox="0 0 80 80" width={size} height={size}>
+          {/* Droco: a boxy robot head with antenna, visor eyes and a card-type grille */}
+          <line x1="40" y1="8" x2="40" y2="18" />
+          <circle cx="40" cy="8" r="4" fill="var(--rt-d)" />
+          <rect x="12" y="34" width="6" height="16" rx="2" fill="var(--rt-steel-dark)" />
+          <rect x="62" y="34" width="6" height="16" rx="2" fill="var(--rt-steel-dark)" />
+          <rect x="17" y="18" width="46" height="46" rx="9" fill="var(--rt-steel)" />
+          <rect x="24" y="28" width="32" height="13" rx="6" fill="var(--rt-steel-dark)" />
+          <circle cx="33" cy="34.5" r="3.5" className="nostroke" fill="var(--rt-c)" />
+          <circle cx="47" cy="34.5" r="3.5" className="nostroke" fill="var(--rt-c)" />
+          <rect x="25" y="49" width="7" height="8" rx="1.5" className="nostroke" fill="var(--rt-a)" />
+          <rect x="32.5" y="49" width="7" height="8" rx="1.5" className="nostroke" fill="var(--rt-b)" />
+          <rect x="40" y="49" width="7" height="8" rx="1.5" className="nostroke" fill="var(--rt-c)" />
+          <rect x="47.5" y="49" width="7" height="8" rx="1.5" className="nostroke" fill="var(--rt-d)" />
+        </svg>
+      );
   }
 }

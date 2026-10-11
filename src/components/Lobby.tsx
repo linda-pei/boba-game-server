@@ -12,6 +12,7 @@ import { startTakeTimeGame } from "../games/take-time/useTakeTimeGame";
 import { startFruitBossGame } from "../games/fruit-boss/useFruitBossGame";
 import { startStartupsGame } from "../games/startups/useStartupsGame";
 import { startCloverGame } from "../games/clover/useCloverGame";
+import { startRobotrickGame } from "../games/robotrick/useRobotrickGame";
 import { DEFINED_CHAPTERS, TESTS_PER_CHAPTER, toRoman, getLevel } from "../games/take-time/levels";
 import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
@@ -69,6 +70,7 @@ export default function Lobby() {
   const isFruitBoss = gameType === "fruit-boss";
   const isStartups = gameType === "startups";
   const isClover = gameType === "clover";
+  const isRobotrick = gameType === "robotrick";
 
   // TIR-specific
   const knower = room.settings.knower;
@@ -101,7 +103,12 @@ export default function Lobby() {
   // Clover-specific
   const canStartClover = players.length >= 3 && players.length <= 6;
 
-  const canStart = isClover
+  // Robotrick: exactly 3 humans (Droco is the 4th seat)
+  const canStartRobotrick = players.length === 3;
+
+  const canStart = isRobotrick
+    ? canStartRobotrick
+    : isClover
     ? canStartClover
     : isStartups
     ? canStartStartups
@@ -144,7 +151,9 @@ export default function Lobby() {
     if (!roomCode || !room) return;
     setStarting(true);
     try {
-      if (isClover) {
+      if (isRobotrick) {
+        await startRobotrickGame(roomCode, room);
+      } else if (isClover) {
         await startCloverGame(roomCode, room);
       } else if (isStartups) {
         await startStartupsGame(roomCode, room);
@@ -208,7 +217,7 @@ export default function Lobby() {
         <div className="game-selector">
           <label className="game-selector-label">Game</label>
           <div className="game-sticker-grid">
-            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover"] as const).map((id) => (
+            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const).map((id) => (
               <GameSticker
                 key={id}
                 game={GAME_ID_TO_KEY[id]}
@@ -219,6 +228,31 @@ export default function Lobby() {
             ))}
           </div>
         </div>
+
+        {/* Robotrick settings */}
+        {isRobotrick && (
+          <>
+            <PlayerCountStatus gameName="Robotrick" count={players.length} min={3} max={3} />
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              <input
+                type="checkbox"
+                checked={room.settings.robotrickMoreHangars !== false}
+                onChange={(e) => updateRoomSettings(roomCode!, { robotrickMoreHangars: e.target.checked })}
+                disabled={!isHost}
+              />
+              More hangars (4 face-up slots instead of 3, recommended for new players)
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", margin: "0 0 0.75rem" }}>
+              <input
+                type="checkbox"
+                checked={room.settings.robotrickFixedAiCard === true}
+                onChange={(e) => updateRoomSettings(roomCode!, { robotrickFixedAiCard: e.target.checked })}
+                disabled={!isHost}
+              />
+              Fixed AI card (use round 1&apos;s AI card all game)
+            </label>
+          </>
+        )}
 
         {/* Deep Sea info */}
         {isDeepSea && (
@@ -399,7 +433,11 @@ export default function Lobby() {
             </button>
             {!canStart && (
               <p style={{ fontSize: "0.8rem", margin: "0.5rem 0 0" }}>
-                { isClover
+                { isRobotrick
+                  ? players.length < 3
+                    ? "Need exactly 3 players for Robotrick"
+                    : "Too many players (Robotrick is exactly 3)"
+                  : isClover
                   ? players.length < 3
                     ? "Need at least 3 players for Clover"
                     : "Too many players (max 6 for Clover)"

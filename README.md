@@ -10,6 +10,7 @@ Fun server for game time! Current games:
 * Fruit Boss
 * Startups
 * Clover
+* Robotrick
 
 
 ## Prerequisites

@@ -18,6 +18,10 @@ export interface RoomSettings {
   roundsEnabled?: boolean;
   /** Take Time: gain an extra reminder token each time you fail a test (max 3). */
   bonusTokensEnabled?: boolean;
+  /** Robotrick: 4 face-up hangar slots instead of 3 (rulebook-recommended for new players). */
+  robotrickMoreHangars?: boolean;
+  /** Robotrick: reuse round 1's AI card for all three rounds. */
+  robotrickFixedAiCard?: boolean;
 }
 
 export interface Room {
@@ -609,4 +613,76 @@ export interface CloverGame {
   teamScore: number;
   boardResults: Record<string, CloverBoardResult>;
   lastAction: string | null;
+}
+
+// ---- Robotrick types ----
+
+export type RobotrickType = "A" | "B" | "C" | "D";
+
+export interface RobotrickCard {
+  /** e.g. "B11" */
+  id: string;
+  type: RobotrickType;
+  strength: number;
+  vp: number;
+}
+
+/** A human uid, or "droco" for the automated fourth seat. */
+export type RobotrickSeat = string;
+
+export type RobotrickCriterion = "high" | "low" | "long" | "short";
+export type RobotrickColumn = "lead" | "follow" | "unfollow";
+
+export interface RobotrickAiCard {
+  id: number;
+  lead: [RobotrickCriterion, RobotrickCriterion?];
+  follow: [RobotrickCriterion, RobotrickCriterion?];
+  unfollow: [RobotrickCriterion, RobotrickCriterion?];
+}
+
+export interface RobotrickPlay {
+  seat: RobotrickSeat;
+  card: RobotrickCard;
+}
+
+export type RobotrickPhase = "passing" | "playing" | "trick-result" | "round-end" | "finished";
+
+export interface RobotrickGame {
+  gameType: "robotrick";
+  phase: RobotrickPhase;
+  round: number;
+  /** Humans, host first, clockwise. */
+  playerOrder: string[];
+  /** The four seats this round, with Droco inserted per the rulebook's seating. */
+  seatOrder: RobotrickSeat[];
+  options: { hangars: number; fixedAiCard: boolean };
+  aiCardId: number;
+  /** The flipped card; its type is trump for the round. */
+  trump: RobotrickCard;
+  drocoHand: RobotrickCard[];
+  passSubmitted: string[];
+  trickNumber: number;
+  leader: RobotrickSeat;
+  turn: RobotrickSeat;
+  currentTrick: RobotrickPlay[];
+  /** Why Droco played its card in the current trick (null until it has played). */
+  drocoReason: string | null;
+  lastTrick: { plays: RobotrickPlay[]; winner: RobotrickSeat; drocoReason: string | null } | null;
+  /** Face-up captured cards (score +). */
+  hangars: Record<string, RobotrickCard[]>;
+  /** Face-down cards (score −). */
+  penalties: Record<string, RobotrickCard[]>;
+  handCounts: Record<string, number>;
+  /** One entry per finished round, per uid. */
+  roundScores: Record<string, number[]>;
+  lastAction: string | null;
+}
+
+export interface RobotrickHand {
+  ownerUid: string;
+  cards: RobotrickCard[];
+  /** The 2 cards this player passed (kept for display until the round ends). */
+  passOut: RobotrickCard[] | null;
+  /** Cards passed to this player; merged into `cards` on their first play. */
+  incoming: RobotrickCard[];
 }
