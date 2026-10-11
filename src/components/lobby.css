@@ -41,14 +41,47 @@
   border-bottom: 2px dashed var(--border);
 }
 
-.lobby .game-selector-label {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+/* ---- Game picker header: title + filters on one row ---- */
+.lobby .game-selector__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-bottom: 0.9rem;
+}
+.lobby .game-selector__header h3 { margin: 0; }
+
+.lobby .game-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.lobby .game-filters .mode-toggle { margin-bottom: 0; }
+/* Size each pill to its label; the shared equal-width flex squeezed "Co-op" onto two lines. */
+.lobby .game-filters .mode-toggle-btn { flex: 0 0 auto; white-space: nowrap; }
+.lobby .game-filters__empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-2);
+  background: var(--surface-2);
   color: var(--ink-soft);
-  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.lobby .game-filters__fits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* ---- Mode toggle — pill switch ---- */

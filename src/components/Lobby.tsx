@@ -18,10 +18,12 @@ import { DECKS } from "../games/order-overload/deck";
 import { DIFFICULTIES } from "../games/werewords/words";
 import BrandTitle from "./shared/BrandTitle";
 import GameSticker from "./shared/GameSticker";
-import { GAME_ID_TO_KEY } from "./shared/gameMeta";
+import { GAME_ID_TO_KEY, GAME_META, type GameMode } from "./shared/gameMeta";
 import PlayerCountStatus from "./shared/PlayerCountStatus";
 import ConfirmButton from "./shared/ConfirmButton";
 import { PlayerChipList, PlayerChip, Badge } from "./shared/PlayerChipList";
+
+const ALL_GAME_IDS = ["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const;
 
 export default function Lobby() {
   const { roomCode } = useParams<{ roomCode: string }>();
@@ -29,6 +31,9 @@ export default function Lobby() {
   const { room, loading, error } = useRoom(roomCode);
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
+  // Game-picker filters are per viewer (not saved to the room); off by default.
+  const [modeFilter, setModeFilter] = useState<GameMode | "all">("all");
+  const [fitsPlayersOnly, setFitsPlayersOnly] = useState(false);
 
   // Auto-join if the player opened the lobby link but isn't in the room yet
   useEffect(() => {
@@ -126,6 +131,18 @@ export default function Lobby() {
     ? canStartOrderOverload
     : canStartTIR;
 
+  const matchesFilters = (id: (typeof ALL_GAME_IDS)[number]) => {
+    const meta = GAME_META[GAME_ID_TO_KEY[id]];
+    if (modeFilter !== "all" && !meta.modes.includes(modeFilter)) return false;
+    if (fitsPlayersOnly && (players.length < meta.minPlayers || players.length > meta.maxPlayers)) return false;
+    return true;
+  };
+  const matchingGameIds = ALL_GAME_IDS.filter(matchesFilters);
+  // The selected game always stays visible so the current choice never disappears behind a filter.
+  const visibleGameIds = ALL_GAME_IDS.filter((id) => id === gameType || matchesFilters(id));
+  const fewestPlayersSupported = Math.min(...Object.values(GAME_META).map((meta) => meta.minPlayers));
+  const filtersActive = modeFilter !== "all" || fitsPlayersOnly;
+
   const handleLeave = async () => {
     if (!uid || !roomCode) return;
     await leaveRoom(roomCode, uid);
@@ -211,17 +228,56 @@ export default function Lobby() {
       </PlayerChipList>
 
       <div className="settings-panel">
-        <h3>Settings</h3>
-
-        {/* Game type selector */}
+        {/* Game picker: title and filters share one row, wrapping on narrow screens */}
         <div className="game-selector">
-          <label className="game-selector-label">Game</label>
+          <div className="game-selector__header">
+            <h3>Pick your game</h3>
+            <div className="game-filters" role="group" aria-label="Filter games">
+              <div className="mode-toggle">
+                {(["all", "co-op", "competitive"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    type="button"
+                    className={`mode-toggle-btn${modeFilter === filter ? " active" : ""}`}
+                    aria-pressed={modeFilter === filter}
+                    onClick={() => setModeFilter(filter)}
+                  >
+                    {filter === "all" ? "All" : filter === "co-op" ? "Co-op" : "Competitive"}
+                  </button>
+                ))}
+              </div>
+              <label className="game-filters__fits">
+                <input type="checkbox" checked={fitsPlayersOnly} onChange={(e) => setFitsPlayersOnly(e.target.checked)} />
+                Fits your player count
+              </label>
+            </div>
+          </div>
+          {filtersActive && matchingGameIds.length === 0 && (
+            <div className="game-filters__empty" role="status">
+              <span>
+                {fitsPlayersOnly && players.length < fewestPlayersSupported
+                  ? `No games support ${players.length} player${players.length === 1 ? "" : "s"} yet. Invite friends with the room code, or clear the filters.`
+                  : "No games match these filters."}
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => {
+                  setModeFilter("all");
+                  setFitsPlayersOnly(false);
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
           <div className="game-sticker-grid">
-            {(["things-in-rings", "scout", "werewords", "order-overload", "deep-sea", "take-time", "fruit-boss", "startups", "clover", "robotrick"] as const).map((id) => (
+            {visibleGameIds.map((id) => (
               <GameSticker
                 key={id}
                 game={GAME_ID_TO_KEY[id]}
                 selected={gameType === id}
+                note={filtersActive && !matchesFilters(id) ? "Doesn't fit your filters" : undefined}
                 disabled={!isHost}
                 onClick={() => handleSetGameType(id)}
               />
