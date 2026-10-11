@@ -246,7 +246,7 @@ export default function Lobby() {
             </div>
             <label className="game-filters__fits">
               <input type="checkbox" checked={fitsPlayersOnly} onChange={(e) => setFitsPlayersOnly(e.target.checked)} />
-              Fits {players.length} player{players.length === 1 ? "" : "s"}
+              Fits your player count
             </label>
           </div>
           <div className="game-sticker-grid">
