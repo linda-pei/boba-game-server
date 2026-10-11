@@ -1,4 +1,4 @@
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import "./things-in-rings.css";
 import { useGame, useHand, useAllHandCounts } from "./useGame";
 import { useRoom } from "../../hooks/useRoom";

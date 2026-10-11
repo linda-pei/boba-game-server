@@ -1,4 +1,4 @@
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import {
   useWerewordsGame,

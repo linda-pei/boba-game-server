@@ -24,9 +24,9 @@ export default function WordReveal({ roomCode, game, hand, uid }: Props) {
   useEffect(() => {
     if (!needsToConfirm || hasConfirmed || firedRef.current) return;
 
-    setCountdown(REVEAL_SECONDS);
+    const deadline = Date.now() + REVEAL_SECONDS * 1000;
     const tick = setInterval(() => {
-      setCountdown((c) => Math.max(c - 1, 0));
+      setCountdown(Math.max(Math.ceil((deadline - Date.now()) / 1000), 0));
     }, 1000);
 
     const timer = setTimeout(() => {
@@ -43,7 +43,7 @@ export default function WordReveal({ roomCode, game, hand, uid }: Props) {
   // Any client can trigger the transition once all are confirmed
   useEffect(() => {
     checkWordRevealComplete(roomCode, game);
-  }, [roomCode, game.wordRevealed]);
+  }, [roomCode, game]);
 
   // Seer or werewolf who needs to see the word
   if (needsToConfirm) {

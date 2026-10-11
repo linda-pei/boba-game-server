@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ScoutGame, Room } from "../../types";
 import { finalizeRound, startNextRound, useAllScoutHandInfo } from "./useScoutGame";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { PlayerScores, PlayerScoreRow } from "../../components/shared/PlayerScores";
 
 interface RoundEndProps {

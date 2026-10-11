@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import confetti from "canvas-confetti";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { getOrderedPlayedCards } from "./zones";
 import RingDisplay from "./RingDisplay";
 import GameEndButtons from "../../components/shared/GameEndButtons";
@@ -30,17 +29,7 @@ export default function GameOver({ game, room }: Props) {
 
   const isWinner = isCoop ? game.winner === "team" : game.winner === uid;
 
-  useEffect(() => {
-    if (!isWinner) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, []);
+  useCelebration(isWinner);
 
   const playedCards = getOrderedPlayedCards(game.ringAssignments, game.playedCards, game.playOrder);
 

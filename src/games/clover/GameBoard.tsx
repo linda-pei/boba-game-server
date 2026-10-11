@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import type { CloverClueZone, CloverPlacement, CloverRotation, CloverSlot } from "../../types";
 import ConfirmButton from "../../components/shared/ConfirmButton";

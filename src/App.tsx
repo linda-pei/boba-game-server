@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuthContext } from "./hooks/AuthContext";
+import { AuthProvider } from "./hooks/AuthContext";
+import { useAuthContext } from "./hooks/useAuthContext";
 import SetUsername from "./components/SetUsername";
 import Home from "./components/Home";
 import Lobby from "./components/Lobby";

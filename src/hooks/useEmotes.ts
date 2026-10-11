@@ -8,7 +8,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import { useAuthContext } from "./AuthContext";
+import { useAuthContext } from "./useAuthContext";
 
 export interface Emote {
   id: string;
@@ -26,12 +26,13 @@ export function useEmotes(roomCode: string | undefined) {
   const [canSend, setCanSend] = useState(true);
   const seenIds = useRef(new Set<string>());
   const lastSentAt = useRef(0);
-  const mountedAt = useRef(Date.now());
+  const mountedAt = useRef(0); // set when the subscription starts
 
   // Subscribe to emotes collection (no query filter — collection is ephemeral)
   useEffect(() => {
     if (!roomCode) return;
     mountedAt.current = Date.now();
+    const seen = seenIds.current;
 
     const emotesRef = collection(db, "games", roomCode, "emotes");
 
@@ -40,8 +41,8 @@ export function useEmotes(roomCode: string | undefined) {
         if (change.type !== "added") return;
 
         const docId = change.doc.id;
-        if (seenIds.current.has(docId)) return;
-        seenIds.current.add(docId);
+        if (seen.has(docId)) return;
+        seen.add(docId);
 
         const data = change.doc.data();
 
@@ -80,7 +81,7 @@ export function useEmotes(roomCode: string | undefined) {
 
     return () => {
       unsubscribe();
-      seenIds.current.clear();
+      seen.clear();
     };
   }, [roomCode, uid]);
 

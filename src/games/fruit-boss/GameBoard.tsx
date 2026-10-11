@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../../hooks/AuthContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import { useFruitBossGame, useFruitBossHand } from "./useFruitBossGame";
 import PlayerTurn from "./PlayerTurn";

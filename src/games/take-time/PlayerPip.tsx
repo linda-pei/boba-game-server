@@ -8,12 +8,6 @@ interface Props {
   detail?: string;
 }
 
-const PLAYER_COLORS = [TT.peach, TT.jade, TT.goldMid, TT.lunarMid];
-
-export function getPlayerColor(index: number): string {
-  return PLAYER_COLORS[index % PLAYER_COLORS.length];
-}
-
 export default function PlayerPip({ name, color, active, isYou, detail }: Props) {
   return (
     <div

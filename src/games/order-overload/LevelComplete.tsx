@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import confetti from "canvas-confetti";
+import { useState } from "react";
+import { useCelebration } from "../../hooks/useCelebration";
 import type { OrderOverloadGame, Room } from "../../types";
 import {
   continueToNextLevel,
@@ -22,20 +22,7 @@ export default function LevelComplete({ roomCode, game, room, uid }: Props) {
   const stars = getLevelStars(game.level);
   const isMaxLevel = game.level >= 7;
 
-  useEffect(() => {
-    if (!passed) return;
-    const duration = 1500;
-    const end = Date.now() + duration;
-    let cancelled = false;
-    const frame = () => {
-      if (cancelled) return;
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-    return () => { cancelled = true; };
-  }, [passed]);
+  useCelebration(passed, 1500);
 
   const handleContinue = async () => {
     setActing(true);

@@ -20,6 +20,8 @@ export default function CardSVG({
   tilt = 0,
   lift = 0,
 }: CardProps) {
+  // Hooks must run before the early return below.
+  const rawId = useId();
   if (!faceUp) return <CardBack suit={suit} w={w} h={h} tilt={tilt} lift={lift} />;
 
   const isSolar = suit === "solar";
@@ -32,7 +34,6 @@ export default function CardSVG({
   const goldB = isSolar ? TT.goldDeep : TT.goldGlow;
   const mist = isSolar ? TT.solarMist : "#1E3F73";
 
-  const rawId = useId();
   const cardId = rawId.replace(/:/g, "");
 
   return (

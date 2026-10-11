@@ -15,10 +15,8 @@ export function useGame(roomCode: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "games", roomCode),
@@ -41,7 +39,7 @@ export function useGame(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { game, loading, error };
+  return { game, loading: roomCode ? loading : false, error };
 }
 
 export function useHand(roomCode: string | undefined, uid: string | null) {
@@ -74,10 +72,13 @@ export function useAllHandCounts(
 ) {
   const [counts, setCounts] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    if (!roomCode || playerUids.length === 0) return;
+  // Join to a stable key so a new array with the same players doesn't resubscribe.
+  const playerKey = playerUids.join(",");
 
-    const unsubs = playerUids.map((uid) =>
+  useEffect(() => {
+    if (!roomCode || !playerKey) return;
+
+    const unsubs = playerKey.split(",").map((uid) =>
       onSnapshot(doc(db, "games", roomCode, "hands", uid), (snapshot) => {
         if (snapshot.exists()) {
           const cards: string[] = snapshot.data().cards ?? [];
@@ -87,7 +88,7 @@ export function useAllHandCounts(
     );
 
     return () => unsubs.forEach((u) => u());
-  }, [roomCode, playerUids.join(",")]);
+  }, [roomCode, playerKey]);
 
   return counts;
 }

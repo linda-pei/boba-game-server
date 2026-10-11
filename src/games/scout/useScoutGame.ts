@@ -26,10 +26,8 @@ export function useScoutGame(roomCode: string | undefined) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!roomCode) {
-      setLoading(false);
-      return;
-    }
+    // No room: the hook reports not-loading below rather than setting state here.
+    if (!roomCode) return;
 
     const unsubscribe = onSnapshot(
       doc(db, "games", roomCode),
@@ -50,7 +48,7 @@ export function useScoutGame(roomCode: string | undefined) {
     return unsubscribe;
   }, [roomCode]);
 
-  return { game, loading };
+  return { game, loading: roomCode ? loading : false };
 }
 
 export function useScoutHand(roomCode: string | undefined, uid: string | null) {
@@ -88,10 +86,13 @@ export function useAllScoutHandInfo(
 ) {
   const [info, setInfo] = useState<Record<string, PlayerHandInfo>>({});
 
-  useEffect(() => {
-    if (!roomCode || playerUids.length === 0) return;
+  // Join to a stable key so a new array with the same players doesn't resubscribe.
+  const playerKey = playerUids.join(",");
 
-    const unsubs = playerUids.map((uid) =>
+  useEffect(() => {
+    if (!roomCode || !playerKey) return;
+
+    const unsubs = playerKey.split(",").map((uid) =>
       onSnapshot(doc(db, "games", roomCode, "hands", uid), (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data() as ScoutHand;
@@ -107,7 +108,7 @@ export function useAllScoutHandInfo(
     );
 
     return () => unsubs.forEach((u) => u());
-  }, [roomCode, playerUids.join(",")]);
+  }, [roomCode, playerKey]);
 
   return info;
 }
@@ -328,7 +329,7 @@ export async function scoutCard(
   newCards.splice(insertAtIndex, 0, taken);
   await writeHand(roomCode, uid, newCards, hand.hasUsedScoutPlay);
 
-  let newScores = awardDollarToken(game.scores, game.centerPile.playedBy);
+  const newScores = awardDollarToken(game.scores, game.centerPile.playedBy);
   const newConsecutiveScouts = game.consecutiveScouts + 1;
 
   const updates: Record<string, unknown> = {

@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
-import confetti from "canvas-confetti";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import { PlayerChipList, PlayerChip, Badge } from "../../components/shared/PlayerChipList";
 import type { WerewordsGame, Room, WerewordsRole } from "../../types";
@@ -36,17 +35,7 @@ export default function GameOver({ game, room }: Props) {
       : null;
   const isWinner = playerTeam === game.winner;
 
-  useEffect(() => {
-    if (!isWinner) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, []);
+  useCelebration(isWinner);
 
   return (
     <div className="screen ww-screen">

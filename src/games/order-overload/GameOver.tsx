@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { useAuthContext } from "../../hooks/AuthContext";
-import confetti from "canvas-confetti";
+import { useCelebration } from "../../hooks/useCelebration";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import type { OrderOverloadGame, Room } from "../../types";
 import { getLevelStars } from "./useOrderOverloadGame";
@@ -16,17 +15,7 @@ export default function GameOver({ game, room }: Props) {
   const level = game.highestLevelPassed;
   const stars = getLevelStars(level);
 
-  useEffect(() => {
-    if (level === 0) return;
-    const duration = 2000;
-    const end = Date.now() + duration;
-    const frame = () => {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    };
-    frame();
-  }, []);
+  useCelebration(level !== 0);
 
   return (
     <div className="screen oo-screen" style={{ textAlign: "center" }}>
