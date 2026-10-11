@@ -30,7 +30,7 @@ import {
   type BuiltMission,
 } from "./engine";
 import { getMission } from "./missions";
-import { buildMissionWithRules, cutWithRules, deadlyCheck, ruleCanCut } from "./rules";
+import { buildMissionWithRules, cutWithRules, deadlyCheck, equipmentUnlockCheck, ruleCanCut } from "./rules";
 
 /** Log entries store `@uid@` mentions; the UI swaps in player names. */
 export const mention = (uid: string) => `@${uid}@`;
@@ -529,7 +529,7 @@ export async function openFalseBottom(roomCode: string, uid: string): Promise<vo
     assertActive(game);
     const next = spendEquipment(game, FALSE_BOTTOM);
     const extra = drawExtraEquipment(getMission(game.missionId), next.equipment.map((card) => card.id), 2);
-    const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts);
+    const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts, equipmentUnlockCheck(next));
     return addLog({ ...next, equipment }, `🧰 ${mention(uid)} opened the False Bottom: ${extra.length ? extra.map((id) => `#${id}`).join(" and ") : "nothing left"} added.`);
   });
 }

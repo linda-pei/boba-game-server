@@ -266,3 +266,23 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 /* Mission special rules */
 .bb-rule-line { margin-top: 0.2rem; color: var(--ink); font-size: 0.82rem; font-weight: 600; }
 .bb-equipment__number--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+.bb-rule-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; }
+.bb-rule-panel__step { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
+.bb-rule-panel__arrow { color: var(--ink-soft); font-weight: 900; }
+.bb-number-card {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 38px;
+  padding: 0 4px;
+  border: 2px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+.bb-number-card--current { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
+.bb-number-card--done { border-color: var(--accent-secondary); color: var(--accent-secondary); opacity: 0.8; }
+.bb-number-card--danger { border-color: var(--bb-red); background: color-mix(in srgb, var(--bb-red) 15%, var(--surface)); color: var(--bb-red); }
+.bb-equipment__card--face-down { opacity: 0.75; border-style: dashed; }

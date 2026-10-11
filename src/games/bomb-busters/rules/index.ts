@@ -1,10 +1,19 @@
 import type { BBDeclared, BBGame, BBMission, BBWire } from "../../../types";
-import { applyCutToGame, buildMission, isRed, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
+import { applyCutToGame, buildMission, isRed, refreshEquipment, type BuiltMission, type DeadlyCheck, type UnlockCheck } from "../engine";
 import { getMission } from "../missions";
+import { deadlyValue } from "./deadlyValue";
+import { redTape } from "./redTape";
+import { russianToolbox } from "./russianToolbox";
+import { sequence } from "./sequence";
 import type { MissionRule, RuleParams, RuleRegistry } from "./types";
 
 /** Every registered rule module. Each mission lists the ones it uses (see missions.ts). */
-export const RULES: RuleRegistry = {};
+export const RULES: RuleRegistry = {
+  sequence,
+  deadlyValue,
+  redTape,
+  russianToolbox,
+} as unknown as RuleRegistry;
 
 /** Where rules and missions come from; tests pass fakes, the app uses the defaults. */
 export interface RuleEnv {
@@ -64,9 +73,9 @@ export function deadlyCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_ENV): Dead
 function unlockCheck(game: BBGame, env: RuleEnv): UnlockCheck | undefined {
   const rules = rulesOf(game, env).filter(({ rule }) => rule.isEquipmentUnlocked);
   if (rules.length === 0) return undefined;
-  return (card) => {
+  return (card, cuts) => {
     for (const { rule, params } of rules) {
-      const verdict = rule.isEquipmentUnlocked!(card.id, { game, params, state: stateOf(game, rule.id) });
+      const verdict = rule.isEquipmentUnlocked!(card.id, { game, params, state: stateOf(game, rule.id), cuts });
       if (verdict !== undefined) return verdict;
     }
     return undefined;
@@ -81,7 +90,18 @@ export function cutWithRules(game: BBGame, uid: string, flatIndex: number, wire:
     const result = rule.afterCut(wire, { game: next, params, state: stateOf(next, rule.id) });
     next = { ...(result.game ?? next), ruleState: { ...(result.game ?? next).ruleState, [rule.id]: result.state } };
   }
-  return next;
+  // Rules may have changed what unlocks (e.g. mission 15 flipping a card), so refresh with their new state.
+  return { ...next, equipment: refreshEquipment(next.equipment, next.cutCounts, unlockCheck(next, env)) };
+}
+
+/** Unlock check for equipment changes made outside a cut (e.g. False Bottom adding cards). */
+export function equipmentUnlockCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_ENV): UnlockCheck | undefined {
+  return unlockCheck(game, env);
+}
+
+/** Whether a rule keeps this equipment card face down (identity hidden). */
+export function ruleEquipmentFaceDown(game: BBGame, cardId: number, env: RuleEnv = DEFAULT_RULE_ENV): boolean {
+  return rulesOf(game, env).some(({ rule, params }) => rule.equipmentFaceDown?.(cardId, { game, params, state: stateOf(game, rule.id) }) ?? false);
 }
 
 /** Summary lines for the mission card. */

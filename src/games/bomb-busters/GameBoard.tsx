@@ -10,7 +10,7 @@ import TurnStatus from "../../components/shared/TurnStatus";
 import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
-import { deadlyCheck, describeRules, ruleCanCut } from "./rules";
+import { deadlyCheck, describeRules, ruleCanCut, ruleEquipmentFaceDown } from "./rules";
 import { RULE_PANELS } from "./rules/ui";
 import {
   type ResolveResult,
@@ -170,6 +170,14 @@ function Board({ game, room, uid, canUse, onUse }: { game: BBGame; room: Room; u
         <div className="bb-equipment">
           {game.equipment.map((card) => {
             const info = getEquipment(card.id);
+            if (ruleEquipmentFaceDown(game, card.id)) {
+              return (
+                <div key={card.id} className="bb-equipment__card bb-equipment__card--face-down" title="Face-down equipment">
+                  <span className="bb-equipment__number">?</span>
+                  <strong>Face down</strong>
+                </div>
+              );
+            }
             return (
               <div
                 key={card.id}

@@ -22,8 +22,10 @@ export interface MissionRule<P extends RuleParams = RuleParams, S = unknown> {
   isDeadly?(wire: BBWire, ctx: { game: BBGame; params: P; state: S }): boolean;
   /** Any client, after a wire is cut: the rule's next state (and any game changes it owns). */
   afterCut?(wire: BBWire, ctx: { game: BBGame; params: P; state: S }): { game?: BBGame; state: S };
-  /** Any client: override whether an equipment card is unlocked (undefined = default rule). */
-  isEquipmentUnlocked?(cardId: number, ctx: { game: BBGame; params: P; state: S }): boolean | undefined;
+  /** Any client: override whether an equipment card is unlocked (undefined = default). `cuts` is up to date. */
+  isEquipmentUnlocked?(cardId: number, ctx: { game: BBGame; params: P; state: S; cuts: BBGame["cutCounts"] }): boolean | undefined;
+  /** Rendering: whether an equipment card is still face down (its identity hidden). */
+  equipmentFaceDown?(cardId: number, ctx: { game: BBGame; params: P; state: S }): boolean;
 }
 
 export type RuleRegistry = Record<string, MissionRule<RuleParams, unknown>>;
