@@ -4,17 +4,17 @@ import { db } from "../../firebase";
 import type { BBDeclared, BBDetector, BBGame, BBHand, BBHandWire, Room } from "../../types";
 import {
   addLog,
-  applyCutToGame,
-  buildMission,
   canDeclare,
   canRevealRed,
   describeDeclared,
   describeWire,
-  finishTurn,
   advanceDial,
   infoTokenFor,
   loseMission,
   matchedValue,
+  FALSE_BOTTOM,
+  drawExtraEquipment,
+  refreshEquipment,
   nextCaptainOrder,
   areAdjacent,
   sameValue,
@@ -26,8 +26,27 @@ import {
   unwrapHand,
   unwrapPublic,
   wrapHand,
+  type BuiltMission,
 } from "./engine";
 import { getMission } from "./missions";
+import { designateBatCutter, revealBatCard } from "./rules/batRadar";
+import {
+  buildMissionWithRules,
+  cutWithRules,
+  deadlyCheck,
+  equipmentUnlockCheck,
+  finishTurnWithRules,
+  ruleCanCut,
+  ruleCanClaimTurn,
+  ruleCanReveal,
+  ruleLossReason,
+  startPlayWithRules,
+  ruleCanUseEquipment,
+  ruleEquipmentReusable,
+  setupInfoPolicy,
+  wrongGuessExplodes,
+  wrongGuessToken,
+} from "./rules";
 
 /** Log entries store `@uid@` mentions; the UI swaps in player names. */
 export const mention = (uid: string) => `@${uid}@`;
@@ -60,7 +79,7 @@ export function useBombBustersHand(roomCode: string | undefined, uid: string | n
   return hand;
 }
 
-function writeMission(batch: ReturnType<typeof writeBatch>, roomCode: string, built: ReturnType<typeof buildMission>) {
+function writeMission(batch: ReturnType<typeof writeBatch>, roomCode: string, built: BuiltMission) {
   batch.set(doc(db, "games", roomCode), built.game);
   Object.entries(built.hands).forEach(([uid, stands]) => {
     const hand: BBHand = { ownerUid: uid, stands: wrapHand(stands) };
@@ -76,7 +95,7 @@ export async function startBombBustersGame(roomCode: string, room: Room, mission
   const captainIndex = Math.floor(Math.random() * joined.length);
   const playerOrder = [...joined.slice(captainIndex), ...joined.slice(0, captainIndex)];
 
-  const built = buildMission(playerOrder, getMission(missionId));
+  const built = buildMissionWithRules(playerOrder, getMission(missionId));
   const batch = writeBatch(db);
   writeMission(batch, roomCode, built);
   batch.update(doc(db, "rooms", roomCode), { status: "in-progress" });
@@ -107,28 +126,56 @@ function cutInHand(hand: BBHandWire[][], flatIndex: number): BBHandWire[][] {
   );
 }
 
-/** Setup: every player, at the same time, points an info token at one of their blue wires. */
-export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: number | null): Promise<void> {
+/**
+ * Setup: every player, at the same time, points info tokens at their wires — normally one, on a blue
+ * wire, showing its value. A rule may change that (e.g. Red Herring places 2 fake tokens, choosing a
+ * value that must not match the wire, never on red). `fakeValue` is the chosen value for fake tokens.
+ */
+export async function placeSetupInfo(roomCode: string, uid: string, flatIndex: number | null, fakeValue?: BBDeclared): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "setup-info") throw new Error("Setup is over.");
-    if ((game.setupDone ?? []).includes(uid)) throw new Error("You've already placed your info token.");
+    const done = game.setupDone ?? [];
+    if (done.includes(uid)) throw new Error("You've already placed your info tokens.");
+    const policy = setupInfoPolicy(game, uid);
     const wires = hand.flat();
 
     let next = game;
     if (flatIndex === null) {
-      // Only allowed when you have no blue wires at all.
-      if (wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your blue wires.");
-      next = addLog(next, `${mention(uid)} has no blue wires to mark.`);
+      if (policy.value !== undefined) {
+        // A forced token with no matching wire goes face up beside the stand (public information).
+        if (wires.some((wire) => wire.color === "blue" && wire.sortKey === policy.value)) throw new Error(`Point it at one of your ${policy.value}s.`);
+        next = addLog({ ...next, besideTokens: { ...(next.besideTokens ?? {}), [uid]: policy.value } }, `${mention(uid)} has no ${policy.value}s.`);
+      } else {
+        // Only allowed when you have no blue wires at all (real tokens).
+        if (policy.fake || wires.some((wire) => wire.color === "blue")) throw new Error("Choose one of your wires.");
+        next = addLog(next, `${mention(uid)} has no blue wires to mark.`);
+      }
     } else {
       const wire = wires[flatIndex];
-      if (!wire || wire.color !== "blue") throw new Error("Setup info tokens go on a blue wire.");
-      next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
+      const slot = unwrapPublic(game.stands)[uid].flat()[flatIndex];
+      if (!wire) throw new Error("Choose one of your wires.");
+      if (slot?.info) throw new Error("That wire already has an info token.");
+      if (policy.fake) {
+        if (wire.color === "red") throw new Error("Fake info tokens can't go in front of a red wire.");
+        if (fakeValue === undefined) throw new Error("Choose the value to show.");
+        const matches = fakeValue === "yellow" ? wire.color === "yellow" : wire.color === "blue" && wire.sortKey === fakeValue;
+        if (matches) throw new Error("A fake info token must not match its wire.");
+        const token = fakeValue === "yellow" ? { color: "yellow" as const } : { color: "blue" as const, value: fakeValue };
+        next = addLog(placeInfoToken(next, uid, flatIndex, token), `${mention(uid)} placed an info token.`);
+      } else {
+        if (wire.color !== "blue") throw new Error("Setup info tokens go on a blue wire.");
+        if (policy.value !== undefined && wire.sortKey !== policy.value) throw new Error(`Your token is a ${policy.value}: point it at a ${policy.value}.`);
+        next = addLog(placeInfoToken(next, uid, flatIndex, infoTokenFor(wire)), `${mention(uid)} marked a ${wire.sortKey}.`);
+      }
     }
 
-    const setupDone = [...(game.setupDone ?? []), uid];
-    const done = setupDone.length >= game.playerOrder.length;
-    transaction.set(gameRef, { ...next, setupDone, phase: done ? "playing" : "setup-info", turn: game.captain });
+    const placed = { ...(game.setupPlaced ?? {}), [uid]: ((game.setupPlaced ?? {})[uid] ?? 0) + 1 };
+    const finished = flatIndex === null || placed[uid] >= policy.count;
+    const setupDone = finished ? [...done, uid] : done;
+    const allDone = setupDone.length >= game.playerOrder.length;
+    const updated = { ...next, setupPlaced: placed, setupDone };
+    transaction.set(gameRef, allDone ? startPlayWithRules(updated) : { ...updated, phase: "setup-info", turn: game.captain });
   });
 }
 
@@ -136,11 +183,14 @@ const DETECTOR_SLOTS: Record<Exclude<BBDetector, "super">, number> = { none: 1, 
 const DETECTOR_EQUIPMENT: Partial<Record<BBDetector, number>> = { triple: 3, super: 5 };
 const X_OR_Y_RAY = 10;
 
-function spendEquipment(game: BBGame, id: number): BBGame {
+function spendEquipment(game: BBGame, id: number, uid: string): BBGame {
+  const objection = ruleCanUseEquipment(game, uid, id);
+  if (objection) throw new Error(objection);
   const card = game.equipment.find((item) => item.id === id);
   if (!card) throw new Error("That equipment isn't on the board this mission.");
   if (!card.unlocked) throw new Error("That equipment isn't unlocked yet.");
   if (card.used) throw new Error("That equipment has already been used.");
+  if (ruleEquipmentReusable(game, id)) return game;
   return { ...game, equipment: game.equipment.map((item) => (item.id === id ? { ...item, used: true } : item)) };
 }
 
@@ -165,6 +215,10 @@ export async function declareDualCut(
     const values = alsoDeclared === undefined ? [declared] : [declared, alsoDeclared];
     if (alsoDeclared !== undefined && alsoDeclared === declared) throw new Error("Name two different values.");
     if (!canDeclare(hand, values)) throw new Error("You can only name values you hold.");
+    for (const value of values) {
+      const objection = ruleCanCut(game, value);
+      if (objection) throw new Error(objection);
+    }
     if ((detector === "triple" || detector === "super") && values.includes("yellow")) {
       throw new Error("The Triple and Super Detectors can't name yellow.");
     }
@@ -183,8 +237,8 @@ export async function declareDualCut(
       next = { ...next, characters: { ...next.characters, [uid]: { used: true } } };
     }
     const detectorCard = DETECTOR_EQUIPMENT[detector];
-    if (detectorCard) next = spendEquipment(next, detectorCard);
-    if (alsoDeclared !== undefined) next = spendEquipment(next, X_OR_Y_RAY);
+    if (detectorCard) next = spendEquipment(next, detectorCard, uid);
+    if (alsoDeclared !== undefined) next = spendEquipment(next, X_OR_Y_RAY, uid);
 
     const where = detector === "super" ? "stand" : `wire ${pointed.map((slot) => `#${slot + 1}`).join(" / ")}`;
     const what = values.map(describeDeclared).join(" or ");
@@ -228,11 +282,11 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 
     const wires = hand.flat();
     const values = pending.alsoDeclared === undefined ? [pending.declared] : [pending.declared, pending.alsoDeclared];
-    const outcome = resolveDualCut(pending.slots.map((slot) => wires[slot]), values);
+    const outcome = resolveDualCut(pending.slots.map((slot) => wires[slot]), values, deadlyCheck(game));
 
     if (outcome.result === "explode") {
       if (game.stabilized) {
-        transaction.set(gameRef, addLog(finishTurn(game, pending.by), `🛡️ The Stabilizer held: ${mention(pending.by)} hit a red wire, but the bomb didn't explode.`));
+        transaction.set(gameRef, addLog(finishTurnWithRules(game, pending.by), `🛡️ The Stabilizer held: ${mention(pending.by)} hit a red wire, but the bomb didn't explode.`));
       } else {
         transaction.set(gameRef, addLog(loseMission(game, "A red wire was cut."), `💥 ${mention(pending.by)} cut a red wire.`));
       }
@@ -246,7 +300,7 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
       }
       const slot = options.length > 1 ? choice! : options[0];
       transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
-      const next = applyCutToGame(game, uid, slot, wires[slot]);
+      const next = cutWithRules(game, uid, slot, wires[slot]);
       transaction.set(
         gameRef,
         addLog(
@@ -262,14 +316,19 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
       return { status: "needs-choice", choose: "info", options };
     }
     const slot = options.length > 1 ? choice! : options[0];
-    const marked = placeInfoToken(game, uid, slot, infoTokenFor(wires[slot]));
+    if (wrongGuessExplodes(game, pending.by, uid)) {
+      transaction.set(gameRef, addLog(loseMission(game, "The Rookie's cut failed."), `💥 ${mention(pending.by)} missed, and a Rookie's mistake is fatal.`));
+      return { status: "done" };
+    }
+    const token = wrongGuessToken(game, wires[slot], pending.declared, uid, infoTokenFor(wires[slot]));
+    const marked = placeInfoToken(game, uid, slot, token);
     const wrong = game.stabilized ? marked : advanceDial(marked);
     const text = game.stabilized
       ? `🛡️ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The Stabilizer kept the dial still.`
       : wrong.phase === "mission-lost"
         ? `💥 ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The detonator reached the skull.`
         : `❌ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}.`;
-    transaction.set(gameRef, addLog(finishTurn(wrong, pending.by), text));
+    transaction.set(gameRef, addLog(finishTurnWithRules(wrong, pending.by), text));
     return { status: "done" };
   });
 }
@@ -293,7 +352,7 @@ export async function completeOwnCut(roomCode: string, uid: string, choice?: num
     }
     const slot = options.length > 1 ? choice! : options[0];
     transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
-    transaction.set(gameRef, finishTurn(applyCutToGame(game, uid, slot, wires[slot]), uid));
+    transaction.set(gameRef, finishTurnWithRules(cutWithRules(game, uid, slot, wires[slot]), uid));
     return { status: "done" };
   });
 }
@@ -302,6 +361,8 @@ export async function soloCut(roomCode: string, uid: string, declared: BBDeclare
   await runTransaction(db, async (transaction) => {
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "playing" || game.turn !== uid || game.pendingAction) throw new Error("It's not your turn.");
+    const objection = ruleCanCut(game, declared);
+    if (objection) throw new Error(objection);
     const indices = soloCutIndices(hand, declared, game.wireTotals, game.cutCounts);
     if (!indices) throw new Error("You don't hold every remaining wire of that value.");
 
@@ -310,10 +371,10 @@ export async function soloCut(roomCode: string, uid: string, declared: BBDeclare
     let next = game;
     indices.forEach((slot) => {
       nextHand = cutInHand(nextHand, slot);
-      next = applyCutToGame(next, uid, slot, wires[slot]);
+      next = cutWithRules(next, uid, slot, wires[slot]);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
-    transaction.set(gameRef, addLog(finishTurn(next, uid), `✂️ ${mention(uid)} solo-cut ${indices.length} × ${describeDeclared(declared)}.`));
+    transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), `✂️ ${mention(uid)} solo-cut ${indices.length} × ${describeDeclared(declared)}.`));
   });
 }
 
@@ -321,7 +382,9 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
   await runTransaction(db, async (transaction) => {
     const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (game.phase !== "playing" || game.turn !== uid || game.pendingAction) throw new Error("It's not your turn.");
-    if (!canRevealRed(hand)) throw new Error("You can only reveal when all your remaining wires are red.");
+    if (!canRevealRed(hand, deadlyCheck(game))) throw new Error("You can only reveal when all your remaining wires are red.");
+    const revealObjection = ruleCanReveal(game, uid);
+    if (revealObjection) throw new Error(revealObjection);
 
     const wires = hand.flat();
     let nextHand = hand;
@@ -329,10 +392,10 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
     wires.forEach((wire, slot) => {
       if (wire.cut) return;
       nextHand = cutInHand(nextHand, slot);
-      next = applyCutToGame(next, uid, slot, wire);
+      next = cutWithRules(next, uid, slot, wire);
     });
     transaction.update(handRef, { stands: wrapHand(nextHand) });
-    transaction.set(gameRef, addLog(finishTurn(next, uid), `🟥 ${mention(uid)} revealed their red wires.`));
+    transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), `🟥 ${mention(uid)} revealed their red wires.`));
   });
 }
 
@@ -340,7 +403,7 @@ export async function revealRedWires(roomCode: string, uid: string): Promise<voi
 export async function startNextMission(roomCode: string, uid: string, hostUid: string, game: BBGame, missionId: number): Promise<void> {
   if (uid !== hostUid) throw new Error("Only the host can start the next mission.");
   if (game.phase !== "mission-won" && game.phase !== "mission-lost") throw new Error("The mission isn't over yet.");
-  const built = buildMission(nextCaptainOrder(game.playerOrder), getMission(missionId));
+  const built = buildMissionWithRules(nextCaptainOrder(game.playerOrder), getMission(missionId));
   const batch = writeBatch(db);
   writeMission(batch, roomCode, built);
   await batch.commit();
@@ -365,7 +428,7 @@ async function updateGame(roomCode: string, change: (game: BBGame) => BBGame): P
 export async function rewindDial(roomCode: string, uid: string): Promise<void> {
   await updateGame(roomCode, (game) => {
     assertActive(game);
-    const next = spendEquipment(game, 6);
+    const next = spendEquipment(game, 6, uid);
     return addLog({ ...next, dial: { ...next.dial, wrongGuesses: Math.max(0, next.dial.wrongGuesses - 1) } }, `⏪ ${mention(uid)} used the Rewinder.`);
   });
 }
@@ -376,7 +439,7 @@ export async function rechargeDetectors(roomCode: string, uid: string, players: 
     assertActive(game);
     if (players.length < 1 || players.length > 2) throw new Error("Choose 1 or 2 players.");
     if (players.some((player) => !game.characters[player]?.used)) throw new Error("Only used Double Detectors can be recharged.");
-    const next = spendEquipment(game, 7);
+    const next = spendEquipment(game, 7, uid);
     const characters = { ...next.characters };
     players.forEach((player) => {
       characters[player] = { used: false };
@@ -390,7 +453,7 @@ export async function activateStabilizer(roomCode: string, uid: string): Promise
   await updateGame(roomCode, (game) => {
     assertActive(game);
     if (game.turn !== uid) throw new Error("Use the Stabilizer at the start of your own turn.");
-    return addLog({ ...spendEquipment(game, 9), stabilized: true }, `🛡️ ${mention(uid)} switched on the Stabilizer.`);
+    return addLog({ ...spendEquipment(game, 9, uid), stabilized: true }, `🛡️ ${mention(uid)} switched on the Stabilizer.`);
   });
 }
 
@@ -401,7 +464,7 @@ export async function passTurnWithCoffee(roomCode: string, uid: string, nextPlay
     if (game.turn !== uid) throw new Error("Use the Coffee Mug on your own turn.");
     if (!game.playerOrder.includes(nextPlayer)) throw new Error("Choose a player.");
     if (!unwrapPublic(game.stands)[nextPlayer].flat().some((slot) => !slot.cut)) throw new Error("That player has no wires left.");
-    return addLog({ ...spendEquipment(game, 11), turn: nextPlayer, stabilized: false }, `☕ ${mention(uid)} passed the turn to ${mention(nextPlayer)}.`);
+    return addLog({ ...spendEquipment(game, 11, uid), turn: nextPlayer, stabilized: false }, `☕ ${mention(uid)} passed the turn to ${mention(nextPlayer)}.`);
   });
 }
 
@@ -412,7 +475,7 @@ export async function placePostIt(roomCode: string, uid: string, slot: number): 
     assertActive(game);
     const wire = hand.flat()[slot];
     if (!wire || wire.cut || wire.color !== "blue") throw new Error("The Post-it goes on one of your uncut blue wires.");
-    const next = placeInfoToken(spendEquipment(game, 4), uid, slot, infoTokenFor(wire));
+    const next = placeInfoToken(spendEquipment(game, 4, uid), uid, slot, infoTokenFor(wire));
     transaction.set(gameRef, addLog(next, `📝 ${mention(uid)} marked their wire #${slot + 1} as a ${wire.sortKey}.`));
   });
 }
@@ -427,7 +490,7 @@ export async function placeLabel(roomCode: string, uid: string, kind: "neq" | "e
     if (sameValue(a, b) !== (kind === "eq")) {
       throw new Error(kind === "eq" ? "Those wires don't have the same value." : "Those wires have the same value.");
     }
-    const next = spendEquipment(game, kind === "eq" ? 12 : 1);
+    const next = spendEquipment(game, kind === "eq" ? 12 : 1, uid);
     transaction.set(
       gameRef,
       addLog({ ...next, labels: [...next.labels, { uid, at: left, kind }] }, `🏷️ ${mention(uid)} labeled wires #${left + 1} and #${left + 2} ${kind === "eq" ? "=" : "≠"}.`),
@@ -441,7 +504,7 @@ export async function runGeneralRadar(roomCode: string, uid: string, value: numb
     assertActive(game);
     if (!Number.isInteger(value) || value < 1 || value > 12) throw new Error("Choose a number from 1 to 12.");
     const answers = Object.fromEntries(game.playerOrder.map((player) => [player, null]));
-    return addLog({ ...spendEquipment(game, 8), radar: { by: uid, value, answers } }, `📡 ${mention(uid)} ran the General Radar for ${value}.`);
+    return addLog({ ...spendEquipment(game, 8, uid), radar: { by: uid, value, answers } }, `📡 ${mention(uid)} ran the General Radar for ${value}.`);
   });
 }
 
@@ -466,7 +529,7 @@ export async function startWalkieTalkies(roomCode: string, uid: string, to: stri
     if (to === uid || !game.playerOrder.includes(to)) throw new Error("Choose a teammate.");
     const wire = hand.flat()[fromSlot];
     if (!wire || wire.cut) throw new Error("Pick one of your uncut wires.");
-    const next = spendEquipment(game, 2);
+    const next = spendEquipment(game, 2, uid);
     const given = { id: wire.id, color: wire.color, sortKey: wire.sortKey };
     transaction.update(doc(db, "games", roomCode, "hands", to), { incoming: [given] });
     transaction.set(
@@ -511,5 +574,136 @@ export async function finishWalkieTalkies(roomCode: string, uid: string): Promis
     if (!swap || swap.by !== uid || swap.stage !== "await-return") return;
     const { gameRef, game } = await swapOwnWire(transaction, roomCode, uid, swap.fromSlot);
     transaction.set(gameRef, { ...game, pendingSwap: null });
+  });
+}
+
+/** #13 False Bottom: draw 2 more equipment cards from the unused pool onto the board. Any time. */
+export async function openFalseBottom(roomCode: string, uid: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    assertActive(game);
+    const next = spendEquipment(game, FALSE_BOTTOM, uid);
+    const extra = drawExtraEquipment(getMission(game.missionId), next.equipment.map((card) => card.id), 2);
+    const equipment = refreshEquipment([...next.equipment, ...extra.map((id) => ({ id, unlocked: false, used: false }))], next.cutCounts, equipmentUnlockCheck(next));
+    return addLog({ ...next, equipment }, `🧰 ${mention(uid)} opened the False Bottom: ${extra.length ? extra.map((id) => `#${id}`).join(" and ") : "nothing left"} added.`);
+  });
+}
+
+/**
+ * Free turn order (mission 10): when the turn is open (`turn === ""`), an eligible player says
+ * "Snip!" to take it. A rule decides eligibility (e.g. not the player who just went).
+ */
+export async function claimTurn(roomCode: string, uid: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase !== "playing" || game.turn !== "" || game.pendingAction || game.pendingSwap) throw new Error("Someone else already took the turn.");
+    const objection = ruleCanClaimTurn(game, uid);
+    if (objection) throw new Error(objection);
+    return addLog({ ...game, turn: uid }, `✂️ ${mention(uid)}: "Snip!"`);
+  });
+}
+
+/** Any client: end the mission if a rule says it's lost now (e.g. the timer ran out). */
+export async function checkTimeUp(roomCode: string, reason?: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase === "mission-won" || game.phase === "mission-lost") return game;
+    const lost = reason ?? ruleLossReason(game);
+    return lost ? addLog(loseMission(game, lost), `⏰ ${lost}`) : game;
+  });
+}
+
+// ---- Mission 13: Red Alert ----
+
+type WirePick = { uid: string; slot: number };
+
+/**
+ * Red Alert (mission 13), step 1: point at three uncut wires anywhere (yours included). Your own
+ * picks are checked and cut now; the other stands' owners check theirs (step 2). Any non-red wire
+ * explodes the bomb.
+ */
+export async function declareRedAlert(roomCode: string, uid: string, picks: WirePick[]): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    if (game.phase !== "playing" || game.turn !== uid || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    const keys = new Set(picks.map((pick) => `${pick.uid}:${pick.slot}`));
+    if (picks.length !== 3 || keys.size !== 3) throw new Error("Point at exactly three different wires.");
+    const publicStands = unwrapPublic(game.stands);
+    if (picks.some((pick) => !publicStands[pick.uid]?.flat()[pick.slot] || publicStands[pick.uid].flat()[pick.slot].cut)) {
+      throw new Error("Pick three uncut wires.");
+    }
+
+    const wires = hand.flat();
+    const mine = picks.filter((pick) => pick.uid === uid);
+    if (mine.some((pick) => wires[pick.slot].color !== "red")) {
+      transaction.set(gameRef, addLog(loseMission(game, "Red Alert hit a wire that wasn't red."), `💥 ${mention(uid)}'s Red Alert hit a wire that wasn't red.`));
+      return;
+    }
+    let nextHand = hand;
+    let next = game;
+    mine.forEach((pick) => {
+      nextHand = cutInHand(nextHand, pick.slot);
+      next = cutWithRules(next, uid, pick.slot, wires[pick.slot]);
+    });
+    if (mine.length > 0) transaction.update(handRef, { stands: wrapHand(nextHand) });
+
+    const others = picks.filter((pick) => pick.uid !== uid);
+    const log = `🚨 ${mention(uid)} called Red Alert on ${picks.map((pick) => `${mention(pick.uid)}'s wire #${pick.slot + 1}`).join(", ")}.`;
+    if (others.length === 0) {
+      transaction.set(gameRef, addLog(finishTurnWithRules(next, uid), log));
+      return;
+    }
+    transaction.set(gameRef, addLog({ ...next, phase: "resolving", pendingAction: { kind: "red-alert", by: uid, picks: others, confirmed: [] } }, log));
+  });
+}
+
+/** Red Alert, step 2 — each picked stand's owner checks (and cuts) its own picks. */
+export async function resolveRedAlertAsOwner(roomCode: string, uid: string): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, handRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    const pending = game.pendingAction;
+    if (game.phase !== "resolving" || pending?.kind !== "red-alert" || pending.confirmed.includes(uid)) return;
+    const mine = pending.picks.filter((pick) => pick.uid === uid);
+    if (mine.length === 0) return;
+
+    const wires = hand.flat();
+    if (mine.some((pick) => wires[pick.slot].color !== "red")) {
+      transaction.set(gameRef, addLog(loseMission(game, "Red Alert hit a wire that wasn't red."), `💥 Red Alert hit a wire on ${mention(uid)}'s stand that wasn't red.`));
+      return;
+    }
+    let nextHand = hand;
+    let next = game;
+    mine.forEach((pick) => {
+      nextHand = cutInHand(nextHand, pick.slot);
+      next = cutWithRules(next, uid, pick.slot, wires[pick.slot]);
+    });
+    transaction.update(handRef, { stands: wrapHand(nextHand) });
+
+    const confirmed = [...pending.confirmed, uid];
+    const owners = new Set(pending.picks.map((pick) => pick.uid));
+    if (confirmed.length >= owners.size) {
+      transaction.set(gameRef, addLog(finishTurnWithRules({ ...next, pendingAction: null }, pending.by), "🚨 Red Alert: all three reds cut!"));
+    } else {
+      transaction.set(gameRef, { ...next, pendingAction: { ...pending, confirmed } });
+    }
+  });
+}
+
+// ---- Mission 18: Bat Helping Hand ----
+
+/** Turn step 1: reveal the top number card, which runs the General Radar for it. */
+export async function revealBatNumber(roomCode: string, uid: string): Promise<void> {
+  await runTransaction(db, async (transaction) => {
+    const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
+    if (game.phase !== "playing" || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    if (canRevealRed(hand, deadlyCheck(game))) throw new Error("You only hold red wires: Reveal them instead.");
+    const next = revealBatCard(game, uid);
+    transaction.set(gameRef, addLog(next, `🦇 ${mention(uid)} revealed number card ${next.radar!.value}.`));
+  });
+}
+
+/** Turn step 2: choose who carries out the cut (they then take a normal Dual or Solo Cut). */
+export async function chooseBatCutter(roomCode: string, uid: string, cutter: string): Promise<void> {
+  await updateGame(roomCode, (game) => {
+    if (game.phase !== "playing" || game.pendingAction || game.pendingSwap) throw new Error("It's not your turn.");
+    const value = game.radar?.value;
+    return addLog(designateBatCutter(game, uid, cutter), `🦇 ${mention(uid)} chose ${cutter === uid ? "themselves" : mention(cutter)} to cut a ${value}.`);
   });
 }

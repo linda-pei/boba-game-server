@@ -48,9 +48,9 @@ describe("components and data", () => {
     expect(wires.filter((w) => w.color === "yellow").map((w) => w.sortKey)).toContain(1.1);
   });
 
-  it("defines missions 1–8 and 12 equipment cards", () => {
-    expect(MISSIONS.map((m) => m.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
-    expect(EQUIPMENT.map((e) => e.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  it("defines missions 1–8 and 13 equipment cards (12 base + False Bottom)", () => {
+    expect(MISSIONS.map((m) => m.id).slice(0, 8)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(EQUIPMENT.map((e) => e.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   });
 });
 
@@ -297,7 +297,8 @@ describe("full mission simulation", () => {
   }
 
   it("every mission 1–8 can be won at every player count", () => {
-    for (const mission of MISSIONS) {
+    // Missions 1–8 have no special rules; missions 9+ are simulated with their rules in rules/*.test.ts.
+    for (const mission of MISSIONS.filter((m) => m.rules.length === 0)) {
       for (const players of [["a", "b"], ["a", "b", "c"], ["a", "b", "c", "d"], ["a", "b", "c", "d", "e"]]) {
         const game = play(mission.id, players, mission.id * 7 + players.length);
         expect(game.phase, `mission ${mission.id}, ${players.length} players`).toBe("mission-won");

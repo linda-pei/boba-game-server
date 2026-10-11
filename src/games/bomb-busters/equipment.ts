@@ -1,4 +1,7 @@
-/** The 12 base equipment cards (see Rules.md → Card Data). Each unlocks once 2 wires of its number are cut. */
+/**
+ * The 12 base equipment cards (see Rules.md → Card Data), each unlocking once 2 wires of its number
+ * are cut, plus #13 False Bottom (missions 9+), which unlocks once 2 yellow wires are cut.
+ */
 export type BBEquipmentTiming = "any-time" | "your-turn" | "start-of-turn";
 
 export interface BBEquipmentCard {
@@ -41,6 +44,7 @@ export const EQUIPMENT: BBEquipmentCard[] = [
   { id: 10, name: "X or Y Ray", timing: "your-turn", effect: "During a Dual Cut, state 2 values (yellow allowed) while pointing at 1 wire. You must hold both." },
   { id: 11, name: "Coffee Mug", timing: "your-turn", effect: "Skip your turn and choose who the next active player is." },
   { id: 12, name: "Label =", timing: "any-time", effect: "Put the = token in front of 2 of your adjacent wires that have the same value." },
+  { id: 13, name: "False Bottom", timing: "any-time", effect: "Draw 2 more equipment cards from the unused pool and add them to the board." },
 ];
 
 export function getEquipment(id: number): BBEquipmentCard {

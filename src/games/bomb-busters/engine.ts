@@ -176,10 +176,14 @@ export function soloCutIndices(
   return indices;
 }
 
-/** Reveal Red: all of your uncut wires are red. */
-export function canRevealRed(hand: BBHandWire[][]): boolean {
+/** Which wires explode when cut. Red by default; mission rules can add more (e.g. mission 11). */
+export type DeadlyCheck = (wire: BBWire) => boolean;
+export const isRed: DeadlyCheck = (wire) => wire.color === "red";
+
+/** Reveal Red: all of your uncut wires are red (or otherwise deadly this mission). */
+export function canRevealRed(hand: BBHandWire[][], isDeadly: DeadlyCheck = isRed): boolean {
   const uncut = uncutWires(hand);
-  return uncut.length > 0 && uncut.every((wire) => wire.color === "red");
+  return uncut.length > 0 && uncut.every(isDeadly);
 }
 
 // ---- Dual Cut resolution ----
@@ -194,12 +198,18 @@ export type DualCutOutcome =
  * Any match succeeds (the target picks if several match). With no match, the bomb explodes
  * only if every wire pointed at is red; otherwise the target puts an info token on a non-red one.
  */
-export function resolveDualCut(pointed: BBWire[], declared: BBDeclared | BBDeclared[]): DualCutOutcome {
+export function resolveDualCut(
+  pointed: BBWire[],
+  declared: BBDeclared | BBDeclared[],
+  isDeadly: DeadlyCheck = isRed,
+): DualCutOutcome {
   if (pointed.length === 0) throw new Error("Point at a wire.");
   const values = Array.isArray(declared) ? declared : [declared];
   const matching = pointed.flatMap((wire, index) => (values.some((value) => wireMatches(wire, value)) ? [index] : []));
+  // Successfully cutting a deadly wire (e.g. mission 11's value) still explodes.
+  if (matching.length > 0 && matching.some((index) => isDeadly(pointed[index]))) return { result: "explode" };
   if (matching.length > 0) return { result: "success", matching };
-  const nonRed = pointed.flatMap((wire, index) => (wire.color !== "red" ? [index] : []));
+  const nonRed = pointed.flatMap((wire, index) => (!isDeadly(wire) ? [index] : []));
   if (nonRed.length === 0) return { result: "explode" };
   return { result: "wrong", infoCandidates: nonRed };
 }
@@ -268,16 +278,45 @@ export function isDialExploded(dial: BBGame["dial"]): boolean {
   return dial.wrongGuesses >= dial.limit;
 }
 
+/** Equipment #13: False Bottom (yellow), in the pool from mission 9. */
+export const FALSE_BOTTOM = 13;
+
+/** Every equipment id the mission allows: 1–12, plus False Bottom when enabled, minus exclusions. */
+export function equipmentPool(mission: BBMission): number[] {
+  const ids = Array.from({ length: mission.equipment.falseBottom ? 13 : 12 }, (_, i) => i + 1);
+  return ids.filter((id) => !mission.equipment.exclude?.includes(id));
+}
+
 /** One equipment card per player (or none), drawn at random from those the mission allows. */
 export function drawEquipment(mission: BBMission, playerCount: number, random: () => number = Math.random): number[] {
   if (mission.equipment.count === 0) return [];
-  const allowed = Array.from({ length: 12 }, (_, i) => i + 1).filter((id) => !mission.equipment.exclude?.includes(id));
-  return shuffleWith(allowed, random).slice(0, playerCount).sort((a, b) => a - b);
+  return shuffleWith(equipmentPool(mission), random).slice(0, playerCount).sort((a, b) => a - b);
 }
 
-/** Equipment unlocks once 2 blue wires of its number have been cut. */
-export function refreshEquipment(equipment: BBGame["equipment"], cuts: BBGame["cutCounts"]): BBGame["equipment"] {
-  return equipment.map((card) => ({ ...card, unlocked: card.unlocked || (cuts.blue[card.id] ?? 0) >= 2 }));
+/** Draw `count` more equipment cards from the pool, skipping any already on the board (False Bottom). */
+export function drawExtraEquipment(
+  mission: BBMission,
+  onBoard: number[],
+  count: number,
+  random: () => number = Math.random,
+): number[] {
+  const unused = equipmentPool(mission).filter((id) => id !== FALSE_BOTTOM && !onBoard.includes(id));
+  return shuffleWith(unused, random).slice(0, count);
+}
+
+/** A rule may override when a card unlocks; `undefined` falls back to the default. */
+export type UnlockCheck = (card: BBGame["equipment"][number], cuts: BBGame["cutCounts"]) => boolean | undefined;
+
+/** Default unlock: 2 blue wires of the card's number cut (False Bottom: 2 yellow wires). */
+export function defaultUnlocked(card: BBGame["equipment"][number], cuts: BBGame["cutCounts"]): boolean {
+  return card.id === FALSE_BOTTOM ? cuts.yellow >= 2 : (cuts.blue[card.id] ?? 0) >= 2;
+}
+
+export function refreshEquipment(equipment: BBGame["equipment"], cuts: BBGame["cutCounts"], isUnlocked?: UnlockCheck): BBGame["equipment"] {
+  return equipment.map((card) => ({
+    ...card,
+    unlocked: card.unlocked || (isUnlocked?.(card, cuts) ?? defaultUnlocked(card, cuts)),
+  }));
 }
 
 export function recordCut(cuts: BBGame["cutCounts"], color: BBColor, sortKey: number): BBGame["cutCounts"] {
@@ -341,7 +380,7 @@ function updateSlot(game: BBGame, uid: string, flatIndex: number, update: (slot:
 }
 
 /** Turn a wire face up in place, count it, and refresh validation and equipment. */
-export function applyCutToGame(game: BBGame, uid: string, flatIndex: number, wire: BBWire): BBGame {
+export function applyCutToGame(game: BBGame, uid: string, flatIndex: number, wire: BBWire, isUnlocked?: UnlockCheck): BBGame {
   const next = updateSlot(game, uid, flatIndex, (slot) => ({
     cut: true,
     revealed: { color: wire.color, sortKey: wire.sortKey },
@@ -352,7 +391,7 @@ export function applyCutToGame(game: BBGame, uid: string, flatIndex: number, wir
     ...next,
     cutCounts,
     validated: validatedValues(next.wireTotals, cutCounts),
-    equipment: refreshEquipment(next.equipment, cutCounts),
+    equipment: refreshEquipment(next.equipment, cutCounts, isUnlocked),
   };
 }
 
@@ -418,6 +457,7 @@ export function buildMission(playerOrder: string[], mission: BBMission, random: 
     radar: null,
     stabilized: false,
     pendingSwap: null,
+    ruleState: {},
     log: [],
     result: null,
   };

@@ -733,6 +733,12 @@ export interface BBWireDraw {
   to?: number;
 }
 
+/** A mission's special rule: a registered rule module id plus its parameters. */
+export interface BBRuleRef {
+  id: string;
+  params?: Record<string, number | string | boolean>;
+}
+
 export interface BBMission {
   id: number;
   name: string;
@@ -740,9 +746,10 @@ export interface BBMission {
   blue: { from: number; to: number };
   red: BBWireDraw;
   yellow: BBWireDraw;
-  equipment: { count: "players" | 0; exclude?: number[] };
+  /** `falseBottom` adds equipment #13 (False Bottom) to the pool (missions 9+). */
+  equipment: { count: "players" | 0; exclude?: number[]; falseBottom?: boolean };
   twoPlayer?: { red?: BBWireDraw; yellow?: BBWireDraw };
-  rules: string[];
+  rules: BBRuleRef[];
 }
 
 /** A red/yellow marker on the board: a value that is (or might be) in play. */
@@ -782,7 +789,9 @@ export type BBPendingAction =
       alsoDeclared?: BBDeclared;
       detector: BBDetector;
     }
-  | { kind: "own-cut"; by: string; declared: BBDeclared };
+  | { kind: "own-cut"; by: string; declared: BBDeclared }
+  /** Mission 13: wires picked on other stands; each owner's client checks (and cuts) its own. */
+  | { kind: "red-alert"; by: string; picks: { uid: string; slot: number }[]; confirmed: string[] };
 
 export interface BBGame {
   gameType: "bomb-busters";
@@ -794,8 +803,12 @@ export interface BBGame {
   /** Per player, one entry per stand (wrapped: Firestore can't store nested arrays). */
   stands: Record<string, { slots: BBPublicSlot[] }[]>;
   turn: string;
-  /** Players who have placed their setup info token (everyone places at once). */
+  /** Players who have placed their setup info token(s) (everyone places at once). */
   setupDone: string[];
+  /** How many setup info tokens each player has placed so far (some rules allow more than one). */
+  setupPlaced?: Record<string, number>;
+  /** Setup info tokens a player couldn't place (no matching wire), shown face up beside their stand. */
+  besideTokens?: Record<string, number>;
   dial: { wrongGuesses: number; limit: number };
   markers: BBMarker[];
   wireTotals: { blue: Record<string, number>; red: number; yellow: number };
@@ -811,6 +824,8 @@ export interface BBGame {
   stabilized: boolean;
   /** Walkie-Talkies (#2): `by` has handed a wire to `to`, who must hand one back. */
   pendingSwap: { by: string; to: string; fromSlot: number; stage: "await-target" | "await-return" } | null;
+  /** Per-rule state, keyed by rule id; each rule module owns and types its own entry. */
+  ruleState: Record<string, unknown>;
   log: { at: number; text: string }[];
   result: { outcome: "won" | "lost"; reason: string } | null;
 }
