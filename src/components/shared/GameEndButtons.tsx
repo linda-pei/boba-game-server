@@ -39,7 +39,7 @@ export default function GameEndButtons({ isHost }: Props) {
         className="btn btn--danger"
         disabled={leaving}
       >
-        Leave Game
+        Leave Room
       </button>
     </div>
   );
