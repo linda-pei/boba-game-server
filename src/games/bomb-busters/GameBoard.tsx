@@ -409,6 +409,10 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     } else if (radarOwed) {
       handledPending.current = autoKey;
       answerRadar(roomCode, uid).catch(fail("Could not answer the radar."));
+    } else {
+      // Remember idle states too, so the same step coming up again (e.g. mission 18's radar every
+      // turn) isn't mistaken for the one already handled.
+      handledPending.current = autoKey;
     }
   }, [autoKey, pending, swap, radarOwed, roomCode, uid]);
 
