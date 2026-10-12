@@ -602,6 +602,9 @@ export interface CloverBoardResult {
   score: number;
   firstAttemptPerfect: boolean;
   correctCardIds: string[];
+  /** Revealed once the board is resolved (absent on boards resolved before this was stored). */
+  answerPlacement?: Record<string, CloverPlacement>;
+  guessPlacement?: Record<string, CloverPlacement>;
 }
 
 export interface CloverGame {

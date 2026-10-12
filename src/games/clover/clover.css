@@ -183,6 +183,13 @@
 .clover-card__rotate.btn:hover { transform: translate(-50%, -50%) translate(-1px, -1px); }
 .clover-card__rotate.btn:active { transform: translate(-50%, -50%) translate(2px, 2px); }
 .clover-card__locked-label { position: absolute; inset: 44% 12% auto; padding: 0.2rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+.clover-card--wrong { border-color: var(--rose-500) !important; cursor: default !important; }
+.clover-card__locked-label--wrong { background: var(--rose-500); }
+
+/* Resolved board: the team's final guess next to the real Clover. */
+.clover-result__boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin: 1.25rem 0; }
+.clover-result__boards h4 { margin: 0 0 0.6rem; color: var(--ink-soft); font-size: 0.85rem; }
+.clover-result__boards .clover-card.game-card.disabled { opacity: 1; filter: none; cursor: default; }
 
 .clover-clues { display: contents; }
 .clover-clue {
