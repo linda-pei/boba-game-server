@@ -23,6 +23,7 @@ import {
   hasValidCloverClues,
   dealtCloverPlacement,
   isCompleteCloverPlacement,
+  moveCloverGuessCard,
   randomCloverPlacement,
   randomCloverRotations,
 } from "./engine";
@@ -208,19 +209,17 @@ export async function placeCloverGuessCard(
       throw new Error("That slot is already locked.");
     }
 
-    const sharedPlacement = { ...round.sharedPlacement };
-    delete sharedPlacement[cardId];
-    if (placement) {
-      Object.entries(sharedPlacement).forEach(([placedCardId, placedCard]) => {
-        if (placedCard.slot === placement.slot && !round.lockedCorrectCardIds.includes(placedCardId)) {
-          delete sharedPlacement[placedCardId];
-        }
-      });
-      sharedPlacement[cardId] = placement;
-    }
+    const { sharedPlacement, trayRotations } = moveCloverGuessCard(
+      round.sharedPlacement,
+      round.trayRotations ?? {},
+      cardId,
+      placement,
+      round.lockedCorrectCardIds,
+    );
 
     transaction.update(gameRef, {
       "activeRound.sharedPlacement": sharedPlacement,
+      "activeRound.trayRotations": trayRotations,
       lastAction: "The shared Clover board changed.",
     });
   });
@@ -274,9 +273,16 @@ export async function verifyCloverGuess(roomCode: string, spectatorUid: string):
       const sharedPlacement = Object.fromEntries(
         evaluation.correctCardIds.map((cardId) => [cardId, round.sharedPlacement[cardId]]),
       );
+      // Incorrect cards go back to the tray as they were rotated on the board.
+      const trayRotations = { ...(round.trayRotations ?? {}) };
+      evaluation.incorrectCardIds.forEach((cardId) => {
+        const placed = round.sharedPlacement[cardId];
+        if (placed) trayRotations[cardId] = placed.rotation;
+      });
       transaction.update(gameRef, {
         phase: "solving-final",
         "activeRound.sharedPlacement": sharedPlacement,
+        "activeRound.trayRotations": trayRotations,
         "activeRound.lockedCorrectCardIds": evaluation.correctCardIds,
         "activeRound.attempt": 2,
         "activeRound.isLockedForVerification": false,

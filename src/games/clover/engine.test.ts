@@ -10,6 +10,7 @@ import {
   getOuterKeywordPairs,
   hasValidCloverClues,
   isCompleteCloverPlacement,
+  moveCloverGuessCard,
   randomCloverPlacement,
   randomCloverRotations,
   rotateCloverWords,
@@ -98,6 +99,18 @@ describe("Clover engine", () => {
     const dealt = randomCloverPlacement(cards);
     expect(dealtCloverPlacement(cards, dealt)).toBe(dealt);
     expect(dealtCloverPlacement(cards, {}).c2).toEqual({ slot: "bottom-left", rotation: 0 });
+  });
+
+  it("keeps a card's rotation when it leaves the board", () => {
+    const board: Record<string, CloverPlacement> = { a: { slot: "top-left", rotation: 90 }, b: { slot: "top-right", rotation: 270 } };
+    // Moving within the board keeps the given rotation; a bumped card keeps its rotation in the tray.
+    const bumped = moveCloverGuessCard(board, { a: 0, b: 0, c: 0 }, "c", { slot: "top-right", rotation: 180 });
+    expect(bumped.sharedPlacement).toEqual({ a: board.a, c: { slot: "top-right", rotation: 180 } });
+    expect(bumped.trayRotations.b).toBe(270);
+    // Removing a card puts it back in the tray as rotated.
+    expect(moveCloverGuessCard(board, { a: 0 }, "a", null).trayRotations.a).toBe(90);
+    // Locked cards are never bumped.
+    expect(moveCloverGuessCard(board, {}, "c", { slot: "top-left", rotation: 0 }, ["a"]).sharedPlacement.a).toEqual(board.a);
   });
 
   it("ranks the team score by player count", () => {
