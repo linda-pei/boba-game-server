@@ -65,6 +65,16 @@ service cloud.firestore {
       // Game state remains collaborative in the current trusted-client architecture.
       allow read, create, update, delete: if isRoomMember(roomCode);
 
+      // Emote reactions: room members see them; each player sends and cleans up only their own.
+      match /emotes/{emoteId} {
+        allow read: if isRoomMember(roomCode);
+        allow create: if isRoomMember(roomCode)
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.emoji is string
+          && request.resource.data.emoji.size() <= 16;
+        allow delete: if isRoomMember(roomCode) && resource.data.uid == request.auth.uid;
+      }
+
       match /hands/{ownerUid} {
         // Other games currently use collaborative hand documents. Clover boards and Robotrick
         // hands stay private until server-authoritative actions are introduced.
