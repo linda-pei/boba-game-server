@@ -193,7 +193,7 @@ export const MISSIONS: BBMission[] = [
     blue: { from: 1, to: 12 },
     red: { count: 2 },
     yellow: { count: 0 },
-    // The batRadar rule replaces the equipment with a single, reusable General Radar (#8).
+    // No equipment: the General Radar only runs as part of each bat radar turn.
     equipment: { count: 0 },
     twoPlayer: { red: { count: 3 } },
     rules: [{ id: "batRadar" }],

@@ -4,8 +4,8 @@ import { createNumberDeck } from "./numberDeck";
 import type { MissionRule } from "./types";
 
 /**
- * Mission 18: the only equipment is #8 General Radar, always usable (it never runs out). No setup
- * info tokens. Each turn the active player reveals the top number card N, which runs the General
+ * Mission 18: no equipment — the General Radar (#8) is only used by the bat radar turn step, never
+ * on its own. No setup info tokens. Each turn the active player reveals the top number card N, which runs the General
  * Radar for N, then picks who must carry out a cut of N (a Dual Cut naming N or a Solo Cut of N) —
  * themselves included. A number card leaves the deck once its 4 wires are cut; when the deck runs
  * out it is reshuffled. A player holding only red wires Reveals instead of drawing.
@@ -17,8 +17,6 @@ export interface BatRadarState {
   current: number | null;
   designated: string | null;
 }
-
-const GENERAL_RADAR = 8;
 
 const fullyCut = (game: BBGame, value: number) => (game.cutCounts.blue[value] ?? 0) >= (game.wireTotals.blue[value] ?? 4);
 
@@ -65,7 +63,7 @@ export const batRadar: MissionRule<Record<string, never>, BatRadarState> = {
       ...built,
       game: {
         ...built.game,
-        equipment: [{ id: GENERAL_RADAR, unlocked: true, used: false }],
+        equipment: [],
         // No setup info tokens: everyone is done before setup begins.
         setupDone: [...built.game.playerOrder],
       },
@@ -84,15 +82,10 @@ export const batRadar: MissionRule<Record<string, never>, BatRadarState> = {
     const turn = nextTurn(game.playerOrder, state.active ?? actor, unwrapPublic(game.stands));
     return { turn, state: { ...state, active: turn, current: null, designated: null } };
   },
-  // A manual radar mid-choice would replace the number card's answers, so it waits until the cutter is chosen.
-  canUseEquipment: (_uid, cardId, { state }) =>
-    cardId === GENERAL_RADAR && state.current !== null && state.designated === null ? "Choose who cuts before running another radar." : null,
   turnStatus: (viewer, { state }) => {
     if (!state.active || state.designated !== null) return undefined;
     const mine = state.active === viewer;
     if (state.current === null) return mine ? { mine, text: "Your turn: reveal the number card (or Reveal if you only hold reds)." } : undefined;
     return mine ? { mine, text: `Choose who cuts a ${state.current}.` } : { mine, text: `Waiting for the active player to choose who cuts a ${state.current}…` };
   },
-  isEquipmentUnlocked: (cardId) => (cardId === GENERAL_RADAR ? true : undefined),
-  isEquipmentReusable: (cardId) => cardId === GENERAL_RADAR,
 };
