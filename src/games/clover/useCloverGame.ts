@@ -296,6 +296,9 @@ export async function verifyCloverGuess(roomCode: string, spectatorUid: string):
           score,
           firstAttemptPerfect: round.attempt === 1 && evaluation.isPerfect,
           correctCardIds: evaluation.correctCardIds,
+          // The board is resolved, so the real layout can be shown next to the team's final guess.
+          answerPlacement: board.answerPlacement,
+          guessPlacement: round.sharedPlacement,
         },
       },
       lastAction: round.attempt === 1 && evaluation.isPerfect

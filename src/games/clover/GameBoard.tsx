@@ -50,6 +50,7 @@ function CloverCardFace({
   trayRotation = 0,
   selected = false,
   locked = false,
+  wrong = false,
   onSelect,
   onRotate,
   onDragStart,
@@ -60,17 +61,19 @@ function CloverCardFace({
   trayRotation?: CloverRotation;
   selected?: boolean;
   locked?: boolean;
+  /** Shown on a resolved board: this card was placed wrong. */
+  wrong?: boolean;
   onSelect?: () => void;
   onRotate?: () => void;
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
 }) {
   const words = rotateCloverWords(card.words, placement?.rotation ?? trayRotation);
-  const disabled = !onSelect && !locked;
+  const disabled = !onSelect && !locked && !wrong;
 
   return (
     <div
-      className={`game-card clover-card${selected ? " selected" : ""}${locked ? " clover-card--locked" : ""}${disabled ? " disabled" : ""}`}
+      className={`game-card clover-card${selected ? " selected" : ""}${locked ? " clover-card--locked" : ""}${wrong ? " clover-card--wrong" : ""}${disabled ? " disabled" : ""}`}
       role={onSelect ? "button" : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -110,6 +113,7 @@ function CloverCardFace({
         </button>
       )}
       {locked && <span className="clover-card__locked-label">Correct</span>}
+      {wrong && <span className="clover-card__locked-label clover-card__locked-label--wrong">Wrong</span>}
     </div>
   );
 }
@@ -120,6 +124,7 @@ function CloverGrid({
   selectedCardId = null,
   isDraggingCard = false,
   lockedCardIds = [],
+  wrongCardIds = [],
   editable = false,
   onSlotClick,
   onCardSelect,
@@ -133,6 +138,7 @@ function CloverGrid({
   selectedCardId?: string | null;
   isDraggingCard?: boolean;
   lockedCardIds?: string[];
+  wrongCardIds?: string[];
   /** Without it (and its handlers) the grid is a static, read-only view. */
   editable?: boolean;
   onSlotClick?: (slot: CloverSlot) => void;
@@ -195,6 +201,7 @@ function CloverGrid({
                 placement={placement[cardId]}
                 selected={selectedCardId === cardId}
                 locked={locked}
+                wrong={wrongCardIds.includes(cardId)}
                 onSelect={editable && !locked && onCardSelect ? () => onCardSelect(cardId) : undefined}
                 onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
@@ -459,6 +466,29 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             <p className="eyebrow">Board resolved</p>
             <h3>{game.lastAction}</h3>
             <p>Team score: <strong>{game.teamScore}</strong></p>
+            {(() => {
+              const result = game.boardResults[game.activeSpectatorUid];
+              const cards = activeRound?.candidateCards ?? [];
+              if (!result?.guessPlacement || !result.answerPlacement) return null;
+              const guessedIds = Object.keys(result.guessPlacement);
+              return (
+                <div className="clover-result__boards">
+                  <div>
+                    <h4>Your final guess</h4>
+                    <CloverGrid
+                      cards={cards}
+                      placement={result.guessPlacement}
+                      lockedCardIds={result.correctCardIds}
+                      wrongCardIds={guessedIds.filter((cardId) => !result.correctCardIds.includes(cardId))}
+                    />
+                  </div>
+                  <div>
+                    <h4>{room.players[game.activeSpectatorUid]?.name ?? "Player"}&apos;s Clover</h4>
+                    <CloverGrid cards={cards} placement={result.answerPlacement} />
+                  </div>
+                </div>
+              );
+            })()}
             {isDecisionMaker && (
               <button className="btn" type="button" disabled={busy} onClick={() => void run(() => advanceCloverRound(roomCode, uid))}>
                 Continue to the next Clover
