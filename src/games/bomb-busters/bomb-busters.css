@@ -1,6 +1,12 @@
 /* Bomb Busters: banner and screen card share one width, like the other games. */
 #root:has(.bb-wrap) { max-width: 100%; }
 .game-screen-wrap.bb-wrap { max-width: min(100%, 1040px); }
+/* The accent tokens these styles use aren't defined globally yet; map them to the palette here. */
+.bb-wrap {
+  --accent-primary: var(--peach-500);
+  --accent-secondary: var(--jade-500);
+  --accent-danger: var(--rose-500);
+}
 
 .screen.bb-screen {
   display: grid;
@@ -210,14 +216,35 @@ button.bb-wire--back.bb-wire--selected:hover:not(:disabled) {
   box-shadow: 0 4px 10px color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 button.bb-wire--back.bb-wire--selected::after { content: "?"; font-size: 1rem; font-weight: 900; }
-/* Your own wires you've selected (Solo Cut, or a choice prompt): raised with a strong glow. */
+/* Your own wires you've selected (Solo Cut, Red Alert, or a choice prompt): raised, ringed in the
+   page's ink so it reads on any wire color, glowing, and ticked. */
 button.bb-wire--blue.bb-wire--selected,
 button.bb-wire--yellow.bb-wire--selected,
 button.bb-wire--red.bb-wire--selected {
-  outline: 3px solid var(--accent-primary);
+  position: relative;
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  transform: translateY(-6px);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 6px 14px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+}
+button.bb-wire--blue.bb-wire--selected::after,
+button.bb-wire--yellow.bb-wire--selected::after,
+button.bb-wire--red.bb-wire--selected::after {
+  content: "✓";
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent-primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  line-height: 1;
 }
 /* These wires can be solo cut: a light hint, stronger once selected. */
 .bb-wire--solo { outline: 2px dashed var(--accent-secondary); outline-offset: 2px; }

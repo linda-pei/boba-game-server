@@ -10,7 +10,7 @@ import TurnStatus from "../../components/shared/TurnStatus";
 import { areAdjacent, canRevealRed, describeDeclared, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
-import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
+import { deadlyCheck, describeRules, ruleCanCut, ruleCanReveal, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
 import { RULE_ACTIONS, RULE_PANELS, type RulePanelProps } from "./rules/ui";
 import {
   type ResolveResult,
@@ -347,8 +347,13 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   const [useXray, setUseXray] = useState(false);
   const [equipMode, setEquipMode] = useState<EquipMode>(null);
   // A rule panel asked the player to pick wires anywhere (e.g. Red Alert's three reds).
-  const [rulePick, setRulePick] = useState<{ count: number; picks: { uid: string; slot: number }[]; onDone: (picks: { uid: string; slot: number }[]) => void } | null>(null);
-  const requestPick: RulePanelProps["requestPick"] = (count, onDone) => setRulePick({ count, picks: [], onDone });
+  const [rulePick, setRulePick] = useState<{
+    count: number;
+    label: string;
+    picks: { uid: string; slot: number }[];
+    onDone: (picks: { uid: string; slot: number }[]) => Promise<void>;
+  } | null>(null);
+  const requestPick: RulePanelProps["requestPick"] = (count, label, onDone) => setRulePick({ count, label, picks: [], onDone });
   const [walkieTo, setWalkieTo] = useState<string | null>(null);
   const [recharge, setRecharge] = useState<string[]>([]);
   // Your own wires picked for a Solo Cut, one click per wire (like pointing at a teammate's).
@@ -404,6 +409,10 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     } else if (radarOwed) {
       handledPending.current = autoKey;
       answerRadar(roomCode, uid).catch(fail("Could not answer the radar."));
+    } else {
+      // Remember idle states too, so the same step coming up again (e.g. mission 18's radar every
+      // turn) isn't mistaken for the one already handled.
+      handledPending.current = autoKey;
     }
   }, [autoKey, pending, swap, radarOwed, roomCode, uid]);
 
@@ -514,13 +523,15 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (!rulePick) return;
     const key = (p: { uid: string; slot: number }) => `${p.uid}:${p.slot}`;
     const exists = rulePick.picks.some((p) => key(p) === `${owner}:${slot}`);
+    if (!exists && rulePick.picks.length >= rulePick.count) return;
     const picks = exists ? rulePick.picks.filter((p) => key(p) !== `${owner}:${slot}`) : [...rulePick.picks, { uid: owner, slot }];
-    if (picks.length === rulePick.count) {
-      setRulePick(null);
-      rulePick.onDone(picks);
-    } else {
-      setRulePick({ ...rulePick, picks });
-    }
+    setRulePick({ ...rulePick, picks });
+  };
+  // Like a Dual Cut: pick the wires first, then confirm the action.
+  const confirmRulePick = () => {
+    if (!rulePick || rulePick.picks.length !== rulePick.count) return;
+    setRulePick(null);
+    void run(() => rulePick.onDone(rulePick.picks));
   };
   const onPickMine = (index: number) => {
     if (rulePick) return pickForRule(uid, index);
@@ -549,9 +560,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     void run(() => placeSetupInfo(roomCode, uid, index));
   };
 
+  // A rule can forbid Reveal Red (mission 13: those reds go through Red Alert instead).
+  const revealable = canRevealRed(myStands, deadlyCheck(game)) && !ruleCanReveal(game, uid);
   const ruled = uid && game.phase === "playing" ? ruleTurnStatus(game, uid) : null;
   const status = (() => {
-    if (rulePick) return { mood: "mine" as const, text: `Pick ${rulePick.count - rulePick.picks.length} more wire${rulePick.count - rulePick.picks.length === 1 ? "" : "s"} (any stand).` };
+    if (rulePick) {
+      const left = rulePick.count - rulePick.picks.length;
+      return { mood: "mine" as const, text: left > 0 ? `Pick ${left} more wire${left === 1 ? "" : "s"} (any stand).` : `${rulePick.label}, or Cancel.` };
+    }
     if (choice) {
       const text = {
         own: "Correct! Choose which of your matching wires to cut.",
@@ -809,26 +825,42 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   </label>
                 )}
               </div>
-              {(soloReady !== undefined || canRevealRed(myStands, deadlyCheck(game))) && (
+              {(soloReady !== undefined || revealable) && (
                 <div className="bb-cut__row bb-cut__row--actions">
                   {soloReady !== undefined && (
                     <button type="button" className="btn btn--sm" disabled={busy} onClick={() => void run(() => soloCut(roomCode, uid, soloReady))}>
                       Solo Cut {soloSelected.length} × {describeDeclared(soloReady)}
                     </button>
                   )}
-                  {canRevealRed(myStands, deadlyCheck(game)) && (
+                  {revealable && (
                     <button type="button" className="btn btn--danger btn--sm" disabled={busy} onClick={() => void run(() => revealRedWires(roomCode, uid))}>
                       Reveal your red wires
                     </button>
                   )}
                 </div>
               )}
-              <div className="bb-cut__row bb-cut__row--rule">
-                {getMission(game.missionId).rules.map(({ id }) => {
-                  const Action = RULE_ACTIONS[id];
-                  return Action ? <Action key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
-                })}
-              </div>
+              {rulePick ? (
+                <div className="bb-cut__row bb-cut__row--rule">
+                  <span className="bb-muted">
+                    {rulePick.picks.length} of {rulePick.count} wires picked
+                  </span>
+                  {rulePick.picks.length === rulePick.count && (
+                    <button type="button" className="btn btn--danger btn--sm" disabled={busy} onClick={confirmRulePick}>
+                      {rulePick.label}
+                    </button>
+                  )}
+                  <button type="button" className="btn btn--ghost btn--sm" onClick={() => setRulePick(null)}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="bb-cut__row bb-cut__row--rule">
+                  {getMission(game.missionId).rules.map(({ id }) => {
+                    const Action = RULE_ACTIONS[id];
+                    return Action ? <Action key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
+                  })}
+                </div>
+              )}
             </div>
           )}
         </section>
