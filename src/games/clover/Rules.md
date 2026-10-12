@@ -13,7 +13,7 @@ Rule reference: [official So Clover! rulebook](https://cdn.svc.asmodee.net/produ
 1. **Player count:** the base game should support 3–6 players. A 2-player mode is a separate variant and must not be enabled until its spectator and collaboration rules are designed.
 2. **Authority:** use an authoritative verifier for hidden layouts and scoring. A Firebase callable function is preferred; a temporary owner-verifies fallback is acceptable only for casual play and must be clearly documented as trusted-client mode.
 3. **Content:** use an original, maintained word-card deck. Do not copy proprietary card text or artwork.
-4. **Orientation:** confirm the physical-game card-orientation rule with a tabletop playtest before locking the interaction model. The implementation must model orientation explicitly if it changes the outward keyword pairs.
+4. **Orientation (decided):** each card's rotation is part of its placement. The clue-giver's cards are dealt into random slots with random rotations; only guessers move and rotate cards.
 
 ## Current Implementation Boundary
 
@@ -26,8 +26,8 @@ Before a public or competitive release, move verification and scoring into a Fir
 ### Setup
 
 1. Each player receives four keyword cards.
-2. Each player privately places the cards in the four Clover slots. If orientation is part of the confirmed ruleset, each card placement includes one of four rotations.
-3. Each player sees the eight keywords on the outside edges of their completed Clover.
+2. The cards are dealt into the four Clover slots in a random order, each with one of four random rotations. This layout is fixed: the player can't move or rotate the cards.
+3. Each player sees the eight keywords on the outside edges of their dealt Clover.
 4. For each of the four adjacent outer-keyword pairs, the player writes one single-word clue. Compound words, proper nouns, acronyms, numbers, and onomatopoeia are allowed; the clue cannot be an exact keyword, a translation, or from the same word family.
 5. The player removes their four cards, draws one extra keyword card, and shuffles it with the original four. The resulting five cards are the candidate set for that Clover.
 
@@ -98,7 +98,7 @@ interface PrivateCloverBoard {
 
 | Phase | Who can act | Required outcome |
 | --- | --- | --- |
-| `clue-writing` | Every player, privately | Four placed cards and four valid non-empty clues |
+| `clue-writing` | Every player, privately (clues only; the layout is dealt) | Four valid non-empty clues |
 | `waiting-for-clues` | Nobody | Transition only when every player submitted |
 | `solving-first` | Decision-maker edits; team observes/discusses | Four of five candidate cards placed and locked |
 | `solving-final` | Decision-maker edits only empty slots | Final placement locked and scored |
@@ -109,8 +109,8 @@ The spectator is always read-only during `solving-first` and `solving-final`. Ot
 
 ## Server / Firestore Responsibilities
 
-1. Create private boards, allocate unique cards, and create the fifth candidate card.
-2. Validate that a submitted clue is one non-empty word and that a submitted layout has four distinct slots.
+1. Create private boards, allocate unique cards, deal each board's random layout (`answerPlacement`), and create the fifth candidate card.
+2. Validate that each submitted clue is one non-empty word. The layout is read from the private board, never taken from the client.
 3. Atomically move from clue writing to resolution once all players submit.
 4. On a locked guess, compare only on the server, retain correct cards after attempt one, and calculate score after attempt two.
 5. Atomically advance the spectator or finish the game. Never use client-side read-then-write score updates.
@@ -120,9 +120,8 @@ The spectator is always read-only during `solving-first` and `solving-final`. Ot
 
 ### Clue-writing board
 
-- A 2×2 Clover with visible outer keywords and four labelled clue zones.
-- Clear placement and rotation controls; support keyboard/touch as well as drag-and-drop.
-- A local draft that survives re-rendering and a two-step `Lock clues` confirmation.
+- A static 2×2 Clover (the dealt layout, no move or rotate controls) with visible outer keywords and four labelled clue zones.
+- A local clue draft that survives re-rendering and a two-step `Lock clues` confirmation.
 - Once submitted, replace editing controls with a waiting status and the submitted clue summary.
 
 ### Shared solving board

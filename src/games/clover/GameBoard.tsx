@@ -38,8 +38,6 @@ const EMPTY_CLUES: Record<CloverClueZone, string> = { top: "", right: "", bottom
 
 type PlacementMap = Record<string, CloverPlacement>;
 
-const noop = () => undefined;
-
 function rotatePlacement(map: PlacementMap, cardId: string): CloverPlacement | null {
   const placement = map[cardId];
   if (!placement) return null;
@@ -119,10 +117,10 @@ function CloverCardFace({
 function CloverGrid({
   cards,
   placement,
-  selectedCardId,
-  isDraggingCard,
+  selectedCardId = null,
+  isDraggingCard = false,
   lockedCardIds = [],
-  editable,
+  editable = false,
   onSlotClick,
   onCardSelect,
   onRotate,
@@ -132,16 +130,17 @@ function CloverGrid({
 }: {
   cards: { id: string; words: [string, string, string, string] }[];
   placement: PlacementMap;
-  selectedCardId: string | null;
-  isDraggingCard: boolean;
+  selectedCardId?: string | null;
+  isDraggingCard?: boolean;
   lockedCardIds?: string[];
-  editable: boolean;
-  onSlotClick: (slot: CloverSlot) => void;
-  onCardSelect: (cardId: string) => void;
-  onRotate: (cardId: string) => void;
-  onCardDrop: (cardId: string, slot: CloverSlot) => void;
-  onCardDragStart: (cardId: string) => void;
-  onCardDragEnd: () => void;
+  /** Without it (and its handlers) the grid is a static, read-only view. */
+  editable?: boolean;
+  onSlotClick?: (slot: CloverSlot) => void;
+  onCardSelect?: (cardId: string) => void;
+  onRotate?: (cardId: string) => void;
+  onCardDrop?: (cardId: string, slot: CloverSlot) => void;
+  onCardDragStart?: (cardId: string) => void;
+  onCardDragEnd?: () => void;
 }) {
   const [dropTargetSlot, setDropTargetSlot] = useState<CloverSlot | null>(null);
   // Clear a stale highlight when a drag ends outside any slot.
@@ -162,12 +161,12 @@ function CloverGrid({
             role={canDrop ? "button" : undefined}
             tabIndex={canDrop ? 0 : undefined}
             onClick={() => {
-              if (canDrop) onSlotClick(id);
+              if (canDrop) onSlotClick?.(id);
             }}
             onKeyDown={(event) => {
               if (canDrop && (event.key === "Enter" || event.key === " ")) {
                 event.preventDefault();
-                onSlotClick(id);
+                onSlotClick?.(id);
               }
             }}
             onDragOver={(event) => {
@@ -186,7 +185,7 @@ function CloverGrid({
               event.preventDefault();
               setDropTargetSlot(null);
               const droppedCardId = event.dataTransfer.getData("application/x-clover-card");
-              if (cards.some((item) => item.id === droppedCardId)) onCardDrop(droppedCardId, id);
+              if (cards.some((item) => item.id === droppedCardId)) onCardDrop?.(droppedCardId, id);
             }}
             aria-label={`${label} slot`}
           >
@@ -196,8 +195,8 @@ function CloverGrid({
                 placement={placement[cardId]}
                 selected={selectedCardId === cardId}
                 locked={locked}
-                onSelect={editable && !locked ? () => onCardSelect(cardId) : undefined}
-                onRotate={editable && !locked ? () => onRotate(cardId) : undefined}
+                onSelect={editable && !locked && onCardSelect ? () => onCardSelect(cardId) : undefined}
+                onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
                 onDragEnd={onCardDragEnd}
               />
@@ -338,15 +337,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               <CloverGrid
                 cards={privateBoard.sourceCards}
                 placement={dealtPlacement}
-                selectedCardId={null}
-                isDraggingCard={false}
-                editable={false}
-                onSlotClick={noop}
-                onCardSelect={noop}
-                onRotate={noop}
-                onCardDrop={noop}
-                onCardDragStart={noop}
-                onCardDragEnd={noop}
               />
             </div>
 
@@ -357,7 +347,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               variant="primary"
               className="clover-lock-clues"
               disabled={busy || hasMultiWordClue}
-              onConfirm={() => run(() => submitCloverClues(roomCode, uid, dealtPlacement, draftClues))}
+              onConfirm={() => run(() => submitCloverClues(roomCode, uid, draftClues))}
             />
           </section>
         )}
