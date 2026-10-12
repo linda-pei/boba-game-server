@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BBMission, BBWire } from "../../../types";
-import { FALSE_BOTTOM, defaultUnlocked, drawExtraEquipment, equipmentPool, refreshEquipment, resolveDualCut } from "../engine";
+import { FALSE_BOTTOM, buildMission, defaultUnlocked, drawExtraEquipment, equipmentPool, refreshEquipment, resolveDualCut } from "../engine";
 import { MISSIONS, getMission } from "../missions";
 import { activeRules, buildMissionWithRules, cutWithRules, deadlyCheck, describeRules, ruleCanCut, type RuleEnv } from "./index";
 import { createNumberDeck, drawNumbers } from "./numberDeck";
@@ -73,6 +73,17 @@ describe("False Bottom (#13)", () => {
   it("joins the pool only when the mission enables it", () => {
     expect(equipmentPool(getMission(4))).not.toContain(FALSE_BOTTOM);
     expect(equipmentPool(withFalseBottom)).toContain(FALSE_BOTTOM);
+  });
+
+  it("stays out when fewer than 2 yellow wires are in play (it could never unlock)", () => {
+    expect(equipmentPool(withFalseBottom, 0)).not.toContain(FALSE_BOTTOM);
+    expect(equipmentPool(withFalseBottom, 1)).not.toContain(FALSE_BOTTOM);
+    expect(equipmentPool(withFalseBottom, 2)).toContain(FALSE_BOTTOM);
+    for (let seed = 1; seed < 20; seed += 1) {
+      const { game } = buildMission(["a", "b", "c", "d", "e"], getMission(13), seeded(seed));
+      expect(game.wireTotals.yellow).toBe(0);
+      expect(game.equipment.map((card) => card.id)).not.toContain(FALSE_BOTTOM);
+    }
   });
 
   it("unlocks after 2 yellow cuts", () => {
