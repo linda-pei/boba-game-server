@@ -469,23 +469,28 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
             {(() => {
               const result = game.boardResults[game.activeSpectatorUid];
               const cards = activeRound?.candidateCards ?? [];
-              if (!result?.guessPlacement || !result.answerPlacement) return null;
-              const guessedIds = Object.keys(result.guessPlacement);
+              // The final guess is still on the shared board during the result phase, so it shows even
+              // when the verifier didn't store it (e.g. a client running an older build).
+              const guess = result?.guessPlacement ?? activeRound?.sharedPlacement;
+              if (!result || !guess || Object.keys(guess).length === 0) return null;
+              const guessedIds = Object.keys(guess);
               return (
                 <div className="clover-result__boards">
                   <div>
                     <h4>Your final guess</h4>
                     <CloverGrid
                       cards={cards}
-                      placement={result.guessPlacement}
+                      placement={guess}
                       lockedCardIds={result.correctCardIds}
                       wrongCardIds={guessedIds.filter((cardId) => !result.correctCardIds.includes(cardId))}
                     />
                   </div>
-                  <div>
-                    <h4>{room.players[game.activeSpectatorUid]?.name ?? "Player"}&apos;s Clover</h4>
-                    <CloverGrid cards={cards} placement={result.answerPlacement} />
-                  </div>
+                  {result.answerPlacement && (
+                    <div>
+                      <h4>{room.players[game.activeSpectatorUid]?.name ?? "Player"}&apos;s Clover</h4>
+                      <CloverGrid cards={cards} placement={result.answerPlacement} />
+                    </div>
+                  )}
                 </div>
               );
             })()}
