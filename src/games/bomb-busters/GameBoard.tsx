@@ -555,8 +555,8 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (choice) {
       const text = {
         own: "Correct! Choose which of your matching wires to cut.",
-        cut: "More than one wire matches: choose which one is cut.",
-        info: "Choose which wire gets the info token.",
+        cut: choice.options.length > 1 ? "More than one wire matches: choose which one is cut." : "It matches: click the highlighted wire to confirm the cut.",
+        info: choice.options.length > 1 ? "Choose which wire gets the info token." : "No match: click the highlighted wire to place the info token.",
       }[choice.choose];
       return { mood: "mine" as const, text };
     }

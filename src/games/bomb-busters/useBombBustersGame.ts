@@ -274,8 +274,9 @@ export type ResolveResult =
 
 /**
  * Dual Cut, step 2 — runs on the target's client, which is the only one that can read their stand.
- * `choice` is a flat slot index, needed only when the rules let the target pick (two matches, or
- * where to put the info token after a failed Double Detector).
+ * `choice` is a flat slot index, needed when the rules let the target pick (two matches, or where to
+ * put the info token after a failed Double Detector). When several wires were pointed at, the target
+ * always confirms by clicking, even with a single option, so the speed of the reply gives nothing away.
  */
 export async function resolveDualCutAsTarget(roomCode: string, uid: string, choice?: number): Promise<ResolveResult> {
   return runTransaction(db, async (transaction): Promise<ResolveResult> => {
@@ -285,6 +286,8 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 
     const wires = hand.flat();
     const values = pending.alsoDeclared === undefined ? [pending.declared] : [pending.declared, pending.alsoDeclared];
+    const mustConfirm = pending.slots.length > 1;
+    const needsChoice = (options: number[]) => (options.length > 1 || mustConfirm) && (choice === undefined || !options.includes(choice));
     const outcome = resolveDualCut(pending.slots.map((slot) => wires[slot]), values, deadlyCheck(game));
 
     if (outcome.result === "explode") {
@@ -298,10 +301,8 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
 
     if (outcome.result === "success") {
       const options = outcome.matching.map((index) => pending.slots[index]);
-      if (options.length > 1 && (choice === undefined || !options.includes(choice))) {
-        return { status: "needs-choice", choose: "cut", options };
-      }
-      const slot = options.length > 1 ? choice! : options[0];
+      if (needsChoice(options)) return { status: "needs-choice", choose: "cut", options };
+      const slot = choice !== undefined && options.includes(choice) ? choice : options[0];
       transaction.update(handRef, { stands: wrapHand(cutInHand(hand, slot)) });
       const next = cutWithRules(game, uid, slot, wires[slot]);
       transaction.set(
@@ -315,10 +316,8 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
     }
 
     const options = outcome.infoCandidates.map((index) => pending.slots[index]);
-    if (options.length > 1 && (choice === undefined || !options.includes(choice))) {
-      return { status: "needs-choice", choose: "info", options };
-    }
-    const slot = options.length > 1 ? choice! : options[0];
+    if (needsChoice(options)) return { status: "needs-choice", choose: "info", options };
+    const slot = choice !== undefined && options.includes(choice) ? choice : options[0];
     if (wrongGuessExplodes(game, pending.by, uid)) {
       transaction.set(gameRef, addLog(loseMission(game, "The Rookie's cut failed."), `💥 ${mention(pending.by)} missed, and a Rookie's mistake is fatal.`));
       return { status: "done" };
