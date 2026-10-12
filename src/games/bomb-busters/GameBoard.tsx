@@ -7,7 +7,7 @@ import GameBanner from "../../components/shared/GameBanner";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import ResignButton from "../../components/shared/ResignButton";
 import TurnStatus from "../../components/shared/TurnStatus";
-import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPublic } from "./engine";
+import { areAdjacent, canRevealRed, describeDeclared, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
 import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
@@ -477,13 +477,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   };
 
   const selectTarget = (player: string, slot: number) => {
+    const stands = unwrapPublic(game.stands)[player] ?? [];
     if (detector === "super") {
-      const uncut = (unwrapPublic(game.stands)[player] ?? []).flat().flatMap((s, index) => (s.cut ? [] : [index]));
-      setTarget({ uid: player, slots: uncut });
+      setTarget({ uid: player, slots: uncutOnStand(stands, slot) });
       return;
     }
     setTarget((current) => {
-      if (!current || current.uid !== player) return { uid: player, slots: [slot] };
+      // Detectors point at one stand: a wire on another player or stand starts over.
+      if (!current || current.uid !== player || !onOneStand(stands, [...current.slots, slot])) return { uid: player, slots: [slot] };
       if (current.slots.includes(slot)) return { uid: player, slots: current.slots.filter((s) => s !== slot) };
       return { uid: player, slots: [...current.slots, slot].slice(-neededSlots) };
     });

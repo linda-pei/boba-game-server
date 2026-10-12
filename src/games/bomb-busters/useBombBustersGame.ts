@@ -23,6 +23,8 @@ import {
   placeInfoToken,
   resolveDualCut,
   soloCutIndices,
+  onOneStand,
+  uncutOnStand,
   unwrapHand,
   unwrapPublic,
   wrapHand,
@@ -194,8 +196,8 @@ function spendEquipment(game: BBGame, id: number, uid: string): BBGame {
 
 /**
  * Dual Cut, step 1: the active player points at a teammate's wire(s) and names a value.
- * Detectors point at more wires (Double: 2, Triple: 3, Super: the whole stand — `slots` is ignored);
- * the X or Y Ray names a second value.
+ * Detectors point at more wires on one stand (Double: 2, Triple: 3, Super: the whole stand holding
+ * `slots[0]`); the X or Y Ray names a second value.
  */
 export async function declareDualCut(
   roomCode: string,
@@ -221,12 +223,15 @@ export async function declareDualCut(
       throw new Error("The Triple and Super Detectors can't name yellow.");
     }
 
-    const targetSlots = unwrapPublic(game.stands)[target].flat();
-    const pointed =
-      detector === "super" ? targetSlots.flatMap((slot, index) => (slot.cut ? [] : [index])) : slots;
+    const targetStands = unwrapPublic(game.stands)[target];
+    const targetSlots = targetStands.flat();
+    if (slots.some((slot) => !targetSlots[slot])) throw new Error("No such wire.");
+    if (detector === "super" && slots.length === 0) throw new Error("Point at a stand.");
+    const pointed = detector === "super" ? uncutOnStand(targetStands, slots[0]) : slots;
     if (detector !== "super" && (new Set(pointed).size !== pointed.length || pointed.length !== DETECTOR_SLOTS[detector])) {
       throw new Error(`Point at ${DETECTOR_SLOTS[detector]} wire${DETECTOR_SLOTS[detector] === 1 ? "" : "s"}.`);
     }
+    if (!onOneStand(targetStands, pointed)) throw new Error("Point at wires on one stand.");
     if (pointed.length === 0 || pointed.some((slot) => !targetSlots[slot] || targetSlots[slot].cut)) throw new Error("That wire is already cut.");
 
     let next = game;

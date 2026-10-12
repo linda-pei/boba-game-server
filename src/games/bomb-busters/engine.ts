@@ -140,6 +140,18 @@ export function locateSlot(stands: unknown[][], flatIndex: number): { stand: num
   throw new Error("No such wire.");
 }
 
+/** Whether every flat slot index is on the same stand (detectors point at one stand, not one player). */
+export function onOneStand(stands: unknown[][], flatIndices: number[]): boolean {
+  return new Set(flatIndices.map((index) => locateSlot(stands, index).stand)).size <= 1;
+}
+
+/** Flat indices of the uncut wires on the stand holding `flatIndex` (what a Super Detector points at). */
+export function uncutOnStand(stands: { cut: boolean }[][], flatIndex: number): number[] {
+  const { stand } = locateSlot(stands, flatIndex);
+  const start = stands.slice(0, stand).reduce((sum, wires) => sum + wires.length, 0);
+  return stands[stand].flatMap((slot, position) => (slot.cut ? [] : [start + position]));
+}
+
 export function uncutWires(hand: BBHandWire[][]): BBHandWire[] {
   return flatWires(hand).filter((wire) => !wire.cut);
 }
