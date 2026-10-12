@@ -1,12 +1,6 @@
 /* Bomb Busters: banner and screen card share one width, like the other games. */
 #root:has(.bb-wrap) { max-width: 100%; }
 .game-screen-wrap.bb-wrap { max-width: min(100%, 1040px); }
-/* The accent tokens these styles use aren't defined globally yet; map them to the palette here. */
-.bb-wrap {
-  --accent-primary: var(--peach-500);
-  --accent-secondary: var(--jade-500);
-  --accent-danger: var(--rose-500);
-}
 
 .screen.bb-screen {
   display: grid;

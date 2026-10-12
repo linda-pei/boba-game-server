@@ -115,6 +115,10 @@
   --ink:      var(--pearl);
   --ink-soft: var(--syrup-500);
   --ink-mute: #8a7458;
+  /* Accents, matching the button colors: primary peach, secondary jade, danger rose. */
+  --accent-primary: var(--peach-500);
+  --accent-secondary: var(--jade-500);
+  --accent-danger: var(--rose-500);
 
   /* Shape scale */
   --r-1: 4px;

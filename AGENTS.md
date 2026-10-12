@@ -5,9 +5,9 @@
 - When adding new games, also add it to the README
 
 ## Button classes
-- Default (no class): Primary actions (Start Game, Guess, Confirm). Blue (`--accent-primary`).
-- `btn-secondary`: Supporting/neutral actions (Join, Scout, abilities). Green (`--accent-secondary`).
-- `btn-danger`: Destructive/negative actions (Leave, End Game, Cancel, "I don't have it"). Red outline (`--accent-danger`).
+- Default (no class, or `btn btn--primary`): Primary actions (Start Game, Guess, Confirm). Peach (`--accent-primary`).
+- `btn--secondary`: Supporting/neutral actions (Join, Scout, abilities). Jade green (`--accent-secondary`).
+- `btn--danger`: Destructive/negative actions (Leave, End Game, Cancel, "I don't have it"). Rose red (`--accent-danger`).
 - Destructive actions should have confirmation (two-step click or modal) when they can't be undone.
 
 ## Card selection from hand
