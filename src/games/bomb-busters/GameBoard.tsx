@@ -603,7 +603,11 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   ? "Name the first value…"
                   : useXray
                   ? `First value: ${describeDeclared(xray!)}. Now the second…`
-                  : `${name(room, target.uid)}'s ${detector === "super" ? "stand" : target.slots.length === 1 ? "wire" : `${target.slots.length} wires`}: is it…`}
+                  : detector === "super"
+                  ? `${name(room, target.uid)}'s stand: is one of its wires…`
+                  : target.slots.length === 1
+                  ? `${name(room, target.uid)}'s wire: is it…`
+                  : `${name(room, target.uid)}'s ${target.slots.length} wires: is one of them…`}
               </span>
               <div className="bb-values">
                 {allowedDeclarable
