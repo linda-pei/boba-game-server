@@ -45,10 +45,13 @@ export function useRobotrickHand(roomCode: string | undefined, uid: string | nul
   return hand;
 }
 
-/** Cards in hand including any passed cards not yet merged in. */
-export function effectiveHand(hand: RobotrickHand | null): RobotrickCard[] {
+/**
+ * Cards in hand including any passed cards not yet merged in. Passed cards stay hidden while
+ * passing is still open (`revealIncoming` false), so they all appear at once when it ends.
+ */
+export function effectiveHand(hand: RobotrickHand | null, revealIncoming = true): RobotrickCard[] {
   if (!hand) return [];
-  return sortCards([...hand.cards, ...(hand.incoming ?? [])]);
+  return sortCards([...hand.cards, ...(revealIncoming ? hand.incoming ?? [] : [])]);
 }
 
 function writeRound(

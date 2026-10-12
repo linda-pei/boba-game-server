@@ -220,7 +220,7 @@ export default function RobotrickGameBoard({ roomCode }: { roomCode: string }) {
     }
   };
 
-  const myCards = effectiveHand(hand);
+  const myCards = effectiveHand(hand, game.phase !== "passing");
   const isMyTurn = game.phase === "playing" && game.turn === uid;
   const led = ledType(game.currentTrick);
   const legalIds = new Set(legalPlays(myCards, led).map((card) => card.id));
