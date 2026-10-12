@@ -76,6 +76,35 @@ export function dealtCloverPlacement(
   return Object.fromEntries(sourceCards.map((card, index) => [card.id, { slot: CLOVER_SLOTS[index], rotation: 0 as CloverRotation }]));
 }
 
+/**
+ * Move a guess card on the shared board (or back to the tray with `placement` null). A card that
+ * leaves the board, whether removed or bumped out of its slot, keeps its rotation in the tray.
+ */
+export function moveCloverGuessCard(
+  sharedPlacement: Record<string, CloverPlacement>,
+  trayRotations: Record<string, CloverRotation>,
+  cardId: string,
+  placement: CloverPlacement | null,
+  lockedCardIds: string[] = [],
+): { sharedPlacement: Record<string, CloverPlacement>; trayRotations: Record<string, CloverRotation> } {
+  const nextPlacement = { ...sharedPlacement };
+  const nextTray = { ...trayRotations };
+  const previous = nextPlacement[cardId];
+  delete nextPlacement[cardId];
+  if (placement) {
+    Object.entries(nextPlacement).forEach(([placedCardId, placed]) => {
+      if (placed.slot === placement.slot && !lockedCardIds.includes(placedCardId)) {
+        nextTray[placedCardId] = placed.rotation;
+        delete nextPlacement[placedCardId];
+      }
+    });
+    nextPlacement[cardId] = placement;
+  } else if (previous) {
+    nextTray[cardId] = previous.rotation;
+  }
+  return { sharedPlacement: nextPlacement, trayRotations: nextTray };
+}
+
 export function getCloverCardById(cards: CloverCard[], cardId: string): CloverCard | null {
   return cards.find((card) => card.id === cardId) ?? null;
 }
