@@ -21,6 +21,8 @@ import {
   isDialExploded,
   isMissionWon,
   locateSlot,
+  onOneStand,
+  uncutOnStand,
   nextCaptainOrder,
   nextTurn,
   recordCut,
@@ -143,6 +145,16 @@ describe("legality", () => {
     const h = hand([blue(1), blue(2)], [blue(3)]);
     expect(locateSlot(h, 0)).toEqual({ stand: 0, position: 0 });
     expect(locateSlot(h, 2)).toEqual({ stand: 1, position: 0 });
+  });
+
+  it("keeps detector targets on one stand", () => {
+    const h = hand([blue(1), blue(2), blue(4)], [blue(3), blue(5)]);
+    expect(onOneStand(h, [0, 2])).toBe(true);
+    expect(onOneStand(h, [3, 4])).toBe(true);
+    expect(onOneStand(h, [2, 3])).toBe(false);
+    h[1][0] = { ...h[1][0], cut: true };
+    expect(uncutOnStand(h, 4)).toEqual([4]);
+    expect(uncutOnStand(h, 1)).toEqual([0, 1, 2]);
   });
 });
 

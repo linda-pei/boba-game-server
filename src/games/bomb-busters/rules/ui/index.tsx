@@ -3,6 +3,7 @@ import type { BBGame, Room } from "../../../../types";
 import {
   AudioTimerPanel,
   BatRadarPanel,
+  RedAlertAction,
   RedAlertPanel,
   DeadlyValuePanel,
   FreeTurnsPanel,
@@ -36,4 +37,9 @@ export const RULE_PANELS: Record<string, ComponentType<RulePanelProps>> = {
   audioTimer: AudioTimerPanel,
   redAlert: RedAlertPanel,
   batRadar: BatRadarPanel,
+};
+
+/** Rule-specific actions shown with Solo Cut / Reveal under Dual Cut on your turn. */
+export const RULE_ACTIONS: Record<string, ComponentType<RulePanelProps>> = {
+  redAlert: RedAlertAction,
 };

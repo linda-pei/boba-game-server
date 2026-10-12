@@ -7,11 +7,11 @@ import GameBanner from "../../components/shared/GameBanner";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import ResignButton from "../../components/shared/ResignButton";
 import TurnStatus from "../../components/shared/TurnStatus";
-import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPublic } from "./engine";
+import { areAdjacent, canRevealRed, describeDeclared, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
 import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
-import { RULE_PANELS, type RulePanelProps } from "./rules/ui";
+import { RULE_ACTIONS, RULE_PANELS, type RulePanelProps } from "./rules/ui";
 import {
   type ResolveResult,
   activateStabilizer,
@@ -199,11 +199,18 @@ function Board({
               <div
                 key={card.id}
                 className={`bb-equipment__card${card.unlocked ? " bb-equipment__card--unlocked" : ""}${card.used ? " bb-equipment__card--used" : ""}`}
-                title={info.effect}
               >
                 <span className={`bb-equipment__number${card.id === 13 ? " bb-equipment__number--yellow" : ""}`}>{card.id === 13 ? "Y" : card.id}</span>
-                <strong>{info.name}</strong>
-                {/* The full effect is on hover (title) to keep the cards compact. */}
+                {/* The full effect is behind the info icon (hover, or tap to focus) to keep the cards compact. */}
+                <div className="bb-equipment__name">
+                  <strong>{info.name}</strong>
+                  <span className="bb-equipment__info" tabIndex={0} role="button" aria-label={`About ${info.name}`} aria-describedby={`bb-equipment-tip-${card.id}`}>
+                    i
+                  </span>
+                  <span className="bb-equipment__tip" role="tooltip" id={`bb-equipment-tip-${card.id}`}>
+                    {info.effect}
+                  </span>
+                </div>
                 <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : card.id === 13 ? "Unlocks at two yellow wires" : `Unlocks at two ${card.id}s`}</span>
                 {canUse(card.id) && (
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => onUse(card.id)}>
@@ -341,6 +348,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   const [equipMode, setEquipMode] = useState<EquipMode>(null);
   // A rule panel asked the player to pick wires anywhere (e.g. Red Alert's three reds).
   const [rulePick, setRulePick] = useState<{ count: number; picks: { uid: string; slot: number }[]; onDone: (picks: { uid: string; slot: number }[]) => void } | null>(null);
+  const requestPick: RulePanelProps["requestPick"] = (count, onDone) => setRulePick({ count, picks: [], onDone });
   const [walkieTo, setWalkieTo] = useState<string | null>(null);
   const [recharge, setRecharge] = useState<string[]>([]);
   // Your own wires picked for a Solo Cut, one click per wire (like pointing at a teammate's).
@@ -469,13 +477,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   };
 
   const selectTarget = (player: string, slot: number) => {
+    const stands = unwrapPublic(game.stands)[player] ?? [];
     if (detector === "super") {
-      const uncut = (unwrapPublic(game.stands)[player] ?? []).flat().flatMap((s, index) => (s.cut ? [] : [index]));
-      setTarget({ uid: player, slots: uncut });
+      setTarget({ uid: player, slots: uncutOnStand(stands, slot) });
       return;
     }
     setTarget((current) => {
-      if (!current || current.uid !== player) return { uid: player, slots: [slot] };
+      // Detectors point at one stand: a wire on another player or stand starts over.
+      if (!current || current.uid !== player || !onOneStand(stands, [...current.slots, slot])) return { uid: player, slots: [slot] };
       if (current.slots.includes(slot)) return { uid: player, slots: current.slots.filter((s) => s !== slot) };
       return { uid: player, slots: [...current.slots, slot].slice(-neededSlots) };
     });
@@ -546,8 +555,8 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     if (choice) {
       const text = {
         own: "Correct! Choose which of your matching wires to cut.",
-        cut: "More than one wire matches: choose which one is cut.",
-        info: "Choose which wire gets the info token.",
+        cut: choice.options.length > 1 ? "More than one wire matches: choose which one is cut." : "It matches: click the highlighted wire to confirm the cut.",
+        info: choice.options.length > 1 ? "Choose which wire gets the info token." : "No match: click the highlighted wire to place the info token.",
       }[choice.choose];
       return { mood: "mine" as const, text };
     }
@@ -594,7 +603,11 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   ? "Name the first value…"
                   : useXray
                   ? `First value: ${describeDeclared(xray!)}. Now the second…`
-                  : `${name(room, target.uid)}'s ${detector === "super" ? "stand" : target.slots.length === 1 ? "wire" : `${target.slots.length} wires`}: is it…`}
+                  : detector === "super"
+                  ? `${name(room, target.uid)}'s stand: is one of its wires…`
+                  : target.slots.length === 1
+                  ? `${name(room, target.uid)}'s wire: is it…`
+                  : `${name(room, target.uid)}'s ${target.slots.length} wires: is one of them…`}
               </span>
               <div className="bb-values">
                 {allowedDeclarable
@@ -641,7 +654,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
           uid={uid}
           canUse={canUseEquipment}
           onUse={onUseEquipment}
-          requestPick={(count, onDone) => setRulePick({ count, picks: [], onDone })}
+          requestPick={requestPick}
         />
 
         {equipMode && (
@@ -810,6 +823,12 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   )}
                 </div>
               )}
+              <div className="bb-cut__row bb-cut__row--rule">
+                {getMission(game.missionId).rules.map(({ id }) => {
+                  const Action = RULE_ACTIONS[id];
+                  return Action ? <Action key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
+                })}
+              </div>
             </div>
           )}
         </section>

@@ -162,7 +162,7 @@ A cut has to check a **teammate's hidden wire**, but stands are private, so the 
 
 1. **The active player declares the cut.** It's written to the public game document as `pendingAction = { by, target, slot, value, detector? }`.
 2. **The target's client resolves it automatically.** It can read its own stand, so it checks the declared slot inside a transaction and applies the outcome: reveal or place an info token, advance the dial, end the mission. No click is needed from the target.
-3. **Choices fall back to the target.** When the rules give the target a choice, such as which of two matching wires a Double Detector cuts, the target's screen asks them.
+3. **Choices fall back to the target.** When the rules give the target a choice, such as which of two matching wires a Double Detector cuts, the target's screen asks them. Whenever several wires were pointed at (Double, Triple or Super Detector), the target always confirms with a click, even when only one wire qualifies, so an instant reply doesn't reveal that.
 4. **The active player's matching wire comes from their own client.** If the cut succeeds, the pending action becomes `{ kind: "own-cut" }` and the active player's client reveals one of their own matching wires. A Solo Cut or Reveal Red is checked entirely against the player's own stand, so it resolves in one step.
 
 Firestore can't store arrays directly inside arrays, so each stand is wrapped for storage: `{ slots }` publicly and `{ wires }` in hands. The engine works with plain nested arrays and converts at the boundary.
