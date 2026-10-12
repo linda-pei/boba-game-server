@@ -137,7 +137,7 @@ function TrickArea({ game, room }: { game: RobotrickGame; room: Room }) {
 
 function Standings({ game, room, uid }: { game: RobotrickGame; room: Room; uid: string }) {
   return (
-    <PlayerScores title="Hangars">
+    <PlayerScores title="Hangars" className="rt-standings">
       {game.playerOrder.map((playerUid) => {
         const hangar = game.hangars[playerUid] ?? [];
         const penalties = game.penalties[playerUid] ?? [];
