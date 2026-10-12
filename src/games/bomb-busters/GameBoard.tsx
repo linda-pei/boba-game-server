@@ -10,7 +10,7 @@ import TurnStatus from "../../components/shared/TurnStatus";
 import { areAdjacent, canRevealRed, describeDeclared, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
-import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
+import { deadlyCheck, describeRules, ruleCanCut, ruleCanReveal, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
 import { RULE_ACTIONS, RULE_PANELS, type RulePanelProps } from "./rules/ui";
 import {
   type ResolveResult,
@@ -549,6 +549,8 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
     void run(() => placeSetupInfo(roomCode, uid, index));
   };
 
+  // A rule can forbid Reveal Red (mission 13: those reds go through Red Alert instead).
+  const revealable = canRevealRed(myStands, deadlyCheck(game)) && !ruleCanReveal(game, uid);
   const ruled = uid && game.phase === "playing" ? ruleTurnStatus(game, uid) : null;
   const status = (() => {
     if (rulePick) return { mood: "mine" as const, text: `Pick ${rulePick.count - rulePick.picks.length} more wire${rulePick.count - rulePick.picks.length === 1 ? "" : "s"} (any stand).` };
@@ -809,14 +811,14 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   </label>
                 )}
               </div>
-              {(soloReady !== undefined || canRevealRed(myStands, deadlyCheck(game))) && (
+              {(soloReady !== undefined || revealable) && (
                 <div className="bb-cut__row bb-cut__row--actions">
                   {soloReady !== undefined && (
                     <button type="button" className="btn btn--sm" disabled={busy} onClick={() => void run(() => soloCut(roomCode, uid, soloReady))}>
                       Solo Cut {soloSelected.length} × {describeDeclared(soloReady)}
                     </button>
                   )}
-                  {canRevealRed(myStands, deadlyCheck(game)) && (
+                  {revealable && (
                     <button type="button" className="btn btn--danger btn--sm" disabled={busy} onClick={() => void run(() => revealRedWires(roomCode, uid))}>
                       Reveal your red wires
                     </button>
