@@ -38,7 +38,7 @@ const EMPTY_CLUES: Record<CloverClueZone, string> = { top: "", right: "", bottom
 
 type PlacementMap = Record<string, CloverPlacement>;
 
-function nextPlacement(map: PlacementMap, cardId: string, slot: CloverSlot): PlacementMap {
+function nextPlacement(map: PlacementMap, cardId: string, slot: CloverSlot, fallbackRotation: CloverRotation = 0): PlacementMap {
   const placement = map[cardId];
   const result = { ...map };
   delete result[cardId];
@@ -47,7 +47,7 @@ function nextPlacement(map: PlacementMap, cardId: string, slot: CloverSlot): Pla
     if (placed.slot === slot) delete result[placedCardId];
   });
 
-  result[cardId] = { slot, rotation: placement?.rotation ?? 0 };
+  result[cardId] = { slot, rotation: placement?.rotation ?? fallbackRotation };
   return result;
 }
 
@@ -149,7 +149,8 @@ function CloverGrid({
   editable: boolean;
   onSlotClick: (slot: CloverSlot) => void;
   onCardSelect: (cardId: string) => void;
-  onRotate: (cardId: string) => void;
+  /** Omitted while writing clues: the dealt rotations are fixed. */
+  onRotate?: (cardId: string) => void;
   onCardDrop: (cardId: string, slot: CloverSlot) => void;
   onCardDragStart: (cardId: string) => void;
   onCardDragEnd: () => void;
@@ -208,7 +209,7 @@ function CloverGrid({
                 selected={selectedCardId === cardId}
                 locked={locked}
                 onSelect={editable && !locked ? () => onCardSelect(cardId) : undefined}
-                onRotate={editable && !locked ? () => onRotate(cardId) : undefined}
+                onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
                 onDragEnd={onCardDragEnd}
               />
@@ -240,6 +241,8 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
   const draftPlacement = editedPlacement ?? privateBoard?.answerPlacement ?? {};
   const setDraftPlacement = (change: (current: PlacementMap) => PlacementMap) => setEditedPlacement((current) => change(current ?? draftPlacement));
+  // Clue writing keeps each card's dealt rotation, even if it passes through the tray.
+  const dealtRotation = (cardId: string): CloverRotation => privateBoard?.answerPlacement[cardId]?.rotation ?? 0;
   const myName = room.players[uid]?.name ?? "You";
   const activeRound = game.activeRound;
   const isSpectator = game.activeSpectatorUid === uid;
@@ -266,13 +269,13 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
 
   const placeDraftCard = (slot: CloverSlot) => {
     if (!selectedCardId) return;
-    setDraftPlacement((current) => nextPlacement(current, selectedCardId, slot));
+    setDraftPlacement((current) => nextPlacement(current, selectedCardId, slot, dealtRotation(selectedCardId)));
   };
 
   const dropDraftCard = (cardId: string, slot: CloverSlot) => {
     setSelectedCardId(cardId);
     setIsDraggingCard(false);
-    setDraftPlacement((current) => nextPlacement(current, cardId, slot));
+    setDraftPlacement((current) => nextPlacement(current, cardId, slot, dealtRotation(cardId)));
   };
 
   const guessRotation = (cardId: string): CloverRotation =>
@@ -367,10 +370,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 editable
                 onSlotClick={placeDraftCard}
                 onCardSelect={setSelectedCardId}
-                onRotate={(cardId) => setDraftPlacement((current) => {
-                  const rotated = rotatePlacement(current, cardId);
-                  return rotated ? { ...current, [cardId]: rotated } : current;
-                })}
                 onCardDrop={dropDraftCard}
                 onCardDragStart={startDraggingCard}
                 onCardDragEnd={() => setIsDraggingCard(false)}
@@ -386,6 +385,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                     key={card.id}
                     card={card}
                     placement={draftPlacement[card.id]}
+                    trayRotation={dealtRotation(card.id)}
                     selected={selectedCardId === card.id}
                     onSelect={() => setSelectedCardId((current) => current === card.id ? null : card.id)}
                     onDragStart={startDraggingCard}
