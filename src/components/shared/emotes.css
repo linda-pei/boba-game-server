@@ -35,12 +35,14 @@
   padding: 0;
 }
 
-.emote-btn:hover {
+/* :not(:disabled) matches the legacy global `button:hover:not(:disabled)` rule's specificity so these win. */
+.emote-btn:hover:not(:disabled) {
+  background: var(--surface);
   transform: translate(-1px, -1px) scale(1.1);
   box-shadow: 4px 4px 0 var(--border-strong);
 }
 
-.emote-btn:active {
+.emote-btn:active:not(:disabled) {
   transform: translate(2px, 2px) scale(0.95);
   box-shadow: 1px 1px 0 var(--border-strong);
 }
@@ -109,7 +111,7 @@
   line-height: 1;
 }
 
-.emote-kb-tab:hover {
+.emote-kb-tab:hover:not(:disabled) {
   opacity: 0.8;
   background: var(--surface-2);
 }
@@ -146,7 +148,7 @@
   padding: 0;
 }
 
-.emote-kb-cell:hover {
+.emote-kb-cell:hover:not(:disabled) {
   background: var(--surface-2);
   transform: scale(1.2);
 }
