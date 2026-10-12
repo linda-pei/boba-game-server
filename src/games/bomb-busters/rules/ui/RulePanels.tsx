@@ -190,26 +190,19 @@ export function RedAlertPanel({ game }: RulePanelProps) {
   );
 }
 
-/** The Red Alert action, shown with the other cut actions under Dual Cut. */
+/** The Red Alert action, shown with the other cut actions under Dual Cut: pick 3 wires, then cut. */
 export function RedAlertAction({ game, uid, roomCode, requestPick }: RulePanelProps) {
-  const [error, setError] = useState<string | null>(null);
   const myTurn = game.phase === "playing" && game.turn === uid && !game.pendingAction && !game.pendingSwap;
   const redsLeft = game.wireTotals.red - game.cutCounts.red;
   if (!myTurn || redsLeft <= 0 || !requestPick) return null;
   return (
-    <>
-      <button
-        className="btn btn--danger btn--sm"
-        type="button"
-        onClick={() => {
-          setError(null);
-          requestPick(3, (picks) => void declareRedAlert(roomCode, uid, picks).catch((e: unknown) => setError(e instanceof Error ? e.message : "Red Alert failed.")));
-        }}
-      >
-        Cut the three reds…
-      </button>
-      {error && <span className="bb-muted">{error}</span>}
-    </>
+    <button
+      className="btn btn--secondary btn--sm"
+      type="button"
+      onClick={() => requestPick(3, "Cut the three reds", (picks) => declareRedAlert(roomCode, uid, picks))}
+    >
+      🚨 Red Alert: pick 3 wires
+    </button>
   );
 }
 

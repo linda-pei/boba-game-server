@@ -20,8 +20,11 @@ export interface RulePanelProps {
   game: BBGame;
   room: Room;
   uid: string;
-  /** Ask the player to pick `count` uncut wires on any stand; `onDone` gets the picks. */
-  requestPick?: (count: number, onDone: (picks: { uid: string; slot: number }[]) => void) => void;
+  /**
+   * Ask the player to pick `count` uncut wires on any stand. Once they have, a `label` button
+   * confirms and calls `onDone` with the picks (its errors show on the board).
+   */
+  requestPick?: (count: number, label: string, onDone: (picks: { uid: string; slot: number }[]) => Promise<void>) => void;
 }
 
 /** Board widgets for rules that show something (sequence cards, timer, number card, roles…). */
