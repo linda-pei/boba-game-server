@@ -157,7 +157,12 @@ function Standings({ game, room, uid }: { game: RobotrickGame; room: Room; uid: 
             <span className="score-detail" title="Face-down cards score negative">
               {penalties.length} face down (−{penalties.reduce((sum, card) => sum + card.vp, 0)})
             </span>
-            <span className="score-cumulative">{roundScore(hangar, penalties)} pts</span>
+            <span className="score-detail" title="This round so far">
+              Round: {roundScore(hangar, penalties)}
+            </span>
+            <span className="score-cumulative" title="Total from finished rounds plus this round so far">
+              {totalScore(game.roundScores[playerUid]) + roundScore(hangar, penalties)} pts
+            </span>
           </PlayerScoreRow>
         );
       })}
