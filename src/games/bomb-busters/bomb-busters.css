@@ -200,6 +200,8 @@ button.bb-wire.bb-wire--cut:disabled { opacity: 0.35; }
 .bb-values { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
 /* The Solo Cut / Reveal Red row sits centered under the value buttons. */
 .bb-cut__row--actions { justify-content: center; }
+/* Mission actions (e.g. Red Alert) sit left-aligned under Dual Cut; the row hides when a rule has none. */
+.bb-cut__row--rule:empty { display: none; }
 .bb-solo-hint { margin-left: auto; color: var(--accent-secondary); font-size: 0.82rem; font-weight: 700; }
 .bb-value--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
 .bb-detector { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; font-weight: 600; }

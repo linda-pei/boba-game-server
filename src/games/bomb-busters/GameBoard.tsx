@@ -11,7 +11,7 @@ import { areAdjacent, canRevealRed, describeDeclared, soloCutIndices, unwrapPubl
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
 import { deadlyCheck, describeRules, ruleCanCut, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
-import { RULE_PANELS, type RulePanelProps } from "./rules/ui";
+import { RULE_ACTIONS, RULE_PANELS, type RulePanelProps } from "./rules/ui";
 import {
   type ResolveResult,
   activateStabilizer,
@@ -341,6 +341,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   const [equipMode, setEquipMode] = useState<EquipMode>(null);
   // A rule panel asked the player to pick wires anywhere (e.g. Red Alert's three reds).
   const [rulePick, setRulePick] = useState<{ count: number; picks: { uid: string; slot: number }[]; onDone: (picks: { uid: string; slot: number }[]) => void } | null>(null);
+  const requestPick: RulePanelProps["requestPick"] = (count, onDone) => setRulePick({ count, picks: [], onDone });
   const [walkieTo, setWalkieTo] = useState<string | null>(null);
   const [recharge, setRecharge] = useState<string[]>([]);
   // Your own wires picked for a Solo Cut, one click per wire (like pointing at a teammate's).
@@ -641,7 +642,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
           uid={uid}
           canUse={canUseEquipment}
           onUse={onUseEquipment}
-          requestPick={(count, onDone) => setRulePick({ count, picks: [], onDone })}
+          requestPick={requestPick}
         />
 
         {equipMode && (
@@ -810,6 +811,12 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                   )}
                 </div>
               )}
+              <div className="bb-cut__row bb-cut__row--rule">
+                {getMission(game.missionId).rules.map(({ id }) => {
+                  const Action = RULE_ACTIONS[id];
+                  return Action ? <Action key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
+                })}
+              </div>
             </div>
           )}
         </section>

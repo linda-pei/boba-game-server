@@ -180,28 +180,36 @@ export function AudioTimerPanel({ game, roomCode }: RulePanelProps) {
   );
 }
 
-export function RedAlertPanel({ game, uid, roomCode, requestPick }: RulePanelProps) {
-  const [error, setError] = useState<string | null>(null);
-  const myTurn = game.phase === "playing" && game.turn === uid && !game.pendingAction && !game.pendingSwap;
+export function RedAlertPanel({ game }: RulePanelProps) {
   const redsLeft = game.wireTotals.red - game.cutCounts.red;
   return (
     <div className="bb-rule-panel">
       <span className="bb-label">🚨 Red Alert</span>
       <span className="bb-muted">{redsLeft > 0 ? `${redsLeft} red wires to cut at once` : "All reds cut"}</span>
-      {myTurn && redsLeft > 0 && requestPick && (
-        <button
-          className="btn btn--danger btn--sm"
-          type="button"
-          onClick={() => {
-            setError(null);
-            requestPick(3, (picks) => void declareRedAlert(roomCode, uid, picks).catch((e: unknown) => setError(e instanceof Error ? e.message : "Red Alert failed.")));
-          }}
-        >
-          Cut the three reds…
-        </button>
-      )}
-      {error && <span className="bb-muted">{error}</span>}
     </div>
+  );
+}
+
+/** The Red Alert action, shown with the other cut actions under Dual Cut. */
+export function RedAlertAction({ game, uid, roomCode, requestPick }: RulePanelProps) {
+  const [error, setError] = useState<string | null>(null);
+  const myTurn = game.phase === "playing" && game.turn === uid && !game.pendingAction && !game.pendingSwap;
+  const redsLeft = game.wireTotals.red - game.cutCounts.red;
+  if (!myTurn || redsLeft <= 0 || !requestPick) return null;
+  return (
+    <>
+      <button
+        className="btn btn--danger btn--sm"
+        type="button"
+        onClick={() => {
+          setError(null);
+          requestPick(3, (picks) => void declareRedAlert(roomCode, uid, picks).catch((e: unknown) => setError(e instanceof Error ? e.message : "Red Alert failed.")));
+        }}
+      >
+        Cut the three reds…
+      </button>
+      {error && <span className="bb-muted">{error}</span>}
+    </>
   );
 }
 
