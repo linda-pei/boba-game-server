@@ -50,6 +50,20 @@ export function randomCloverRotations(
   );
 }
 
+/** Deal cards onto the Clover in a random order, each with a random rotation (the clue-giver's starting board). */
+export function randomCloverPlacement(
+  cards: CloverCard[],
+  random: () => number = Math.random,
+): Record<string, CloverPlacement> {
+  const slots = [...CLOVER_SLOTS];
+  for (let index = slots.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [slots[index], slots[swap]] = [slots[swap], slots[index]];
+  }
+  const rotations = randomCloverRotations(cards, random);
+  return Object.fromEntries(cards.slice(0, slots.length).map((card, index) => [card.id, { slot: slots[index], rotation: rotations[card.id] }]));
+}
+
 export function getCloverCardById(cards: CloverCard[], cardId: string): CloverCard | null {
   return cards.find((card) => card.id === cardId) ?? null;
 }

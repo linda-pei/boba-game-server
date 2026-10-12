@@ -227,7 +227,8 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const { room } = useRoom(roomCode);
   const { game, loading } = useCloverGame(roomCode);
   const privateBoard = useCloverPrivateBoard(roomCode, uid);
-  const [draftPlacement, setDraftPlacement] = useState<PlacementMap>({});
+  // Null until the player edits: until then the draft is the randomly dealt starting board.
+  const [editedPlacement, setEditedPlacement] = useState<PlacementMap | null>(null);
   const [draftClues, setDraftClues] = useState<Record<CloverClueZone, string>>(EMPTY_CLUES);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isDraggingCard, setIsDraggingCard] = useState(false);
@@ -237,6 +238,8 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   if (loading || !room) return <p>Loading Clover…</p>;
   if (!game || !uid) return <p>Clover game not found.</p>;
 
+  const draftPlacement = editedPlacement ?? privateBoard?.answerPlacement ?? {};
+  const setDraftPlacement = (change: (current: PlacementMap) => PlacementMap) => setEditedPlacement((current) => change(current ?? draftPlacement));
   const myName = room.players[uid]?.name ?? "You";
   const activeRound = game.activeRound;
   const isSpectator = game.activeSpectatorUid === uid;
@@ -374,6 +377,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               />
             </div>
 
+            {privateBoard.sourceCards.some((card) => !draftPlacement[card.id]) && (
             <div className="clover-tray">
               <h4>Choose or drag a card into a Clover slot</h4>
               <div className="clover-tray__cards">
@@ -390,6 +394,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 ))}
               </div>
             </div>
+            )}
 
             <ConfirmButton
               label="Lock clues"

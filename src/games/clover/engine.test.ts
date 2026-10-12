@@ -9,6 +9,7 @@ import {
   getOuterKeywordPairs,
   hasValidCloverClues,
   isCompleteCloverPlacement,
+  randomCloverPlacement,
   randomCloverRotations,
   rotateCloverWords,
 } from "./engine";
@@ -82,6 +83,13 @@ describe("Clover engine", () => {
     expect(randomCloverRotations(cards, () => rolls[call++])).toEqual({
       a: 0, b: 90, c: 180, d: 270, decoy: 270,
     });
+  });
+
+  it("deals a random starting Clover: every card in a distinct slot with a valid rotation", () => {
+    const cards = [0, 1, 2, 3].map((n) => ({ id: `c${n}`, words: ["a", "b", "c", "d"] as CloverCard["words"] }));
+    const placement = randomCloverPlacement(cards);
+    expect(isCompleteCloverPlacement(placement, cards)).toBe(true);
+    expect(new Set(Object.values(placement).map((p) => p.slot)).size).toBe(4);
   });
 
   it("ranks the team score by player count", () => {

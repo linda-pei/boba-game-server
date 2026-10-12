@@ -22,6 +22,7 @@ import {
   getNextCloverPlayer,
   hasValidCloverClues,
   isCompleteCloverPlacement,
+  randomCloverPlacement,
   randomCloverRotations,
 } from "./engine";
 
@@ -92,11 +93,13 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
 
   playerOrder.forEach((uid, index) => {
     const candidateCards = shuffled(deck.slice(index * 5, index * 5 + 5));
+    const sourceCards = candidateCards.slice(0, 4);
     const board: CloverPrivateBoard = {
       ownerUid: uid,
-      sourceCards: candidateCards.slice(0, 4),
+      sourceCards,
       candidateCards,
-      answerPlacement: {},
+      // The clue-giver starts from a randomly dealt, randomly rotated Clover (the draft until they lock it).
+      answerPlacement: randomCloverPlacement(sourceCards),
       clues: EMPTY_CLUES,
       submittedAt: null,
     };
