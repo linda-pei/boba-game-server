@@ -147,6 +147,8 @@
   background: var(--surface);
   box-shadow: none;
   cursor: pointer;
+  /* Words size against the card itself, so board cards read larger than small tray cards. */
+  container-type: inline-size;
 }
 .clover-card.game-card[draggable="true"] { cursor: grab; }
 .clover-card.game-card[draggable="true"]:active { cursor: grabbing; }
@@ -162,17 +164,20 @@
   max-width: 44%;
   padding: 0.2rem;
   color: var(--ink);
-  font-size: 0.72rem;
+  font-size: clamp(0.5rem, 8cqw, 1.1rem);
   font-weight: 800;
   line-height: 1;
   text-align: center;
   overflow-wrap: anywhere;
 }
 
-.clover-card__word--top { top: 0.45rem; left: 50%; transform: translateX(-50%); }
-.clover-card__word--right { top: 50%; right: 0.2rem; writing-mode: vertical-rl; transform: translateY(-50%); }
-.clover-card__word--bottom { bottom: 0.45rem; left: 50%; transform: translateX(-50%); }
-.clover-card__word--left { top: 50%; left: 0.2rem; writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg); }
+.clover-card__word--top { top: 0.45rem; left: 50%; max-width: 72%; transform: translateX(-50%); }
+.clover-card__word--bottom { bottom: 0.45rem; left: 50%; max-width: 72%; transform: translateX(-50%); }
+/* Side words get most of the card's height (centered with auto margins), not just the half below the middle. */
+.clover-card__word--right,
+.clover-card__word--left { top: 0; bottom: 0; height: fit-content; max-height: 72%; margin: auto 0; writing-mode: vertical-rl; }
+.clover-card__word--right { right: 0.2rem; }
+.clover-card__word--left { left: 0.2rem; transform: rotate(180deg); }
 
 .clover-card__rotate { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
 .clover-card__rotate.btn:hover { transform: translate(-50%, -50%) translate(-1px, -1px); }
@@ -232,7 +237,6 @@
   .clover-clue--left { grid-column: 1; grid-row: 3; }
   .clover-clue--right { grid-column: 2; grid-row: 3; }
   .clover-clue--bottom { grid-column: 1 / -1; grid-row: 4; }
-  .clover-card__word { font-size: 0.62rem; }
 }
 
 @media (max-width: 440px) {
@@ -240,6 +244,5 @@
   .clover-board-layout { width: 100%; }
   .clover-clue { width: 100%; }
   .clover-clue input { padding: 0.35rem 0.15rem; font-size: 0.68rem; }
-  .clover-card__word { font-size: 0.53rem; }
   .clover-card__rotate { font-size: 0.58rem; }
 }
