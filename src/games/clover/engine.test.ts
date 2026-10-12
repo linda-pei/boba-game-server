@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CloverCard, CloverPlacement } from "../../types";
 import {
+  dealtCloverPlacement,
   evaluateCloverGuess,
   getCloverClueWarning,
   getCloverRank,
@@ -90,6 +91,13 @@ describe("Clover engine", () => {
     const placement = randomCloverPlacement(cards);
     expect(isCompleteCloverPlacement(placement, cards)).toBe(true);
     expect(new Set(Object.values(placement).map((p) => p.slot)).size).toBe(4);
+  });
+
+  it("uses the dealt Clover, or slot order for boards dealt without one", () => {
+    const cards = [0, 1, 2, 3].map((n) => ({ id: `c${n}`, words: ["a", "b", "c", "d"] as CloverCard["words"] }));
+    const dealt = randomCloverPlacement(cards);
+    expect(dealtCloverPlacement(cards, dealt)).toBe(dealt);
+    expect(dealtCloverPlacement(cards, {}).c2).toEqual({ slot: "bottom-left", rotation: 0 });
   });
 
   it("ranks the team score by player count", () => {

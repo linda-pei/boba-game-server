@@ -64,6 +64,18 @@ export function randomCloverPlacement(
   return Object.fromEntries(cards.slice(0, slots.length).map((card, index) => [card.id, { slot: slots[index], rotation: rotations[card.id] }]));
 }
 
+/**
+ * The clue-giver's fixed board: the dealt placement, or for games dealt before placements were
+ * stored, the (already shuffled) source cards in slot order, upright.
+ */
+export function dealtCloverPlacement(
+  sourceCards: CloverCard[],
+  answerPlacement: Record<string, CloverPlacement>,
+): Record<string, CloverPlacement> {
+  if (isCompleteCloverPlacement(answerPlacement, sourceCards)) return answerPlacement;
+  return Object.fromEntries(sourceCards.map((card, index) => [card.id, { slot: CLOVER_SLOTS[index], rotation: 0 as CloverRotation }]));
+}
+
 export function getCloverCardById(cards: CloverCard[], cardId: string): CloverCard | null {
   return cards.find((card) => card.id === cardId) ?? null;
 }

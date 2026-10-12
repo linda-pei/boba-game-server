@@ -8,7 +8,7 @@ import GameEndButtons from "../../components/shared/GameEndButtons";
 import { PlayerScoreRow, PlayerScores } from "../../components/shared/PlayerScores";
 import ResignButton from "../../components/shared/ResignButton";
 import TurnStatus from "../../components/shared/TurnStatus";
-import { getCardIdAtSlot, getCloverClueWarning, getCloverRank, getOuterKeywordPairs, isCompleteCloverPlacement, rotateCloverWords } from "./engine";
+import { dealtCloverPlacement, getCardIdAtSlot, getCloverClueWarning, getCloverRank, getOuterKeywordPairs, isCompleteCloverPlacement, rotateCloverWords } from "./engine";
 import {
   advanceCloverRound,
   lockCloverGuess,
@@ -38,18 +38,7 @@ const EMPTY_CLUES: Record<CloverClueZone, string> = { top: "", right: "", bottom
 
 type PlacementMap = Record<string, CloverPlacement>;
 
-function nextPlacement(map: PlacementMap, cardId: string, slot: CloverSlot, fallbackRotation: CloverRotation = 0): PlacementMap {
-  const placement = map[cardId];
-  const result = { ...map };
-  delete result[cardId];
-
-  Object.entries(result).forEach(([placedCardId, placed]) => {
-    if (placed.slot === slot) delete result[placedCardId];
-  });
-
-  result[cardId] = { slot, rotation: placement?.rotation ?? fallbackRotation };
-  return result;
-}
+const noop = () => undefined;
 
 function rotatePlacement(map: PlacementMap, cardId: string): CloverPlacement | null {
   const placement = map[cardId];
@@ -149,8 +138,7 @@ function CloverGrid({
   editable: boolean;
   onSlotClick: (slot: CloverSlot) => void;
   onCardSelect: (cardId: string) => void;
-  /** Omitted while writing clues: the dealt rotations are fixed. */
-  onRotate?: (cardId: string) => void;
+  onRotate: (cardId: string) => void;
   onCardDrop: (cardId: string, slot: CloverSlot) => void;
   onCardDragStart: (cardId: string) => void;
   onCardDragEnd: () => void;
@@ -209,7 +197,7 @@ function CloverGrid({
                 selected={selectedCardId === cardId}
                 locked={locked}
                 onSelect={editable && !locked ? () => onCardSelect(cardId) : undefined}
-                onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
+                onRotate={editable && !locked ? () => onRotate(cardId) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
                 onDragEnd={onCardDragEnd}
               />
@@ -228,8 +216,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const { room } = useRoom(roomCode);
   const { game, loading } = useCloverGame(roomCode);
   const privateBoard = useCloverPrivateBoard(roomCode, uid);
-  // Null until the player edits: until then the draft is the randomly dealt starting board.
-  const [editedPlacement, setEditedPlacement] = useState<PlacementMap | null>(null);
   const [draftClues, setDraftClues] = useState<Record<CloverClueZone, string>>(EMPTY_CLUES);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isDraggingCard, setIsDraggingCard] = useState(false);
@@ -239,16 +225,14 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   if (loading || !room) return <p>Loading Clover…</p>;
   if (!game || !uid) return <p>Clover game not found.</p>;
 
-  const draftPlacement = editedPlacement ?? privateBoard?.answerPlacement ?? {};
-  const setDraftPlacement = (change: (current: PlacementMap) => PlacementMap) => setEditedPlacement((current) => change(current ?? draftPlacement));
-  // Clue writing keeps each card's dealt rotation, even if it passes through the tray.
-  const dealtRotation = (cardId: string): CloverRotation => privateBoard?.answerPlacement[cardId]?.rotation ?? 0;
+  // The clue-giver's Clover is dealt at random and fixed: they only write clues.
+  const dealtPlacement = privateBoard ? dealtCloverPlacement(privateBoard.sourceCards, privateBoard.answerPlacement) : {};
   const myName = room.players[uid]?.name ?? "You";
   const activeRound = game.activeRound;
   const isSpectator = game.activeSpectatorUid === uid;
   const isDecisionMaker = game.activeDecisionMakerUid === uid;
   const hasSubmittedClues = game.submittedClueUids.includes(uid);
-  const cluePairs = privateBoard ? getOuterKeywordPairs(privateBoard.sourceCards, draftPlacement) : null;
+  const cluePairs = privateBoard ? getOuterKeywordPairs(privateBoard.sourceCards, dealtPlacement) : null;
   const clueWarnings = Object.fromEntries(
     CLUE_ZONES.map(({ id }) => [id, getCloverClueWarning(draftClues[id], cluePairs?.[id])]),
   ) as Record<CloverClueZone, string | null>;
@@ -265,17 +249,6 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
     } finally {
       setBusy(false);
     }
-  };
-
-  const placeDraftCard = (slot: CloverSlot) => {
-    if (!selectedCardId) return;
-    setDraftPlacement((current) => nextPlacement(current, selectedCardId, slot, dealtRotation(selectedCardId)));
-  };
-
-  const dropDraftCard = (cardId: string, slot: CloverSlot) => {
-    setSelectedCardId(cardId);
-    setIsDraggingCard(false);
-    setDraftPlacement((current) => nextPlacement(current, cardId, slot, dealtRotation(cardId)));
   };
 
   const guessRotation = (cardId: string): CloverRotation =>
@@ -338,7 +311,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               <div>
                 <h3>Create your Clover</h3>
               </div>
-              <p>Place all four cards, then write one clue for each outer pair.</p>
+              <p>Your cards were dealt at random. Write one clue for each outer pair.</p>
             </div>
 
             <div className="clover-board-layout">
@@ -364,37 +337,18 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               </div>
               <CloverGrid
                 cards={privateBoard.sourceCards}
-                placement={draftPlacement}
-                selectedCardId={selectedCardId}
-                isDraggingCard={isDraggingCard}
-                editable
-                onSlotClick={placeDraftCard}
-                onCardSelect={setSelectedCardId}
-                onCardDrop={dropDraftCard}
-                onCardDragStart={startDraggingCard}
-                onCardDragEnd={() => setIsDraggingCard(false)}
+                placement={dealtPlacement}
+                selectedCardId={null}
+                isDraggingCard={false}
+                editable={false}
+                onSlotClick={noop}
+                onCardSelect={noop}
+                onRotate={noop}
+                onCardDrop={noop}
+                onCardDragStart={noop}
+                onCardDragEnd={noop}
               />
             </div>
-
-            {privateBoard.sourceCards.some((card) => !draftPlacement[card.id]) && (
-            <div className="clover-tray">
-              <h4>Choose or drag a card into a Clover slot</h4>
-              <div className="clover-tray__cards">
-                {privateBoard.sourceCards.filter((card) => !draftPlacement[card.id]).map((card) => (
-                  <CloverCardFace
-                    key={card.id}
-                    card={card}
-                    placement={draftPlacement[card.id]}
-                    trayRotation={dealtRotation(card.id)}
-                    selected={selectedCardId === card.id}
-                    onSelect={() => setSelectedCardId((current) => current === card.id ? null : card.id)}
-                    onDragStart={startDraggingCard}
-                    onDragEnd={() => setIsDraggingCard(false)}
-                  />
-                ))}
-              </div>
-            </div>
-            )}
 
             <ConfirmButton
               label="Lock clues"
@@ -403,7 +357,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
               variant="primary"
               className="clover-lock-clues"
               disabled={busy || hasMultiWordClue}
-              onConfirm={() => run(() => submitCloverClues(roomCode, uid, draftPlacement, draftClues))}
+              onConfirm={() => run(() => submitCloverClues(roomCode, uid, dealtPlacement, draftClues))}
             />
           </section>
         )}
