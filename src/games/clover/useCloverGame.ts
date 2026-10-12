@@ -21,6 +21,7 @@ import {
   getCloverScore,
   getNextCloverPlayer,
   hasValidCloverClues,
+  dealtCloverPlacement,
   isCompleteCloverPlacement,
   randomCloverPlacement,
   randomCloverRotations,
@@ -110,10 +111,10 @@ export async function startCloverGame(roomCode: string, room: Room): Promise<voi
   await batch.commit();
 }
 
+/** Lock a player's clues for their dealt Clover (the layout comes from their private board, not the client). */
 export async function submitCloverClues(
   roomCode: string,
   uid: string,
-  placement: Record<string, CloverPlacement>,
   clues: Record<CloverClueZone, string>,
 ): Promise<void> {
   const gameRef = doc(db, "games", roomCode);
@@ -131,9 +132,8 @@ export async function submitCloverClues(
     if (game.phase !== "clue-writing") throw new Error("Clue writing is closed.");
     if (!game.playerOrder.includes(uid)) throw new Error("You are not in this game.");
     if (game.submittedClueUids.includes(uid)) throw new Error("Your clues are already locked.");
-    if (!isCompleteCloverPlacement(placement, board.sourceCards)) {
-      throw new Error("Place all four cards before locking your clues.");
-    }
+    // Boards dealt before layouts were stored get their fallback layout saved here.
+    const placement = dealtCloverPlacement(board.sourceCards, board.answerPlacement);
     if (!hasValidCloverClues(clues)) {
       throw new Error("Each clue must be one non-empty word (up to 40 characters).");
     }
