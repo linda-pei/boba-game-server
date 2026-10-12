@@ -163,8 +163,21 @@
 .rt-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; margin-top: 0.85rem; }
 
 /* ---- Hangars ---- */
-.rt-standing .score-name { flex: 0 1 auto; min-width: 6rem; }
-.rt-hangar { display: inline-flex; flex: 1 0 auto; gap: 0.25rem; }
+/* One grid shared by every row (subgrid), so name / hangar / face down / round / total line up. */
+.rt-standings .score-grid {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1.2fr) auto repeat(3, minmax(max-content, 1fr));
+}
+.rt-standing {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  column-gap: var(--s-4);
+}
+.rt-standing .score-name { min-width: 0; }
+.rt-standing .score-detail { text-align: center; }
+.rt-standing .score-cumulative { text-align: right; }
+.rt-hangar { display: inline-flex; gap: 0.25rem; }
 .rt-hangar__slot {
   width: 34px;
   height: 46px;
@@ -174,6 +187,11 @@
 
 @media (max-width: 760px) {
   .rt-table { grid-template-columns: 1fr; }
+  /* Too narrow for five columns: fall back to the shared wrapping row. */
+  .rt-standings .score-grid { display: flex; }
+  .rt-standing { display: flex; }
+  .rt-standing .score-name { flex: 0 1 auto; min-width: 6rem; }
+  .rt-standing .rt-hangar { flex: 1 0 auto; }
   /* Four columns of two-wide stacks don't fit at phone width: use compact cards for Droco. */
   .rt-droco-hand .rt-card { width: 34px; height: 46px; border-radius: var(--r-1); box-shadow: none; }
   .rt-droco-hand .rt-card__strength { margin-top: 0.4rem; font-size: 0.9rem; }
