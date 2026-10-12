@@ -199,11 +199,18 @@ function Board({
               <div
                 key={card.id}
                 className={`bb-equipment__card${card.unlocked ? " bb-equipment__card--unlocked" : ""}${card.used ? " bb-equipment__card--used" : ""}`}
-                title={info.effect}
               >
                 <span className={`bb-equipment__number${card.id === 13 ? " bb-equipment__number--yellow" : ""}`}>{card.id === 13 ? "Y" : card.id}</span>
-                <strong>{info.name}</strong>
-                {/* The full effect is on hover (title) to keep the cards compact. */}
+                {/* The full effect is behind the info icon (hover, or tap to focus) to keep the cards compact. */}
+                <div className="bb-equipment__name">
+                  <strong>{info.name}</strong>
+                  <span className="bb-equipment__info" tabIndex={0} role="button" aria-label={`About ${info.name}`} aria-describedby={`bb-equipment-tip-${card.id}`}>
+                    i
+                  </span>
+                  <span className="bb-equipment__tip" role="tooltip" id={`bb-equipment-tip-${card.id}`}>
+                    {info.effect}
+                  </span>
+                </div>
                 <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : card.id === 13 ? "Unlocks at two yellow wires" : `Unlocks at two ${card.id}s`}</span>
                 {canUse(card.id) && (
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => onUse(card.id)}>
