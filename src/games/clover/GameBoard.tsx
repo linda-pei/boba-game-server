@@ -38,10 +38,23 @@ const EMPTY_CLUES: Record<CloverClueZone, string> = { top: "", right: "", bottom
 
 type PlacementMap = Record<string, CloverPlacement>;
 
-function rotatePlacement(map: PlacementMap, cardId: string): CloverPlacement | null {
+/** 1 turns the card a quarter clockwise, -1 counter-clockwise. */
+type RotateDirection = 1 | -1;
+
+function rotatePlacement(map: PlacementMap, cardId: string, direction: RotateDirection): CloverPlacement | null {
   const placement = map[cardId];
   if (!placement) return null;
-  return { ...placement, rotation: ((placement.rotation + 90) % 360) as CloverPlacement["rotation"] };
+  return { ...placement, rotation: ((placement.rotation + 90 * direction + 360) % 360) as CloverPlacement["rotation"] };
+}
+
+/** A circular arrow; mirrored for counter-clockwise. */
+function RotateIcon({ direction }: { direction: RotateDirection }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style={direction === -1 ? { transform: "scaleX(-1)" } : undefined}>
+      <path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M20 3.5v5h-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 function CloverCardFace({
@@ -64,7 +77,7 @@ function CloverCardFace({
   /** Shown on a resolved board: this card was placed wrong. */
   wrong?: boolean;
   onSelect?: () => void;
-  onRotate?: () => void;
+  onRotate?: (direction: RotateDirection) => void;
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
 }) {
@@ -101,16 +114,23 @@ function CloverCardFace({
       <span className="clover-card__word clover-card__word--bottom">{words[2]}</span>
       <span className="clover-card__word clover-card__word--left">{words[3]}</span>
       {onRotate && !locked && (
-        <button
-          type="button"
-          className="clover-card__rotate btn btn--secondary btn--sm"
-          onClick={(event) => {
-            event.stopPropagation();
-            onRotate();
-          }}
-        >
-          Rotate
-        </button>
+        <div className="clover-card__rotate">
+          {([-1, 1] as const).map((direction) => (
+            <button
+              key={direction}
+              type="button"
+              className="btn btn--secondary btn--sm"
+              aria-label={direction === 1 ? "Rotate clockwise" : "Rotate counter-clockwise"}
+              title={direction === 1 ? "Rotate clockwise" : "Rotate counter-clockwise"}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRotate(direction);
+              }}
+            >
+              <RotateIcon direction={direction} />
+            </button>
+          ))}
+        </div>
       )}
       {locked && <span className="clover-card__locked-label">Correct</span>}
       {wrong && <span className="clover-card__locked-label clover-card__locked-label--wrong">Wrong</span>}
@@ -143,7 +163,7 @@ function CloverGrid({
   editable?: boolean;
   onSlotClick?: (slot: CloverSlot) => void;
   onCardSelect?: (cardId: string) => void;
-  onRotate?: (cardId: string) => void;
+  onRotate?: (cardId: string, direction: RotateDirection) => void;
   onCardDrop?: (cardId: string, slot: CloverSlot) => void;
   onCardDragStart?: (cardId: string) => void;
   onCardDragEnd?: () => void;
@@ -203,7 +223,7 @@ function CloverGrid({
                 locked={locked}
                 wrong={wrongCardIds.includes(cardId)}
                 onSelect={editable && !locked && onCardSelect ? () => onCardSelect(cardId) : undefined}
-                onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
+                onRotate={editable && !locked && onRotate ? (direction) => onRotate(cardId, direction) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
                 onDragEnd={onCardDragEnd}
               />
@@ -397,8 +417,8 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 editable={isDecisionMaker && !activeRound.isLockedForVerification && !busy}
                 onSlotClick={placeGuessCard}
                 onCardSelect={(cardId) => isDecisionMaker && setSelectedCardId((current) => current === cardId ? null : cardId)}
-                onRotate={(cardId) => {
-                  const rotated = rotatePlacement(activeRound.sharedPlacement, cardId);
+                onRotate={(cardId, direction) => {
+                  const rotated = rotatePlacement(activeRound.sharedPlacement, cardId, direction);
                   if (rotated) void run(() => placeCloverGuessCard(roomCode, uid, cardId, rotated));
                 }}
                 onCardDrop={dropGuessCard}

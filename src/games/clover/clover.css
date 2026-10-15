@@ -179,9 +179,9 @@
 .clover-card__word--right { right: 0.2rem; }
 .clover-card__word--left { left: 0.2rem; transform: rotate(180deg); }
 
-.clover-card__rotate { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-.clover-card__rotate.btn:hover { transform: translate(-50%, -50%) translate(-1px, -1px); }
-.clover-card__rotate.btn:active { transform: translate(-50%, -50%) translate(2px, 2px); }
+/* Counter-clockwise and clockwise buttons, side by side in the middle of the card. */
+.clover-card__rotate { position: absolute; top: 50%; left: 50%; z-index: 1; display: flex; gap: 0.3rem; transform: translate(-50%, -50%); }
+.clover-card__rotate .btn { display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; }
 .clover-card__locked-label { position: absolute; inset: 44% 12% auto; padding: 0.2rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
 .clover-card--wrong { border-color: var(--rose-500) !important; cursor: default !important; }
 .clover-card__locked-label--wrong { background: var(--rose-500); }
@@ -251,5 +251,6 @@
   .clover-board-layout { width: 100%; }
   .clover-clue { width: 100%; }
   .clover-clue input { padding: 0.35rem 0.15rem; font-size: 0.68rem; }
-  .clover-card__rotate { font-size: 0.58rem; }
+  .clover-card__rotate .btn { width: 1.6rem; height: 1.6rem; }
+  .clover-card__rotate svg { width: 13px; height: 13px; }
 }
