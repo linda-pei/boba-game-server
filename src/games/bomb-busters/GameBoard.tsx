@@ -176,11 +176,23 @@ function Board({
       {game.radar && (
         <div className="bb-radar">
           <span className="bb-label">Radar: {game.radar.value}</span>
-          {game.playerOrder.map((player) => (
-            <span key={player} className="bb-tag">
-              {name(room, player)}: {game.radar!.answers[player] === null ? "…" : game.radar!.answers[player] ? "yes" : "no"}
-            </span>
-          ))}
+          {game.playerOrder.flatMap((player) => {
+            const answer = game.radar!.answers[player];
+            const stands = game.radar!.standAnswers?.[player];
+            // Players with two stands answer for each stand separately.
+            if (answer !== null && stands && stands.length > 1) {
+              return stands.map((has, index) => (
+                <span key={`${player}-${index}`} className="bb-tag">
+                  {name(room, player)} (stand {index + 1}): {has ? "yes" : "no"}
+                </span>
+              ));
+            }
+            return [
+              <span key={player} className="bb-tag">
+                {name(room, player)}: {answer === null ? "…" : answer ? "yes" : "no"}
+              </span>,
+            ];
+          })}
         </div>
       )}
       {game.equipment.length > 0 && (

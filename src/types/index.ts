@@ -821,8 +821,11 @@ export interface BBGame {
   characters: Record<string, { used: boolean }>;
   pendingAction: BBPendingAction | null;
   labels: BBLabel[];
-  /** General Radar (#8) in progress: each player's client answers from its own stand. */
-  radar: { by: string; value: number; answers: Record<string, boolean | null> } | null;
+  /**
+   * General Radar (#8) in progress: each player's client answers from its own stands. `answers` is
+   * per player (any stand holds it); `standAnswers` is per stand, in stand order.
+   */
+  radar: { by: string; value: number; answers: Record<string, boolean | null>; standAnswers?: Record<string, boolean[]> } | null;
   /** Stabilizer (#9) is active for the current player's Dual Cut. */
   stabilized: boolean;
   /** Walkie-Talkies (#2): `by` has handed a wire to `to`, who must hand one back. */
