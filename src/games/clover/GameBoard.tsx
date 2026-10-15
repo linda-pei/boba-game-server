@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { useRoom } from "../../hooks/useRoom";
 import type { CloverClueZone, CloverPlacement, CloverRotation, CloverSlot } from "../../types";
@@ -8,7 +8,7 @@ import GameEndButtons from "../../components/shared/GameEndButtons";
 import { PlayerScoreRow, PlayerScores } from "../../components/shared/PlayerScores";
 import ResignButton from "../../components/shared/ResignButton";
 import TurnStatus from "../../components/shared/TurnStatus";
-import { dealtCloverPlacement, getCardIdAtSlot, getCloverClueWarning, getCloverRank, getOuterKeywordPairs, isCompleteCloverPlacement, rotateCloverWords } from "./engine";
+import { dealtCloverPlacement, getCardIdAtSlot, getCloverClueWarning, getCloverRank, getOuterKeywordPairs, isCompleteCloverPlacement, cloverWordPosition } from "./engine";
 import {
   advanceCloverRound,
   lockCloverGuess,
@@ -38,10 +38,72 @@ const EMPTY_CLUES: Record<CloverClueZone, string> = { top: "", right: "", bottom
 
 type PlacementMap = Record<string, CloverPlacement>;
 
-function rotatePlacement(map: PlacementMap, cardId: string): CloverPlacement | null {
+/** 1 turns the card a quarter clockwise, -1 counter-clockwise. */
+type RotateDirection = 1 | -1;
+
+function rotatePlacement(map: PlacementMap, cardId: string, direction: RotateDirection): CloverPlacement | null {
   const placement = map[cardId];
   if (!placement) return null;
-  return { ...placement, rotation: ((placement.rotation + 90) % 360) as CloverPlacement["rotation"] };
+  return { ...placement, rotation: ((placement.rotation + 90 * direction + 360) % 360) as CloverPlacement["rotation"] };
+}
+
+const WORD_POSITIONS = ["top", "right", "bottom", "left"] as const;
+/** How each position's word is turned on screen (side words run vertically). */
+const WORD_ANGLES = [0, 90, 0, -90];
+
+/**
+ * Animates a card's words to their new spots when its rotation changes: each word starts where it
+ * was (position and angle) and glides into place. Returns ref setters for the four word spans,
+ * indexed by the word's index in `card.words`.
+ */
+function useWordRotationAnimation(rotation: CloverRotation) {
+  const words = useRef<(HTMLSpanElement | null)[]>([]);
+  const resting = useRef<{ rotation: CloverRotation; centers: { x: number; y: number }[] } | null>(null);
+  const lastRotation = useRef(rotation);
+
+  useLayoutEffect(() => {
+    const spans = words.current;
+    const changed = lastRotation.current !== rotation;
+    if (changed) spans.forEach((span) => span?.getAnimations().forEach((animation) => animation.cancel()));
+    // Mid-animation positions aren't resting positions; keep the last ones.
+    else if (spans.some((span) => span && span.getAnimations().length > 0)) return;
+
+    const centers = spans.map((span) => {
+      const box = span?.getBoundingClientRect();
+      return box ? { x: box.left + box.width / 2, y: box.top + box.height / 2 } : { x: 0, y: 0 };
+    });
+    const before = resting.current;
+    resting.current = { rotation, centers };
+    lastRotation.current = rotation;
+    if (!changed || !before || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    spans.forEach((span, index) => {
+      if (!span) return;
+      const from = cloverWordPosition(index, before.rotation);
+      const to = cloverWordPosition(index, rotation);
+      span.animate(
+        [
+          { translate: `${before.centers[index].x - centers[index].x}px ${before.centers[index].y - centers[index].y}px`, rotate: `${WORD_ANGLES[from] - WORD_ANGLES[to]}deg` },
+          { translate: "0px 0px", rotate: "0deg" },
+        ],
+        { duration: 320, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)" },
+      );
+    });
+  });
+
+  return (index: number) => (span: HTMLSpanElement | null) => {
+    words.current[index] = span;
+  };
+}
+
+/** A circular arrow; mirrored for counter-clockwise. */
+function RotateIcon({ direction }: { direction: RotateDirection }) {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style={direction === -1 ? { transform: "scaleX(-1)" } : undefined}>
+      <path d="M20 12a8 8 0 1 1-2.34-5.66" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M20 3.5v5h-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 function CloverCardFace({
@@ -64,11 +126,12 @@ function CloverCardFace({
   /** Shown on a resolved board: this card was placed wrong. */
   wrong?: boolean;
   onSelect?: () => void;
-  onRotate?: () => void;
+  onRotate?: (direction: RotateDirection) => void;
   onDragStart?: (cardId: string) => void;
   onDragEnd?: () => void;
 }) {
-  const words = rotateCloverWords(card.words, placement?.rotation ?? trayRotation);
+  const rotation = placement?.rotation ?? trayRotation;
+  const wordRef = useWordRotationAnimation(rotation);
   const disabled = !onSelect && !locked && !wrong;
 
   return (
@@ -96,21 +159,30 @@ function CloverCardFace({
       }}
       onDragEnd={onDragEnd}
     >
-      <span className="clover-card__word clover-card__word--top">{words[0]}</span>
-      <span className="clover-card__word clover-card__word--right">{words[1]}</span>
-      <span className="clover-card__word clover-card__word--bottom">{words[2]}</span>
-      <span className="clover-card__word clover-card__word--left">{words[3]}</span>
+      {/* Keyed by the word, not the position, so a rotation moves each word's element (and animates it). */}
+      {card.words.map((word, index) => (
+        <span key={index} ref={wordRef(index)} className={`clover-card__word clover-card__word--${WORD_POSITIONS[cloverWordPosition(index, rotation)]}`}>
+          {word}
+        </span>
+      ))}
       {onRotate && !locked && (
-        <button
-          type="button"
-          className="clover-card__rotate btn btn--secondary btn--sm"
-          onClick={(event) => {
-            event.stopPropagation();
-            onRotate();
-          }}
-        >
-          Rotate
-        </button>
+        <div className="clover-card__rotate">
+          {([-1, 1] as const).map((direction) => (
+            <button
+              key={direction}
+              type="button"
+              className="btn btn--secondary btn--sm"
+              aria-label={direction === 1 ? "Rotate clockwise" : "Rotate counter-clockwise"}
+              title={direction === 1 ? "Rotate clockwise" : "Rotate counter-clockwise"}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRotate(direction);
+              }}
+            >
+              <RotateIcon direction={direction} />
+            </button>
+          ))}
+        </div>
       )}
       {locked && <span className="clover-card__locked-label">Correct</span>}
       {wrong && <span className="clover-card__locked-label clover-card__locked-label--wrong">Wrong</span>}
@@ -143,7 +215,7 @@ function CloverGrid({
   editable?: boolean;
   onSlotClick?: (slot: CloverSlot) => void;
   onCardSelect?: (cardId: string) => void;
-  onRotate?: (cardId: string) => void;
+  onRotate?: (cardId: string, direction: RotateDirection) => void;
   onCardDrop?: (cardId: string, slot: CloverSlot) => void;
   onCardDragStart?: (cardId: string) => void;
   onCardDragEnd?: () => void;
@@ -203,7 +275,7 @@ function CloverGrid({
                 locked={locked}
                 wrong={wrongCardIds.includes(cardId)}
                 onSelect={editable && !locked && onCardSelect ? () => onCardSelect(cardId) : undefined}
-                onRotate={editable && !locked && onRotate ? () => onRotate(cardId) : undefined}
+                onRotate={editable && !locked && onRotate ? (direction) => onRotate(cardId, direction) : undefined}
                 onDragStart={editable && !locked ? onCardDragStart : undefined}
                 onDragEnd={onCardDragEnd}
               />
@@ -225,6 +297,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const [draftClues, setDraftClues] = useState<Record<CloverClueZone, string>>(EMPTY_CLUES);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isDraggingCard, setIsDraggingCard] = useState(false);
+  const [trayDropTarget, setTrayDropTarget] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -276,6 +349,16 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
       slot,
       rotation: guessRotation(cardId),
     }));
+  };
+
+  // Dropping a board card on the tray sends it back (keeping its rotation).
+  const draggingFromBoard = Boolean(isDraggingCard && selectedCardId && activeRound?.sharedPlacement[selectedCardId]);
+  const returnDroppedCard = (cardId: string) => {
+    setIsDraggingCard(false);
+    setTrayDropTarget(false);
+    if (!activeRound || !isDecisionMaker || !activeRound.sharedPlacement[cardId]) return;
+    setSelectedCardId(null);
+    void run(() => placeCloverGuessCard(roomCode, uid, cardId, null));
   };
 
   const startDraggingCard = (cardId: string) => {
@@ -397,20 +480,40 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 editable={isDecisionMaker && !activeRound.isLockedForVerification && !busy}
                 onSlotClick={placeGuessCard}
                 onCardSelect={(cardId) => isDecisionMaker && setSelectedCardId((current) => current === cardId ? null : cardId)}
-                onRotate={(cardId) => {
-                  const rotated = rotatePlacement(activeRound.sharedPlacement, cardId);
+                onRotate={(cardId, direction) => {
+                  const rotated = rotatePlacement(activeRound.sharedPlacement, cardId, direction);
                   if (rotated) void run(() => placeCloverGuessCard(roomCode, uid, cardId, rotated));
                 }}
                 onCardDrop={dropGuessCard}
                 onCardDragStart={startDraggingCard}
-                onCardDragEnd={() => setIsDraggingCard(false)}
+                onCardDragEnd={() => {
+                  setIsDraggingCard(false);
+                  setTrayDropTarget(false);
+                }}
               />
             </div>
 
-            <div className="clover-tray">
+            <div
+              className={`clover-tray${draggingFromBoard ? " clover-tray--drop-ready" : ""}${draggingFromBoard && trayDropTarget ? " clover-tray--drop-target" : ""}`}
+              onDragOver={(event) => {
+                if (!draggingFromBoard) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                setTrayDropTarget(true);
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setTrayDropTarget(false);
+              }}
+              onDrop={(event) => {
+                if (!draggingFromBoard) return;
+                event.preventDefault();
+                returnDroppedCard(event.dataTransfer.getData("application/x-clover-card"));
+              }}
+            >
               <h4>
                 {isSpectator
                   ? "Your cards are locked while the team guesses your Clover"
+                  : draggingFromBoard ? "Drop here to return the card"
                   : isDecisionMaker ? "Choose or drag a candidate into a slot" : "Candidate cards"}
               </h4>
               <div className="clover-tray__cards">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CloverCard, CloverPlacement } from "../../types";
 import {
+  cloverWordPosition,
   dealtCloverPlacement,
   evaluateCloverGuess,
   getCloverClueWarning,
@@ -36,6 +37,13 @@ describe("Clover engine", () => {
     expect(rotateCloverWords(cards[0].words, 90)).toEqual([
       "a-left", "a-top", "a-right", "a-bottom",
     ]);
+  });
+
+  it("places each word where rotateCloverWords shows it", () => {
+    for (const rotation of [0, 90, 180, 270] as const) {
+      const shown = rotateCloverWords(cards[0].words, rotation);
+      cards[0].words.forEach((word, index) => expect(shown[cloverWordPosition(index, rotation)]).toBe(word));
+    }
   });
 
   it("derives the four outside keyword pairs from slots and rotations", () => {

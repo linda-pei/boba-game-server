@@ -179,10 +179,11 @@
 .clover-card__word--right { right: 0.2rem; }
 .clover-card__word--left { left: 0.2rem; transform: rotate(180deg); }
 
-.clover-card__rotate { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
-.clover-card__rotate.btn:hover { transform: translate(-50%, -50%) translate(-1px, -1px); }
-.clover-card__rotate.btn:active { transform: translate(-50%, -50%) translate(2px, 2px); }
-.clover-card__locked-label { position: absolute; inset: 44% 12% auto; padding: 0.2rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+/* Counter-clockwise and clockwise buttons, side by side in the middle of the card. */
+.clover-card__rotate { position: absolute; top: 50%; left: 50%; z-index: 1; display: flex; gap: 0.3rem; transform: translate(-50%, -50%); }
+.clover-card__rotate .btn { display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; }
+/* A compact pill sized to its text, centered on the card. */
+.clover-card__locked-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1.2; text-transform: uppercase; white-space: nowrap; }
 .clover-card--wrong { border-color: var(--rose-500) !important; cursor: default !important; }
 .clover-card__locked-label--wrong { background: var(--rose-500); }
 
@@ -213,7 +214,10 @@
 .clover-clue--bottom { grid-column: 2; grid-row: 3; justify-self: center; max-width: 250px; }
 .clover-clue--left { grid-column: 1; grid-row: 2; }
 
-.clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); border-radius: var(--r-2); transition: background-color 120ms ease, outline-color 120ms ease; }
+/* While a board card is dragged, the tray is a drop zone that sends it back. */
+.clover-tray--drop-ready { outline: 2px dashed color-mix(in srgb, var(--accent-secondary) 65%, var(--border-strong)); outline-offset: 4px; background: color-mix(in srgb, var(--accent-secondary) 8%, transparent); }
+.clover-tray--drop-target { outline: 3px solid var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 12%, transparent); }
 .clover-tray h4 { margin: 0 0 0.75rem; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.35; }
 /* One row of up to 5 cards when there's room; cards shrink before wrapping. */
 .clover-tray__cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.65rem; }
@@ -251,5 +255,6 @@
   .clover-board-layout { width: 100%; }
   .clover-clue { width: 100%; }
   .clover-clue input { padding: 0.35rem 0.15rem; font-size: 0.68rem; }
-  .clover-card__rotate { font-size: 0.58rem; }
+  .clover-card__rotate .btn { width: 1.6rem; height: 1.6rem; }
+  .clover-card__rotate svg { width: 13px; height: 13px; }
 }

@@ -510,13 +510,18 @@ export async function runGeneralRadar(roomCode: string, uid: string, value: numb
   });
 }
 
-/** Each player's client answers the radar for itself. */
+/** Each player's client answers the radar for itself, stand by stand. */
 export async function answerRadar(roomCode: string, uid: string): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const { gameRef, game, hand } = await readGameAndHand(transaction, roomCode, uid);
     if (!game.radar || game.radar.answers[uid] !== null) return;
-    const has = hand.flat().some((wire) => !wire.cut && wire.color === "blue" && wire.sortKey === game.radar!.value);
-    transaction.set(gameRef, { ...game, radar: { ...game.radar, answers: { ...game.radar.answers, [uid]: has } } });
+    const perStand = hand.map((stand) => stand.some((wire) => !wire.cut && wire.color === "blue" && wire.sortKey === game.radar!.value));
+    const radar = {
+      ...game.radar,
+      answers: { ...game.radar.answers, [uid]: perStand.some(Boolean) },
+      standAnswers: { ...game.radar.standAnswers, [uid]: perStand },
+    };
+    transaction.set(gameRef, { ...game, radar });
   });
 }
 
