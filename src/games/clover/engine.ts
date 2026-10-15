@@ -27,6 +27,11 @@ export function isCloverRotation(value: number): value is CloverRotation {
   return ROTATIONS.includes(value as CloverRotation);
 }
 
+/** Which position (0 top, 1 right, 2 bottom, 3 left) `card.words[index]` shows at for a rotation. */
+export function cloverWordPosition(index: number, rotation: CloverRotation): number {
+  return (index + rotation / 90) % 4;
+}
+
 export function rotateCloverWords(
   words: CloverCard["words"],
   rotation: CloverRotation,
