@@ -297,6 +297,7 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
   const [draftClues, setDraftClues] = useState<Record<CloverClueZone, string>>(EMPTY_CLUES);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isDraggingCard, setIsDraggingCard] = useState(false);
+  const [trayDropTarget, setTrayDropTarget] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -348,6 +349,16 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
       slot,
       rotation: guessRotation(cardId),
     }));
+  };
+
+  // Dropping a board card on the tray sends it back (keeping its rotation).
+  const draggingFromBoard = Boolean(isDraggingCard && selectedCardId && activeRound?.sharedPlacement[selectedCardId]);
+  const returnDroppedCard = (cardId: string) => {
+    setIsDraggingCard(false);
+    setTrayDropTarget(false);
+    if (!activeRound || !isDecisionMaker || !activeRound.sharedPlacement[cardId]) return;
+    setSelectedCardId(null);
+    void run(() => placeCloverGuessCard(roomCode, uid, cardId, null));
   };
 
   const startDraggingCard = (cardId: string) => {
@@ -475,14 +486,34 @@ export default function CloverGameBoard({ roomCode }: { roomCode: string }) {
                 }}
                 onCardDrop={dropGuessCard}
                 onCardDragStart={startDraggingCard}
-                onCardDragEnd={() => setIsDraggingCard(false)}
+                onCardDragEnd={() => {
+                  setIsDraggingCard(false);
+                  setTrayDropTarget(false);
+                }}
               />
             </div>
 
-            <div className="clover-tray">
+            <div
+              className={`clover-tray${draggingFromBoard ? " clover-tray--drop-ready" : ""}${draggingFromBoard && trayDropTarget ? " clover-tray--drop-target" : ""}`}
+              onDragOver={(event) => {
+                if (!draggingFromBoard) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                setTrayDropTarget(true);
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setTrayDropTarget(false);
+              }}
+              onDrop={(event) => {
+                if (!draggingFromBoard) return;
+                event.preventDefault();
+                returnDroppedCard(event.dataTransfer.getData("application/x-clover-card"));
+              }}
+            >
               <h4>
                 {isSpectator
                   ? "Your cards are locked while the team guesses your Clover"
+                  : draggingFromBoard ? "Drop here to return the card"
                   : isDecisionMaker ? "Choose or drag a candidate into a slot" : "Candidate cards"}
               </h4>
               <div className="clover-tray__cards">

@@ -213,7 +213,10 @@
 .clover-clue--bottom { grid-column: 2; grid-row: 3; justify-self: center; max-width: 250px; }
 .clover-clue--left { grid-column: 1; grid-row: 2; }
 
-.clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.clover-tray { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); border-radius: var(--r-2); transition: background-color 120ms ease, outline-color 120ms ease; }
+/* While a board card is dragged, the tray is a drop zone that sends it back. */
+.clover-tray--drop-ready { outline: 2px dashed color-mix(in srgb, var(--accent-secondary) 65%, var(--border-strong)); outline-offset: 4px; background: color-mix(in srgb, var(--accent-secondary) 8%, transparent); }
+.clover-tray--drop-target { outline: 3px solid var(--accent-primary); background: color-mix(in srgb, var(--accent-primary) 12%, transparent); }
 .clover-tray h4 { margin: 0 0 0.75rem; color: var(--ink-soft); font-size: 0.85rem; line-height: 1.35; }
 /* One row of up to 5 cards when there's room; cards shrink before wrapping. */
 .clover-tray__cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.65rem; }
