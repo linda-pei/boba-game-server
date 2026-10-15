@@ -182,7 +182,8 @@
 /* Counter-clockwise and clockwise buttons, side by side in the middle of the card. */
 .clover-card__rotate { position: absolute; top: 50%; left: 50%; z-index: 1; display: flex; gap: 0.3rem; transform: translate(-50%, -50%); }
 .clover-card__rotate .btn { display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; }
-.clover-card__locked-label { position: absolute; inset: 44% 12% auto; padding: 0.2rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+/* A compact pill sized to its text, centered on the card. */
+.clover-card__locked-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--clover-green); color: white; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1.2; text-transform: uppercase; white-space: nowrap; }
 .clover-card--wrong { border-color: var(--rose-500) !important; cursor: default !important; }
 .clover-card__locked-label--wrong { background: var(--rose-500); }
 
