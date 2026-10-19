@@ -127,7 +127,9 @@ The dial starts as many spaces from the skull as there are players, capped at 5.
 | 4 | 4th |
 | 5 | 5th |
 
-In code: `dialLimit = Math.min(playerCount, 5)`; the bomb explodes when `wrongGuesses >= dialLimit`.
+The dial has 5 spaces in all, so the Rewinder (#6) can wind it back past its start, up to 5 spaces from the skull (e.g. 3 players: 3 → 4 → 5).
+
+In code: `dialLimit = Math.min(playerCount, 5)`; the bomb explodes when `wrongGuesses >= dialLimit`. The Rewinder lowers `wrongGuesses`, below 0 if needed, while `dialLimit - wrongGuesses < 5`.
 
 ### Equipment cards
 
@@ -293,7 +295,7 @@ Judgment calls where the rules don't say how something works online:
 - **General Radar results** stay on the board until someone runs the radar again or the mission ends. A player with two stands answers for each stand separately.
 - **Walkie-Talkies:** the swap shows on both stands in the log ("hands wire #3"). Any ≠ / = labels on those two players' stands are removed, since wire positions shift.
 - **Info tokens and swaps:** a token on a wire that's handed away leaves with that wire. The incoming wire arrives with no token, and every other wire keeps its token as the stand re-sorts.
-- **Rewinder** can't move the dial below its starting space.
+- **Rewinder** can move the dial back past its starting space, up to 5 spaces from the skull. It can't be used once the dial is there.
 
 ## Definition of Done (first release: missions 1–8)
 

@@ -6,6 +6,7 @@ import {
   addLog,
   canDeclare,
   canRevealRed,
+  canRewind,
   describeDeclared,
   describeWire,
   advanceDial,
@@ -22,6 +23,7 @@ import {
   wrapPublic,
   placeInfoToken,
   resolveDualCut,
+  rewind,
   soloCutIndices,
   onOneStand,
   uncutOnStand,
@@ -318,18 +320,23 @@ export async function resolveDualCutAsTarget(roomCode: string, uid: string, choi
     const options = outcome.infoCandidates.map((index) => pending.slots[index]);
     if (needsChoice(options)) return { status: "needs-choice", choose: "info", options };
     const slot = choice !== undefined && options.includes(choice) ? choice : options[0];
+    // Say what was guessed, then what the marked wire really was.
+    const guessed = `${mention(pending.by)} guessed ${values.map(describeDeclared).join(" or ")}`;
     if (wrongGuessExplodes(game, pending.by, uid)) {
-      transaction.set(gameRef, addLog(loseMission(game, "The Rookie's cut failed."), `💥 ${mention(pending.by)} missed, and a Rookie's mistake is fatal.`));
+      transaction.set(gameRef, addLog(loseMission(game, "The Rookie's cut failed."), `💥 ${guessed} and missed, and a Rookie's mistake is fatal.`));
       return { status: "done" };
     }
+    const actual = mustConfirm
+      ? `none of ${mention(uid)}'s wires matched (one was a ${describeWire(wires[slot])})`
+      : `${mention(uid)}'s wire was a ${describeWire(wires[slot])}`;
     const token = wrongGuessToken(game, wires[slot], pending.declared, uid, infoTokenFor(wires[slot]));
     const marked = placeInfoToken(game, uid, slot, token);
     const wrong = game.stabilized ? marked : advanceDial(marked);
     const text = game.stabilized
-      ? `🛡️ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The Stabilizer kept the dial still.`
+      ? `🛡️ ${guessed}, but ${actual}. The Stabilizer kept the dial still.`
       : wrong.phase === "mission-lost"
-        ? `💥 ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}. The detonator reached the skull.`
-        : `❌ ${mention(pending.by)} missed: ${mention(uid)}'s wire was a ${describeWire(wires[slot])}.`;
+        ? `💥 ${guessed}, but ${actual}. The detonator reached the skull.`
+        : `❌ ${guessed}, but ${actual}.`;
     transaction.set(gameRef, addLog(finishTurnWithRules(wrong, pending.by), text));
     return { status: "done" };
   });
@@ -430,8 +437,9 @@ async function updateGame(roomCode: string, change: (game: BBGame) => BBGame): P
 export async function rewindDial(roomCode: string, uid: string): Promise<void> {
   await updateGame(roomCode, (game) => {
     assertActive(game);
+    if (!canRewind(game.dial)) throw new Error("The dial is already as far from the skull as it goes.");
     const next = spendEquipment(game, 6, uid);
-    return addLog({ ...next, dial: { ...next.dial, wrongGuesses: Math.max(0, next.dial.wrongGuesses - 1) } }, `⏪ ${mention(uid)} used the Rewinder.`);
+    return addLog({ ...next, dial: rewind(next.dial) }, `⏪ ${mention(uid)} used the Rewinder.`);
   });
 }
 

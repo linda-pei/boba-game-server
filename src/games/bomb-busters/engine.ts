@@ -281,9 +281,27 @@ export function infoTokenFor(wire: BBWire): BBInfoToken {
 
 // ---- Dial, equipment, validation ----
 
+/** The dial has 5 spaces before the skull: it starts closer with fewer players, and the Rewinder can wind it back up to 5. */
+export const DIAL_SPACES = 5;
+
 /** The bomb explodes on the wrong guess that matches the player count (capped at 5). */
 export function dialLimit(playerCount: number): number {
-  return Math.min(playerCount, 5);
+  return Math.min(playerCount, DIAL_SPACES);
+}
+
+/** Wrong guesses left before the skull; above the starting count once the Rewinder winds the dial back. */
+export function dialSpacesLeft(dial: BBGame["dial"]): number {
+  return dial.limit - dial.wrongGuesses;
+}
+
+/** #6 Rewinder: whether the dial can move back a space (up to 5 from the skull, past its start). */
+export function canRewind(dial: BBGame["dial"]): boolean {
+  return dialSpacesLeft(dial) < DIAL_SPACES;
+}
+
+export function rewind(dial: BBGame["dial"]): BBGame["dial"] {
+  if (!canRewind(dial)) throw new Error("The dial is already as far from the skull as it goes.");
+  return { ...dial, wrongGuesses: dial.wrongGuesses - 1 };
 }
 
 export function isDialExploded(dial: BBGame["dial"]): boolean {
