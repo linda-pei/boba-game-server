@@ -16,9 +16,12 @@ import {
   canRevealRed,
   createAllWires,
   dealStands,
+  canRewind,
   dialLimit,
+  dialSpacesLeft,
   drawEquipment,
   isDialExploded,
+  rewind,
   isMissionWon,
   locateSlot,
   onOneStand,
@@ -182,6 +185,18 @@ describe("dial, equipment and validation", () => {
     expect([2, 3, 4, 5].map(dialLimit)).toEqual([2, 3, 4, 5]);
     expect(isDialExploded({ wrongGuesses: 1, limit: 2 })).toBe(false);
     expect(isDialExploded({ wrongGuesses: 2, limit: 2 })).toBe(true);
+  });
+
+  it("rewinds past the starting space, up to 5 spaces from the skull", () => {
+    let dial = { wrongGuesses: 1, limit: 3 };
+    dial = rewind(dial);
+    expect(dialSpacesLeft(dial)).toBe(3);
+    dial = rewind(rewind(dial));
+    expect(dial.wrongGuesses).toBe(-2);
+    expect(dialSpacesLeft(dial)).toBe(5);
+    expect(canRewind(dial)).toBe(false);
+    expect(() => rewind(dial)).toThrow();
+    expect(canRewind({ wrongGuesses: 0, limit: 5 })).toBe(false);
   });
 
   it("draws one card per player, respecting exclusions and missions without equipment", () => {

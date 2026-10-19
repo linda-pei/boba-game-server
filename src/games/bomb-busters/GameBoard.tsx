@@ -7,7 +7,7 @@ import GameBanner from "../../components/shared/GameBanner";
 import GameEndButtons from "../../components/shared/GameEndButtons";
 import ResignButton from "../../components/shared/ResignButton";
 import TurnStatus from "../../components/shared/TurnStatus";
-import { areAdjacent, canRevealRed, describeDeclared, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
+import { areAdjacent, canRevealRed, canRewind, describeDeclared, dialSpacesLeft, onOneStand, soloCutIndices, uncutOnStand, unwrapPublic } from "./engine";
 import { getEquipment } from "./equipment";
 import { MISSIONS, getMission } from "./missions";
 import { deadlyCheck, describeRules, ruleCanCut, ruleCanReveal, ruleCanUseEquipment, ruleEquipmentFaceDown, ruleTurnStatus, setupInfoPolicy } from "./rules";
@@ -99,6 +99,7 @@ function Board({
   requestPick: RulePanelProps["requestPick"];
 }) {
   const mission = getMission(game.missionId);
+  const dialSteps = Math.max(game.dial.limit, dialSpacesLeft(game.dial));
   return (
     <section className="bb-board" aria-label="Bomb">
       <div className="bb-mission">
@@ -113,15 +114,16 @@ function Board({
         const Panel = RULE_PANELS[id];
         return Panel ? <Panel key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
       })}
-      <div className="bb-dial" aria-label={`Detonator: ${game.dial.wrongGuesses} of ${game.dial.limit}`}>
+      <div className="bb-dial" aria-label={`Detonator: ${dialSpacesLeft(game.dial)} wrong guesses left`}>
         <span className="bb-label">Detonator</span>
+        {/* A Rewinder used before any wrong guess adds spaces in front, up to 5. */}
         <div className="bb-dial__track">
-          {Array.from({ length: game.dial.limit }, (_, index) => (
+          {Array.from({ length: dialSteps }, (_, index) => (
             <span
               key={index}
-              className={`bb-dial__step${index < game.dial.wrongGuesses ? " bb-dial__step--hit" : ""}${index === game.dial.limit - 1 ? " bb-dial__step--skull" : ""}`}
+              className={`bb-dial__step${index < dialSteps - dialSpacesLeft(game.dial) ? " bb-dial__step--hit" : ""}${index === dialSteps - 1 ? " bb-dial__step--skull" : ""}`}
             >
-              {index === game.dial.limit - 1 ? "☠" : ""}
+              {index === dialSteps - 1 ? "☠" : ""}
             </span>
           ))}
         </div>
@@ -488,6 +490,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   // Dual Cut equipment lives in the cut panel; the rest can be used here.
   const canUseEquipment = (id: number) => {
     if (!ready(id) || !idle || DUAL_CUT_EQUIPMENT.includes(id)) return false;
+    if (id === 6) return canRewind(game.dial);
     if (id === 9 || id === 11) return isMyTurn && !(id === 9 && game.stabilized);
     if (id === 7) return Object.values(game.characters).some((character) => character.used);
     return true;

@@ -6,6 +6,7 @@ import {
   addLog,
   canDeclare,
   canRevealRed,
+  canRewind,
   describeDeclared,
   describeWire,
   advanceDial,
@@ -22,6 +23,7 @@ import {
   wrapPublic,
   placeInfoToken,
   resolveDualCut,
+  rewind,
   soloCutIndices,
   onOneStand,
   uncutOnStand,
@@ -430,8 +432,9 @@ async function updateGame(roomCode: string, change: (game: BBGame) => BBGame): P
 export async function rewindDial(roomCode: string, uid: string): Promise<void> {
   await updateGame(roomCode, (game) => {
     assertActive(game);
+    if (!canRewind(game.dial)) throw new Error("The dial is already as far from the skull as it goes.");
     const next = spendEquipment(game, 6, uid);
-    return addLog({ ...next, dial: { ...next.dial, wrongGuesses: Math.max(0, next.dial.wrongGuesses - 1) } }, `⏪ ${mention(uid)} used the Rewinder.`);
+    return addLog({ ...next, dial: rewind(next.dial) }, `⏪ ${mention(uid)} used the Rewinder.`);
   });
 }
 
