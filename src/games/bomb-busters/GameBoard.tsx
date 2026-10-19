@@ -386,8 +386,10 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
 
   useCelebration(game?.phase === "mission-won");
 
-  // Clear in-progress selections whenever the game moves on.
-  const selectionKey = `${game?.missionId}-${game?.phase}-${game?.turn}-${game?.log.length}`;
+  // Clear in-progress selections whenever the game moves on. Key on the newest log entry, not the
+  // log's length: the log keeps only the last 40, so its length stops changing in long games.
+  const lastLog = game?.log[game.log.length - 1];
+  const selectionKey = `${game?.missionId}-${game?.phase}-${game?.turn}-${lastLog?.at}-${lastLog?.text}`;
   const [lastSelectionKey, setLastSelectionKey] = useState(selectionKey);
   if (lastSelectionKey !== selectionKey) {
     setLastSelectionKey(selectionKey);
