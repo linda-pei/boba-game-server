@@ -144,7 +144,7 @@ Each card unlocks once 2 wires of its number are cut (the number in its corner),
 | 5 | Super Detector | On your turn | During a Dual Cut, state a value (not yellow) and point at a teammate's whole stand. |
 | 6 | Rewinder | Any time | Move the detonator dial back 1 space. |
 | 7 | Emergency Batteries | Any time | Choose 1 or 2 character cards that have already been used and flip them face up: their personal equipment is usable again this mission. |
-| 8 | General Radar | Any time | State a number from 1 to 12. Every player, including you, says "yes" if they have one or more uncut blue wires of that value. |
+| 8 | General Radar | Any time | State a number from 1 to 12. Every player, including you, says "yes" if they have one or more uncut blue wires of that value. Each tile stand answers separately. |
 | 9 | Stabilizer | Start of your turn | Flip it face down before a Dual Cut. If that cut fails, the detonator doesn't move; if it cuts a red wire, the bomb doesn't explode. |
 | 10 | X or Y Ray | On your turn | During a Dual Cut, state 2 values (yellow allowed) while pointing at 1 wire. You must hold both values. |
 | 11 | Coffee Mug | On your turn | Skip your turn and choose who the next active player is (without consulting teammates). |

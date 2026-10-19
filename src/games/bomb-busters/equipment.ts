@@ -33,7 +33,7 @@ export const EQUIPMENT: BBEquipmentCard[] = [
     id: 8,
     name: "General Radar",
     timing: "any-time",
-    effect: "State a number 1–12. Every player says yes if they hold one or more uncut blue wires of that value.",
+    effect: "State a number 1–12. Each tile stand answers on its own: yes if it holds one or more uncut blue wires of that value.",
   },
   {
     id: 9,
