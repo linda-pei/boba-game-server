@@ -194,6 +194,14 @@ describe("dial, equipment and validation", () => {
     }
   });
 
+  it("never deals a card whose number isn't in play (mission 3 uses only 1–10)", () => {
+    for (let seed = 1; seed < 30; seed += 1) {
+      const { game } = buildMission(["a", "b", "c", "d", "e"], getMission(3), seeded(seed));
+      expect(game.equipment).toHaveLength(5);
+      expect(game.equipment.map((card) => card.id)).not.toContain(11);
+    }
+  });
+
   it("unlocks equipment after 2 wires of its number are cut, and validates full sets", () => {
     let cuts = { blue: {}, red: 0, yellow: 0 } as { blue: Record<string, number>; red: number; yellow: number };
     cuts = recordCut(recordCut(cuts, "blue", 9), "blue", 9);

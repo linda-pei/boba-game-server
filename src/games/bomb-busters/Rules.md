@@ -110,7 +110,7 @@ From the physical cards and board.
 
 For "N out of M" red or yellow setups, write it that way (e.g. "1 out of 2"): M candidates are revealed and N go into play face down.
 
-From mission 3 onwards, the board gets one equipment card per player unless the mission says otherwise. Some missions exclude specific cards (mission 3 excludes #2 and #12).
+From mission 3 onwards, the board gets one equipment card per player unless the mission says otherwise. Some missions exclude specific cards (mission 3 excludes #2 and #12). Cards that could never unlock are also left out: a number with fewer than 2 blue wires in play (#11 in mission 3, which uses 1–10), or False Bottom with fewer than 2 yellow wires.
 
 Red and yellow draws can be limited to a value range (missions 2 and 3), so their sort keys stay inside the blue values in play. From mission 4 on they use the full range.
 

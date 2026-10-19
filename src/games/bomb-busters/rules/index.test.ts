@@ -76,9 +76,10 @@ describe("False Bottom (#13)", () => {
   });
 
   it("stays out when fewer than 2 yellow wires are in play (it could never unlock)", () => {
-    expect(equipmentPool(withFalseBottom, 0)).not.toContain(FALSE_BOTTOM);
-    expect(equipmentPool(withFalseBottom, 1)).not.toContain(FALSE_BOTTOM);
-    expect(equipmentPool(withFalseBottom, 2)).toContain(FALSE_BOTTOM);
+    const totals = (yellow: number) => ({ blue: {}, red: 0, yellow });
+    expect(equipmentPool(withFalseBottom, totals(0))).not.toContain(FALSE_BOTTOM);
+    expect(equipmentPool(withFalseBottom, totals(1))).not.toContain(FALSE_BOTTOM);
+    expect(equipmentPool(withFalseBottom, totals(2))).toContain(FALSE_BOTTOM);
     for (let seed = 1; seed < 20; seed += 1) {
       const { game } = buildMission(["a", "b", "c", "d", "e"], getMission(13), seeded(seed));
       expect(game.wireTotals.yellow).toBe(0);
