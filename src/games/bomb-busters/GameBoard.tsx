@@ -110,6 +110,10 @@ function Board({
           <span key={line} className="bb-rule-line">⚠️ {line}</span>
         ))}
       </div>
+      {/* The latest move sits right under the mission so nobody misses it. */}
+      {game.log.length > 0 && (
+        <p className="bb-last-action" aria-live="polite">{renderLog(room, game.log[game.log.length - 1].text)}</p>
+      )}
       {getMission(game.missionId).rules.map(({ id }) => {
         const Panel = RULE_PANELS[id];
         return Panel ? <Panel key={id} roomCode={roomCode} game={game} room={room} uid={uid} requestPick={requestPick} /> : null;
@@ -174,9 +178,6 @@ function Board({
             </span>
           ))}
       </div>
-      {game.log.length > 0 && (
-        <p className="bb-last-action" aria-live="polite">{renderLog(room, game.log[game.log.length - 1].text)}</p>
-      )}
       {game.radar && (
         <div className="bb-radar">
           <span className="bb-label">Radar: {game.radar.value}</span>
