@@ -838,10 +838,11 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
                     ))}
                   </select>
                 )}
+                {/* A checkbox, not a dropdown option: X or Y Ray combines with any detector. */}
                 {ready(10) && (
                   <label className="bb-detector">
                     <input type="checkbox" checked={useXray} onChange={(e) => { setUseXray(e.target.checked); setXray(null); }} />
-                    X or Y Ray (name 2 values)
+                    {detectorOptions.length > 1 ? "+ X or Y Ray: name 2 values (works with any detector)" : "X or Y Ray: name 2 values"}
                   </label>
                 )}
               </div>
