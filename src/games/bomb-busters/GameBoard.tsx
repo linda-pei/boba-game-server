@@ -49,6 +49,8 @@ const standOffsets = (stands: unknown[][]) => stands.map((_, i) => stands.slice(
 
 const DETECTOR_LABEL: Record<BBDetector, string> = { none: "Single wire", double: "with Double Detector", triple: "with Triple Detector", super: "with Super Detector" };
 const DETECTOR_SLOTS: Record<BBDetector, number> = { none: 1, double: 2, triple: 3, super: 0 };
+/** Your-turn equipment used from the Dual Cut controls rather than a Use button: #3, #5 and #10. */
+const DUAL_CUT_EQUIPMENT = [3, 5, 10];
 
 /** Equipment that opens extra controls on the board when used (others fire immediately or live in the cut panel). */
 type EquipMode = "batteries" | "coffee" | "radar" | "post-it" | "label-neq" | "label-eq" | "walkie" | null;
@@ -223,7 +225,7 @@ function Board({
                     {info.effect}
                   </span>
                 </div>
-                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? "Ready" : card.id === 13 ? "Unlocks at two yellow wires" : `Unlocks at two ${card.id}s`}</span>
+                <span className="bb-muted">{card.used ? "Used" : card.unlocked ? (DUAL_CUT_EQUIPMENT.includes(card.id) ? "Ready · use via Dual Cut" : "Ready") : card.id === 13 ? "Unlocks at two yellow wires" : `Unlocks at two ${card.id}s`}</span>
                 {canUse(card.id) && (
                   <button type="button" className="btn btn--secondary btn--sm" onClick={() => onUse(card.id)}>
                     Use
@@ -481,9 +483,9 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
   if (ready(3)) detectorOptions.push("triple");
   if (ready(5)) detectorOptions.push("super");
 
-  // Your-turn equipment (#3, #5, #10) lives in the cut panel; the rest can be used here.
+  // Dual Cut equipment lives in the cut panel; the rest can be used here.
   const canUseEquipment = (id: number) => {
-    if (!ready(id) || !idle || [3, 5, 10].includes(id)) return false;
+    if (!ready(id) || !idle || DUAL_CUT_EQUIPMENT.includes(id)) return false;
     if (id === 9 || id === 11) return isMyTurn && !(id === 9 && game.stabilized);
     if (id === 7) return Object.values(game.characters).some((character) => character.used);
     return true;
