@@ -293,20 +293,29 @@ export function isDialExploded(dial: BBGame["dial"]): boolean {
 /** Equipment #13: False Bottom (yellow), in the pool from mission 9. */
 export const FALSE_BOTTOM = 13;
 
+/** Whether enough wires are in play to ever unlock a card: 2 blues of its number (False Bottom: 2 yellows). */
+function canUnlock(id: number, totals: BBGame["wireTotals"]): boolean {
+  return (id === FALSE_BOTTOM ? totals.yellow : (totals.blue[id] ?? 0)) >= 2;
+}
+
 /**
  * Every equipment id the mission allows: 1–12, plus False Bottom when enabled, minus exclusions.
- * False Bottom unlocks at 2 yellow cuts, so it stays out when fewer than 2 yellow wires are in play.
+ * With `totals`, cards that could never unlock (e.g. #11 when only 1–10 are in play) stay out.
  */
-export function equipmentPool(mission: BBMission, yellowWires = Infinity): number[] {
-  const falseBottom = mission.equipment.falseBottom && yellowWires >= 2;
-  const ids = Array.from({ length: falseBottom ? 13 : 12 }, (_, i) => i + 1);
-  return ids.filter((id) => !mission.equipment.exclude?.includes(id));
+export function equipmentPool(mission: BBMission, totals?: BBGame["wireTotals"]): number[] {
+  const ids = Array.from({ length: mission.equipment.falseBottom ? 13 : 12 }, (_, i) => i + 1);
+  return ids.filter((id) => !mission.equipment.exclude?.includes(id) && (!totals || canUnlock(id, totals)));
 }
 
 /** One equipment card per player (or none), drawn at random from those the mission allows. */
-export function drawEquipment(mission: BBMission, playerCount: number, random: () => number = Math.random, yellowWires = Infinity): number[] {
+export function drawEquipment(
+  mission: BBMission,
+  playerCount: number,
+  random: () => number = Math.random,
+  totals?: BBGame["wireTotals"],
+): number[] {
   if (mission.equipment.count === 0) return [];
-  return shuffleWith(equipmentPool(mission, yellowWires), random).slice(0, playerCount).sort((a, b) => a - b);
+  return shuffleWith(equipmentPool(mission, totals), random).slice(0, playerCount).sort((a, b) => a - b);
 }
 
 /** Draw `count` more equipment cards from the pool, skipping any already on the board (False Bottom). */
@@ -315,8 +324,9 @@ export function drawExtraEquipment(
   onBoard: number[],
   count: number,
   random: () => number = Math.random,
+  totals?: BBGame["wireTotals"],
 ): number[] {
-  const unused = equipmentPool(mission).filter((id) => id !== FALSE_BOTTOM && !onBoard.includes(id));
+  const unused = equipmentPool(mission, totals).filter((id) => id !== FALSE_BOTTOM && !onBoard.includes(id));
   return shuffleWith(unused, random).slice(0, count);
 }
 
@@ -466,7 +476,7 @@ export function buildMission(playerOrder: string[], mission: BBMission, random: 
     wireTotals: totals,
     cutCounts: { blue: {}, red: 0, yellow: 0 },
     validated: [],
-    equipment: drawEquipment(mission, playerOrder.length, random, totals.yellow).map((id) => ({ id, unlocked: false, used: false })),
+    equipment: drawEquipment(mission, playerOrder.length, random, totals).map((id) => ({ id, unlocked: false, used: false })),
     characters: Object.fromEntries(playerOrder.map((uid) => [uid, { used: false }])),
     pendingAction: null,
     labels: [],
