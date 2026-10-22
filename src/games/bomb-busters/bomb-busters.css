@@ -68,6 +68,11 @@
 }
 .bb-marker--red { background: var(--bb-red); }
 .bb-marker--yellow { background: var(--bb-yellow); color: var(--bb-shell-dark); }
+/* Each color is its own group, split from the next by a thin rule. */
+.bb-marker-group,
+.bb-marker-group__candidates { display: inline-flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+.bb-marker-group + .bb-marker-group { margin-left: 0.25rem; padding-left: 0.6rem; border-left: 1px solid var(--border-strong); }
+.bb-marker-group__count { color: var(--ink-soft); font-size: 0.8rem; font-weight: 700; }
 
 .bb-validation { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .bb-validation__value {

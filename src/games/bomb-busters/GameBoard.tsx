@@ -136,31 +136,37 @@ function Board({
       {game.markers.length > 0 && (
         <div className="bb-markers">
           <span className="bb-label">In play</span>
-          {/* Known wires show only how many are in play; "N out of M" candidates show their possible values. */}
+          {/* One group per color. Known wires show only how many are in play; "N out of M"
+              candidates read "N of" followed by their possible values. */}
           {(["red", "yellow"] as const).map((color) => {
             const known = game.markers.filter((marker) => marker.color === color && !marker.uncertain).length;
-            return known > 0 ? (
-              <span key={color} className={`bb-marker bb-marker--${color}`}>
-                {known} {color}
+            const candidates = game.markers.filter((marker) => marker.color === color && marker.uncertain).map((marker) => marker.sortKey);
+            if (known === 0 && candidates.length === 0) return null;
+            const fromCandidates = game.wireTotals[color] - known;
+            return (
+              <span key={color} className="bb-marker-group">
+                {known > 0 && (
+                  <span className={`bb-marker bb-marker--${color}`}>
+                    {known} {color}
+                  </span>
+                )}
+                {candidates.length > 0 && (
+                  <span
+                    className="bb-marker-group__candidates"
+                    aria-label={`${fromCandidates} ${color} in play, out of ${candidates.join(", ")}`}
+                  >
+                    {known > 0 && <span className="bb-muted">+</span>}
+                    <span className="bb-marker-group__count">{fromCandidates} of</span>
+                    {candidates.map((value) => (
+                      <span key={value} className={`bb-marker bb-marker--${color}`}>
+                        {value}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </span>
-            ) : null;
+            );
           })}
-          {game.markers
-            .filter((marker) => marker.uncertain)
-            .map((marker) => (
-              <span key={`${marker.color}-${marker.sortKey}`} className={`bb-marker bb-marker--${marker.color}`}>
-                ?{marker.sortKey}
-              </span>
-            ))}
-          {game.markers.some((marker) => marker.uncertain) && (
-            <span className="bb-muted">
-              {(["red", "yellow"] as const)
-                .filter((color) => game.markers.some((marker) => marker.color === color && marker.uncertain))
-                .map((color) => `${game.wireTotals[color]} of these ${color}`)
-                .join(", ")}{" "}
-              in play
-            </span>
-          )}
         </div>
       )}
       <div className="bb-validation" aria-label="Validation track">
