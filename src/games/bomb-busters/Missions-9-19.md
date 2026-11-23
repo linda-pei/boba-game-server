@@ -15,7 +15,7 @@ Source notes: [`notes/bomb-busters/missions-9-19.txt`](../../../notes/bomb-buste
 | --- | --- | --- | --- | --- | --- |
 | 9 | A Sense of Priorities | 1 | 2 | 2 red, 4 yellow | `sequence` (3 number cards; 2 of each before the next) |
 | 10 | A Rough Patch | 1 | 4 | 12-min timer | `timer` (15 min) + `freeTurns`; equipment #11 excluded |
-| 11 | Blue on Red Looks Like We Are Dead | 0 | 2 | 4 yellow | `deadlyValue` (one number card's blue value acts like red); captain places no info token |
+| 11 | Blue on Red Looks Like We Are Dead | 0 | 2 | 4 yellow | `deadlyValue` (one number card's blue value acts like red); captain places no info token; that value's equipment card is never dealt |
 | 12 | Wrapped in Red Tape | 1 | 4 | 2 red, 4 yellow | `redTape` (each equipment also needs its number card's pair cut) |
 | 13 | Red Alert | 3, dealt one per player | 0 | Captain gets 2 (one per stand) | `redAlert` (new "cut three reds" action; random setup info tokens) |
 | 14 | High Risk Bomb Disposal Expert | 2 | 2 out of 3 | 2 red, 4 yellow | `rookie` (random roles; Rookie's failed Dual Cut explodes; no Stabilizer) |
