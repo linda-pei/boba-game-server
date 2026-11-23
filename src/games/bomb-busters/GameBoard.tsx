@@ -763,7 +763,7 @@ export default function BombBustersGameBoard({ roomCode }: { roomCode: string })
           ))}
         </section>
 
-        <section className="bb-me">
+        <section className={`bb-me${game.turn === uid && game.phase === "playing" ? " bb-player--turn" : ""}`}>
           <div className="bb-player__header">
             <strong>Your stand</strong>
             {uid === game.captain && <span className="bb-tag">Captain</span>}
