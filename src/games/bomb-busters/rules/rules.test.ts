@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BBDeclared, BBGame } from "../../../types";
-import { canRevealRed, finishTurn, resolveDualCut, soloCutIndices } from "../engine";
+import { canRevealRed, drawExtraEquipment, finishTurn, resolveDualCut, soloCutIndices } from "../engine";
 import { MISSIONS, getMission } from "../missions";
 import {
   buildMissionWithRules,
@@ -15,6 +15,7 @@ import {
   startPlayWithRules,
   ruleEquipmentFaceDown,
   setupInfoPolicy,
+  unlockableTotals,
   wrongGuessExplodes,
   wrongGuessToken,
 } from "./index";
@@ -69,6 +70,17 @@ describe("deadlyValue (mission 11)", () => {
     expect(deadly({ id: "x", color: "blue", sortKey: value })).toBe(true);
     expect(resolveDualCut([{ id: "x", color: "blue", sortKey: value }], value === 12 ? 1 : value + 1, deadly)).toEqual({ result: "explode" });
     expect(canRevealRed([[{ id: "x", color: "blue", sortKey: value, cut: false }]], deadly)).toBe(true);
+  });
+
+  it("never deals (or adds via False Bottom) an equipment card of the deadly value", () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const built = buildMissionWithRules(["cap", "b", "c", "d", "e"], getMission(11), seeded(seed));
+      const { value } = built.game.ruleState.deadlyValue as DeadlyValueState;
+      expect(built.game.equipment.map((card) => card.id)).not.toContain(value);
+      expect(unlockableTotals(built.game).blue[value]).toBe(0);
+      const extra = drawExtraEquipment(getMission(11), built.game.equipment.map((card) => card.id), 12, seeded(seed), unlockableTotals(built.game));
+      expect(extra).not.toContain(value);
+    }
   });
 });
 

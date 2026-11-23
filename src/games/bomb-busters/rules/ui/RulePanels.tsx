@@ -105,8 +105,11 @@ const formatClock = (ms: number) => {
 export function TimerPanel({ game, roomCode }: RulePanelProps) {
   const state = game.ruleState.timer as TimerState | undefined;
   const now = useNow();
-  const remaining = state?.endsAt ? state.endsAt - now : null;
   const live = game.phase === "playing" || game.phase === "resolving";
+  const over = game.phase === "mission-won" || game.phase === "mission-lost";
+  // Once the mission ends, freeze the clock at the final action (logged in the same write).
+  const stoppedAt = over ? (game.log[game.log.length - 1]?.at ?? now) : now;
+  const remaining = state?.endsAt ? state.endsAt - stoppedAt : null;
   // When time runs out, any client may end the mission (the action re-checks the clock).
   const expired = live && remaining !== null && remaining <= 0;
   useEffect(() => {

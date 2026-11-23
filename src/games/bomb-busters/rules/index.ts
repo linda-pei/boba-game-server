@@ -90,6 +90,15 @@ export function deadlyCheck(game: BBGame, env: RuleEnv = DEFAULT_RULE_ENV): Dead
   return (wire) => isRed(wire) || rules.some(({ rule, params }) => rule.isDeadly?.(wire, { game, params, state: stateOf(game, rule.id) }) ?? false);
 }
 
+/** Wire totals minus blue values a rule makes deadly: those are never cut, so their cards never unlock. */
+export function unlockableTotals(game: BBGame, env: RuleEnv = DEFAULT_RULE_ENV): BBGame["wireTotals"] {
+  const isDeadly = deadlyCheck(game, env);
+  const blue = Object.fromEntries(
+    Object.entries(game.wireTotals.blue).map(([value, count]) => [value, isDeadly({ id: "", color: "blue", sortKey: Number(value) }) ? 0 : count]),
+  );
+  return { ...game.wireTotals, blue };
+}
+
 function unlockCheck(game: BBGame, env: RuleEnv): UnlockCheck | undefined {
   const rules = rulesOf(game, env).filter(({ rule }) => rule.isEquipmentUnlocked);
   if (rules.length === 0) return undefined;
